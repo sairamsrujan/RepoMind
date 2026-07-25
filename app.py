@@ -250,6 +250,9 @@ def _run_qa(ctx, question, since, until) -> None:
         "retry_reason": pr.retry_reason,
         "retry_succeeded": pr.retry_succeeded,
         "refusal": pr.refusal,
+        "model": pr.model,
+        "fell_back": pr.fell_back,
+        "fallback_reason": pr.fallback_reason,
     }
     st.session_state["last_answer"] = answer
     # Keep a short per-session history (most recent first, capped at 5).
@@ -345,8 +348,11 @@ def _render_answer(ans: dict) -> None:
                      "neu" if ans["n_unverified"] == 0 else "warn")
     retry_pill = (_pill("🔁 answer regenerated after guard rejection", "warn")
                   if ans.get("retry_attempted") else "")
+    fallback_pill = (_pill("☁️→💻 cloud unavailable, answered locally", "warn")
+                     if ans.get("fell_back") else "")
     st.markdown(
-        f"<div class='rm-pills'>{retry_pill}{cite_pill}{ground_pill}{unv_pill}</div>",
+        f"<div class='rm-pills'>{fallback_pill}{retry_pill}{cite_pill}"
+        f"{ground_pill}{unv_pill}</div>",
         unsafe_allow_html=True,
     )
 

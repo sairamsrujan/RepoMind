@@ -211,6 +211,28 @@ def _extract_json(text: str):
 
 
 def _ollama_chat(prompt: str, model: str, temperature: float = 0.3) -> str:
+    """Chat completion for question synthesis.
+
+    Uses the configured cloud provider when ``GENERATION_PROVIDER=api`` (much
+    faster and uses no local RAM), falling back to local Ollama on any failure —
+    the same policy as the live answer path.
+    """
+    if config.api_generation_enabled():
+        try:
+            resp = requests.post(
+                f"{config.GENERATION_API_BASE_URL.rstrip('/')}/chat/completions",
+                headers={"Authorization": f"Bearer {config.GENERATION_API_KEY}"},
+                json={"model": config.GENERATION_API_MODEL,
+                      "messages": [{"role": "user", "content": prompt}],
+                      "temperature": temperature,
+                      "max_tokens": config.GENERATION_MAX_TOKENS},
+                timeout=config.GENERATION_API_TIMEOUT,
+            )
+            resp.raise_for_status()
+            return resp.json()["choices"][0]["message"]["content"]
+        except Exception:  # noqa: BLE001 - fall back to local
+            if not config.GENERATION_API_FALLBACK:
+                raise
     resp = requests.post(
         f"{config.OLLAMA_HOST}/api/chat",
         json={"model": model, "stream": False,

@@ -112,6 +112,47 @@ FINAL_TOP_K: int = 6                    # final chunks after reranking
 GENERATION_TEMPERATURE: float = 0.1
 GENERATION_MAX_TOKENS: int = 1024
 
+# Optional cloud generation. Set GENERATION_PROVIDER=api to answer with a hosted
+# OpenAI-compatible model instead of local Ollama. Any failure (missing key,
+# auth error, rate limit, timeout, deprecated model) falls back to Ollama when
+# GENERATION_API_FALLBACK is on, so the app keeps working offline.
+#
+# Base URLs for common free-tier providers (all OpenAI-compatible):
+#   Groq       https://api.groq.com/openai/v1
+#   Gemini     https://generativelanguage.googleapis.com/v1beta/openai/
+#   NVIDIA NIM https://integrate.api.nvidia.com/v1
+#   OpenRouter https://openrouter.ai/api/v1
+GENERATION_PROVIDER: str = os.getenv("GENERATION_PROVIDER", "ollama")  # ollama|api
+GENERATION_API_BASE_URL: str = os.getenv(
+    "GENERATION_API_BASE_URL", "https://api.groq.com/openai/v1")
+GENERATION_API_KEY: str = os.getenv("GENERATION_API_KEY", "")
+GENERATION_API_MODEL: str = os.getenv("GENERATION_API_MODEL",
+                                      "llama-3.3-70b-versatile")
+GENERATION_API_FALLBACK: bool = (
+    os.getenv("GENERATION_API_FALLBACK", "true").strip().lower()
+    not in ("0", "false", "no"))
+GENERATION_API_TIMEOUT: int = int(os.getenv("GENERATION_API_TIMEOUT", "60"))
+# Free tiers cap tokens-per-minute. A 429 is transient, so retry with backoff
+# before falling back to local — otherwise a long evaluation silently ends up
+# half-local and the metrics mix two different models.
+GENERATION_API_MAX_RETRIES: int = int(
+    os.getenv("GENERATION_API_MAX_RETRIES", "4"))
+GENERATION_API_BACKOFF_BASE: float = float(
+    os.getenv("GENERATION_API_BACKOFF_BASE", "5"))
+# Seconds to pause between generation calls (throttle to stay under TPM caps).
+GENERATION_API_THROTTLE: float = float(
+    os.getenv("GENERATION_API_THROTTLE", "0"))
+
+
+def api_generation_enabled() -> bool:
+    """True only when cloud generation is both selected and configured."""
+    return GENERATION_PROVIDER == "api" and bool(GENERATION_API_KEY)
+
+
+def effective_generation_model() -> str:
+    """The model that will actually answer (for provenance/reporting)."""
+    return GENERATION_API_MODEL if api_generation_enabled() else GENERATION_MODEL
+
 # --------------------------------------------------------------------------- #
 # Hallucination guard
 # --------------------------------------------------------------------------- #
@@ -146,6 +187,7 @@ def flag_state() -> dict:
         "ENABLE_METRICS_LOGGING": ENABLE_METRICS_LOGGING,
         "ENABLE_ADAPTIVE_RETRY": ENABLE_ADAPTIVE_RETRY,
         "ENABLE_CROSS_REPO": ENABLE_CROSS_REPO,
+        "GENERATION_PROVIDER": GENERATION_PROVIDER,
     }
 
 

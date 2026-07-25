@@ -304,7 +304,7 @@ def run(repo: str, dataset: str, metrics_list: list[str], subset: str,
         # Provenance: scores are only comparable across runs that used the same
         # models, so record exactly which ones produced this run.
         "models": {
-            "generation": config.GENERATION_MODEL,
+            "generation": config.effective_generation_model(),
             "embedding": config.EMBEDDING_MODEL,
             "reranker": config.RERANKER_MODEL,
             "nli": config.NLI_MODEL,

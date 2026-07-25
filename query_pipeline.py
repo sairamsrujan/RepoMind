@@ -44,6 +44,9 @@ class Attempt:
     generation_ms: float
     guard_ms: float
     empty: bool = False
+    model: str = ""              # model that actually produced the text
+    fell_back: bool = False      # cloud generation failed -> local answered
+    fallback_reason: str = ""
 
 
 @dataclass
@@ -56,6 +59,9 @@ class PipelineResult:
     guard_pass: bool
     generation_ms: float
     guard_ms: float
+    model: str = ""              # model that actually produced the text
+    fell_back: bool = False      # cloud generation failed -> local answered
+    fallback_reason: str = ""
     retry_attempted: bool = False
     retry_reason: str = ""
     retry_succeeded: bool = False
@@ -103,7 +109,10 @@ def run_attempt(
     guard_ms = (time.perf_counter() - _guard0) * 1000.0
 
     guard_pass = ref_report.is_valid and nli_report.is_grounded
-    return Attempt(chunks=chunks, text=result.text, ref_report=ref_report,
+    return Attempt(model=getattr(result, "model", ""),
+                   fell_back=getattr(result, "fell_back", False),
+                   fallback_reason=getattr(result, "fallback_reason", ""),
+                   chunks=chunks, text=result.text, ref_report=ref_report,
                    nli_report=nli_report, guard_pass=guard_pass,
                    generation_ms=generation_ms, guard_ms=guard_ms)
 
@@ -126,7 +135,9 @@ def answer_query(
             empty=False, chunks=first.chunks, text=first.text,
             ref_report=first.ref_report, nli_report=first.nli_report,
             guard_pass=first.guard_pass, generation_ms=first.generation_ms,
-            guard_ms=first.guard_ms, retry_attempted=False)
+            guard_ms=first.guard_ms, retry_attempted=False,
+            model=first.model, fell_back=first.fell_back,
+            fallback_reason=first.fallback_reason)
 
     # Guard rejected AND retry enabled -> exactly ONE widened retry.
     reason = guard_reason(first.ref_report, first.nli_report)
@@ -146,7 +157,9 @@ def answer_query(
             empty=False, chunks=retry.chunks, text=retry.text,
             ref_report=retry.ref_report, nli_report=retry.nli_report,
             guard_pass=True, generation_ms=gen_ms, guard_ms=guard_ms,
-            retry_attempted=True, retry_reason=reason, retry_succeeded=True)
+            retry_attempted=True, retry_reason=reason, retry_succeeded=True,
+            model=retry.model, fell_back=retry.fell_back,
+            fallback_reason=retry.fallback_reason)
 
     # Retry also failed (or produced nothing) -> honest refusal. We keep the
     # retry's guard reports (for metrics) but NEVER display its unverified text.
@@ -156,7 +169,9 @@ def answer_query(
         nli_report=retry.nli_report or first.nli_report,
         guard_pass=False, generation_ms=gen_ms, guard_ms=guard_ms,
         retry_attempted=True, retry_reason=reason, retry_succeeded=False,
-        refusal=True)
+        refusal=True, model=retry.model or first.model,
+        fell_back=retry.fell_back or first.fell_back,
+        fallback_reason=retry.fallback_reason or first.fallback_reason)
 
 
 def answer_across_repos(question: str, repos, answerer, nli_verifier):
