@@ -334,6 +334,28 @@ pytest -q
 Model- and Ollama-dependent tests skip automatically if those services aren't
 available; the pure-logic tests always run.
 
+### Memory note (important on 16 GB machines)
+
+This system holds several models in RAM at once: Ollama's chat model (~4.7 GB
+for `qwen2.5:7b-instruct`), the embedding model (~2.4 GB resident), the BGE
+reranker (~2.3 GB), and the NLI guard (~0.8 GB). That is fine on its own, but
+**do not run the Streamlit app, `pytest`, and an evaluation at the same time** —
+on 16 GB that exceeds physical memory, the machine swaps heavily, and the OS may
+kill a process silently (a run that stops with no error message is almost always
+this). Symptoms: severe lag and a hot machine.
+
+Rules of thumb:
+
+- Run **one** heavy job at a time (app **or** tests **or** an eval).
+- Free Ollama's resident models between jobs:
+  `curl -s localhost:11434/api/generate -d '{"model":"qwen2.5:7b-instruct","keep_alive":0}'`
+- For long evaluations, prefer the smaller generation model
+  (`GENERATION_MODEL=qwen2.5:3b`) — roughly half the RAM. Record which model a
+  run used; `results.json` stores this under `models`, and the UI warns when a
+  displayed run used a different model than the app currently answers with.
+- Evaluations checkpoint after every question, so an interrupted run resumes
+  from where it stopped — just re-run the same command.
+
 ---
 
 ## Design guarantees

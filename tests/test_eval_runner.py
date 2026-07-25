@@ -14,11 +14,18 @@ from eval import golden_set, run as eval_run
 # Golden set: loader + validator
 # --------------------------------------------------------------------------- #
 def test_load_and_validate_sample_dataset():
+    # Golden sets are regenerable (see eval/generate_golden_set.py), so assert
+    # structural correctness rather than an exact row count, which would go
+    # stale every time the set is regenerated at a different size.
     entries = golden_set.load_golden_set("eval/datasets/acme_widgets.jsonl")
     golden_set.validate_golden_set(entries)          # must not raise
-    assert len(entries) == 5
+    assert entries, "sample dataset should not be empty"
     dist = golden_set.category_distribution(entries)
-    assert dist["unanswerable"] == 1 and dist["factual"] == 1
+    # Every category present must be a known one, and the set must contain both
+    # answerable and unanswerable items to exercise both code paths.
+    assert set(dist) <= golden_set.VALID_QUERY_TYPES
+    assert dist["unanswerable"] >= 1
+    assert sum(v for k, v in dist.items() if k != "unanswerable") >= 1
 
 
 def test_unanswerable_entry_has_no_ground_truth():
