@@ -1,0 +1,34 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Per-repository indexed data (rebuildable artifacts, not source)
+repositories/*/
+!repositories/.gitkeep
+
+# Phase A per-query metrics logs (runtime data, not source)
+data/metrics/
+
+# Phase C/D evaluation outputs (regenerable)
+results/
+
+# Phase G offline wheelhouse (large; keep on external storage)
+wheelhouse/
+
+# HuggingFace / model caches that may land in-tree
+.cache/
+
+# OS
+.DS_Store

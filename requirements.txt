@@ -1,0 +1,36 @@
+# RepoMind — exact pinned dependencies (Phase 9 freeze).
+# Pinned with `==` for reproducibility and 1+ year unattended operation.
+# Tested on macOS (Apple Silicon), Python 3.11.
+
+# --- UI ---
+streamlit==1.60.0
+
+# --- Config / env ---
+python-dotenv==1.2.2
+
+# --- HTTP / GitHub API (REST + GraphQL) ---
+requests==2.34.2
+
+# --- Vector store & sparse retrieval ---
+chromadb==1.5.9
+rank_bm25==0.2.2
+
+# --- Tokenization (chunk sizing) ---
+tiktoken==0.13.0
+
+# --- Reranker + NLI cross-encoders ---
+sentence-transformers==5.6.0
+torch==2.13.0
+
+# --- Numeric ---
+numpy==2.4.6
+
+# --- Evaluation judge (OpenAI-compatible client for the swappable Groq/Gemini
+#     judge; the local Ollama judge needs no extra package). We compute
+#     RAGAS-style faithfulness + answer-relevancy via this swappable judge
+#     rather than the heavy, fast-changing `ragas`+`langchain` stack, to satisfy
+#     the "runs 1+ year unattended / pin everything" constraint. ---
+openai==2.47.0
+
+# --- Testing ---
+pytest==9.1.1

@@ -1,0 +1,14 @@
+# RepoMind UI theme. A cohesive dark palette with an indigo accent.
+[theme]
+base = "dark"
+primaryColor = "#7c6ff0"
+backgroundColor = "#0e1117"
+secondaryBackgroundColor = "#161b26"
+textColor = "#e6e8eb"
+font = "sans serif"
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false

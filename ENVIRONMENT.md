@@ -1,0 +1,194 @@
+# Environment & Restore Procedure
+
+RepoMind must still run after a ~10-month gap with no network beyond Ollama on
+localhost. This document is the insurance: how to freeze the environment now and
+rebuild it on a clean machine later.
+
+## Freeze (run now, and again before any risky change)
+
+```bash
+bash scripts/freeze_environment.sh
+```
+
+This:
+1. Downloads every pinned wheel to `wheelhouse/` (`pip download -r requirements.txt`).
+2. Archives the HuggingFace cache for the reranker and NLI checkpoints into
+   `wheelhouse/hf_cache/`.
+3. Regenerates the **Snapshot** section below (Python / macOS / `ollama list` /
+   `pip freeze`).
+
+`wheelhouse/` is large and **gitignored** — keep it on external storage
+(USB/SSD/cloud drive), not in the repo.
+
+## Restore on a clean machine (offline for Python + models)
+
+1. **Python 3.11** and a fresh venv:
+   ```bash
+   python3.11 -m venv .venv && source .venv/bin/activate
+   ```
+2. **Install from the wheelhouse** (no network needed for Python deps):
+   ```bash
+   pip install --no-index --find-links wheelhouse -r requirements.txt
+   ```
+3. **Restore the model cache** (no HuggingFace download needed):
+   ```bash
+   mkdir -p ~/.cache/huggingface/hub
+   cp -R wheelhouse/hf_cache/* ~/.cache/huggingface/hub/
+   ```
+4. **Ollama** (the one component that still needs its own install + local models):
+   install Ollama, then re-pull the pinned tags:
+   ```bash
+   ollama pull qwen3-embedding:0.6b
+   ollama pull qwen2.5:7b-instruct
+   ```
+5. **Verify** everything is alive:
+   ```bash
+   python scripts/smoke_test.py
+   ```
+   All five checks must print `PASS`. Check 3 forces HuggingFace *offline* mode,
+   so it fails loudly if a model would need to download — proving the cache
+   restore worked.
+
+Indexed repositories under `repositories/` are rebuildable from GitHub and are
+gitignored; re-index any you need via the app or `python -m jobs.runner`.
+
+<!-- SNAPSHOT:BEGIN -->
+## Snapshot
+
+_Generated 2026-07-24T23:57:44Z_
+
+```
+Python: Python 3.11.15
+macOS:  ProductName:		macOS ProductVersion:		26.5.2 BuildVersion:		25F84 
+
+ollama list:
+NAME                       ID              SIZE      MODIFIED     
+qwen2.5:7b-instruct        845dbda0ea48    4.7 GB    2 days ago      
+qwen3-embedding:0.6b       ac6da0dfba84    639 MB    2 days ago      
+nomic-embed-text:latest    0a109f422b47    274 MB    4 weeks ago     
+qwen2.5:0.5b               a8b0c5157701    397 MB    8 weeks ago     
+qwen2.5:7b                 845dbda0ea48    4.7 GB    2 months ago    
+qwen2.5:3b                 357c53fb659c    1.9 GB    2 months ago    
+llama3:latest              365c0bd3c000    4.7 GB    4 months ago    
+qwen2:1.5b                 f6daf2b25194    934 MB    5 months ago    
+
+pip freeze:
+GitPython==3.1.54
+Jinja2==3.1.6
+MarkupSafe==3.0.3
+PyPika==0.51.1
+PyYAML==6.0.3
+Pygments==2.20.0
+aiohappyeyeballs==2.7.1
+aiohttp==3.14.2
+aiosignal==1.4.0
+altair==6.2.2
+annotated-doc==0.0.4
+annotated-types==0.7.0
+anyio==4.14.2
+attrs==26.1.0
+bcrypt==5.0.0
+blinker==1.9.0
+build==1.5.0
+certifi==2026.7.22
+charset-normalizer==3.4.9
+chromadb==1.5.9
+click==8.4.2
+distro==1.9.0
+durationpy==0.10
+filelock==3.32.0
+flatbuffers==25.12.19
+frozenlist==1.8.0
+fsspec==2026.6.0
+gitdb==4.0.12
+googleapis-common-protos==1.75.0
+grpcio==1.82.1
+h11==0.16.0
+hf-xet==1.5.2
+httpcore==1.0.9
+httptools==0.8.0
+httpx==0.28.1
+huggingface_hub==1.24.0
+idna==3.18
+importlib_resources==7.1.0
+iniconfig==2.3.0
+itsdangerous==2.2.0
+jiter==0.16.0
+joblib==1.5.3
+jsonschema-specifications==2025.9.1
+jsonschema==4.26.0
+kubernetes==36.0.3
+markdown-it-py==4.2.0
+mdurl==0.1.2
+mmh3==5.2.1
+mpmath==1.3.0
+multidict==6.7.1
+narwhals==2.24.0
+networkx==3.6.1
+numpy==2.4.6
+oauthlib==3.3.1
+onnxruntime==1.27.0
+openai==2.47.0
+opentelemetry-api==1.44.0
+opentelemetry-exporter-otlp-proto-common==1.44.0
+opentelemetry-exporter-otlp-proto-grpc==1.44.0
+opentelemetry-proto==1.44.0
+opentelemetry-sdk==1.44.0
+opentelemetry-semantic-conventions==0.65b0
+orjson==3.11.9
+overrides==7.7.0
+packaging==26.2
+pandas==3.0.3
+pillow==12.3.0
+pluggy==1.6.0
+propcache==0.5.2
+protobuf==7.35.1
+pyarrow==24.0.0
+pybase64==1.4.3
+pydantic-settings==2.14.2
+pydantic==2.13.4
+pydantic_core==2.46.4
+pydeck==0.9.3
+pyproject_hooks==1.2.0
+pytest==9.1.1
+python-dateutil==2.9.0.post0
+python-dotenv==1.2.2
+python-multipart==0.0.32
+rank-bm25==0.2.2
+referencing==0.37.0
+regex==2026.7.19
+requests-oauthlib==2.0.0
+requests==2.34.2
+rich==15.0.0
+rpds-py==2026.6.3
+safetensors==0.8.0
+scikit-learn==1.9.0
+scipy==1.17.1
+sentence-transformers==5.6.0
+shellingham==1.5.4
+six==1.17.0
+smmap==5.0.3
+sniffio==1.3.1
+starlette==1.3.1
+streamlit==1.60.0
+sympy==1.14.0
+tenacity==9.1.4
+threadpoolctl==3.6.0
+tiktoken==0.13.0
+tokenizers==0.22.2
+toml==0.10.2
+torch==2.13.0
+tqdm==4.69.0
+transformers==5.14.1
+typer==0.27.0
+typing-inspection==0.4.2
+typing_extensions==4.16.0
+urllib3==2.7.0
+uvicorn==0.51.0
+uvloop==0.22.1
+watchfiles==1.2.0
+websocket-client==1.9.0
+websockets==16.1.1
+yarl==1.24.5
+```
+<!-- SNAPSHOT:END -->
