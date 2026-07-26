@@ -87,7 +87,8 @@ class NLIVerifier:
         else:
             from sentence_transformers import CrossEncoder
 
-            self._model = CrossEncoder(self.model_name, max_length=512)
+            self._model = CrossEncoder(self.model_name, max_length=512,
+                                       device=config.TORCH_DEVICE)
             _MODEL_CACHE[self.model_name] = self._model
         # Read the model's own label mapping when available.
         cfg = getattr(getattr(self._model, "model", None), "config", None)
@@ -95,10 +96,8 @@ class NLIVerifier:
             self._labels = {int(k): str(v).lower() for k, v in cfg.id2label.items()}
         return self._model
 
-    def predict_nli(self, premise: str, hypothesis: str) -> dict[str, float]:
-        model = self._load()
-        logits = np.asarray(model.predict([(premise, hypothesis)])[0], dtype=float)
-        probs = _softmax(logits)
+    def _to_probs(self, logits) -> dict[str, float]:
+        probs = _softmax(np.asarray(logits, dtype=float))
         out = {"contradiction": 0.0, "entailment": 0.0, "neutral": 0.0}
         for idx, p in enumerate(probs):
             label = self._labels.get(idx, str(idx))
@@ -106,6 +105,25 @@ class NLIVerifier:
                 if key in label:
                     out[key] = float(p)
         return out
+
+    def predict_nli(self, premise: str, hypothesis: str) -> dict[str, float]:
+        return self.predict_nli_batch([(premise, hypothesis)])[0]
+
+    def predict_nli_batch(
+        self, pairs: list[tuple[str, str]]
+    ) -> list[dict[str, float]]:
+        """Score many (premise, hypothesis) pairs in ONE forward pass.
+
+        The guard checks each claim against its combined evidence *and* each
+        cited chunk individually. Doing those as separate single-item calls
+        costs one model invocation each, which dominates query latency on CPU;
+        batching them is the same computation in a fraction of the time.
+        """
+        if not pairs:
+            return []
+        model = self._load()
+        raw = model.predict(pairs)
+        return [self._to_probs(row) for row in raw]
 
     def verify(
         self, answer_text: str, retrieved_chunks: list[dict[str, Any]]
@@ -142,12 +160,12 @@ class NLIVerifier:
                 continue
 
             combined = "\n".join(premises)[:4000]
-            r_comb = self.predict_nli(combined, hypothesis)
-            best_ent = r_comb["entailment"]
-            best_con = r_comb["contradiction"]
-            for p in premises:                       # recover truncated support
-                r = self.predict_nli(p, hypothesis)
-                best_ent = max(best_ent, r["entailment"])
+            # One batched forward pass for the combined premise plus each
+            # individual one, instead of len(premises)+1 separate calls.
+            scored = self.predict_nli_batch(
+                [(combined, hypothesis)] + [(p, hypothesis) for p in premises])
+            best_ent = max(r["entailment"] for r in scored)
+            best_con = scored[0]["contradiction"]    # combined evidence only
 
             if best_ent >= config.NLI_ENTAILMENT_THRESHOLD:
                 status = "entailed"

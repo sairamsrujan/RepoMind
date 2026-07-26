@@ -19,7 +19,8 @@ def _load_cross_encoder(model_name: str):
         return _MODEL_CACHE[model_name]
     from sentence_transformers import CrossEncoder
 
-    model = CrossEncoder(model_name, max_length=512)
+    model = CrossEncoder(model_name, max_length=512,
+                         device=config.TORCH_DEVICE)
     _MODEL_CACHE[model_name] = model
     return model
 

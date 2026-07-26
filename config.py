@@ -49,6 +49,14 @@ GENERATION_MODEL_FALLBACK: str = "llama3.1:8b-instruct"
 RERANKER_MODEL: str = os.getenv("RERANKER_MODEL", "BAAI/bge-reranker-v2-m3")
 RERANKER_MODEL_FALLBACK: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
+# Device for the local sentence-transformers models (reranker + NLI guard).
+# Defaults to "cpu" deliberately: PyTorch's MPS (Apple GPU) backend segfaults
+# when copying tensors for these cross-encoders, especially with more than one
+# process running, which crashes the whole app. These models are small, so CPU
+# costs a little latency and buys crash-free demos. Set TORCH_DEVICE=mps to
+# opt back into the GPU.
+TORCH_DEVICE: str = os.getenv("TORCH_DEVICE", "cpu")
+
 # NLI model for the hallucination guard (sentence-transformers CrossEncoder).
 NLI_MODEL: str = os.getenv("NLI_MODEL", "cross-encoder/nli-deberta-v3-base")
 
@@ -103,7 +111,10 @@ SPARSE_TOP_K: int = 30                  # candidates from BM25 (sparse)
 RRF_K: int = 60                         # Reciprocal Rank Fusion constant
 RRF_POOL_SIZE: int = 40                 # merged candidate pool after RRF
 MMR_LAMBDA: float = 0.5                 # relevance/diversity trade-off
-MMR_TOP_N: int = 20                     # candidates kept after MMR
+MMR_TOP_N: int = 12                     # candidates kept after MMR
+                                        # (each one costs a cross-encoder
+                                        # pass; 12 keeps rerank latency
+                                        # demo-acceptable on CPU)
 FINAL_TOP_K: int = 6                    # final chunks after reranking
 
 # --------------------------------------------------------------------------- #
@@ -136,9 +147,14 @@ GENERATION_API_TIMEOUT: int = int(os.getenv("GENERATION_API_TIMEOUT", "60"))
 # before falling back to local — otherwise a long evaluation silently ends up
 # half-local and the metrics mix two different models.
 GENERATION_API_MAX_RETRIES: int = int(
-    os.getenv("GENERATION_API_MAX_RETRIES", "4"))
+    os.getenv("GENERATION_API_MAX_RETRIES", "2"))
 GENERATION_API_BACKOFF_BASE: float = float(
-    os.getenv("GENERATION_API_BACKOFF_BASE", "5"))
+    os.getenv("GENERATION_API_BACKOFF_BASE", "2"))
+# Never stall a query longer than this waiting on a provider. If the provider
+# asks for longer (e.g. a daily quota reset), fall back to the local model
+# immediately rather than making every query slow before failing over anyway.
+GENERATION_API_MAX_WAIT: float = float(
+    os.getenv("GENERATION_API_MAX_WAIT", "8"))
 # Seconds to pause between generation calls (throttle to stay under TPM caps).
 GENERATION_API_THROTTLE: float = float(
     os.getenv("GENERATION_API_THROTTLE", "0"))

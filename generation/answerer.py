@@ -29,9 +29,24 @@ def _retry_after_seconds(resp) -> float | None:
     if not raw:
         return None
     try:
-        return max(0.0, min(float(raw), 60.0))
+        return max(0.0, float(raw))
     except (TypeError, ValueError):
         return None
+
+
+def _is_quota_exhausted(resp) -> bool:
+    """True when the provider says the wait is longer than we should ever wait.
+
+    A per-minute burst limit clears in seconds and is worth retrying. A daily
+    token quota clears in *minutes to hours* — sitting on it just makes every
+    query slow before falling back anyway. Detect that case and fail over to
+    the local model immediately instead.
+    """
+    wait = _retry_after_seconds(resp)
+    if wait is not None and wait > config.GENERATION_API_MAX_WAIT:
+        return True
+    body = (getattr(resp, "text", "") or "").lower()
+    return "per day" in body or "tpd" in body or "quota" in body
 
 
 @dataclass
@@ -101,8 +116,14 @@ class Answerer:
                 last_err = f"API error {resp.status_code}: {resp.text[:200]}"
                 if attempt >= config.GENERATION_API_MAX_RETRIES:
                     break
-                wait = _retry_after_seconds(resp) or min(
-                    config.GENERATION_API_BACKOFF_BASE * (2 ** attempt), 60.0)
+                # Daily quota (resets in minutes-hours): don't stall the query, go local now.
+                if _is_quota_exhausted(resp):
+                    _log.info("Provider quota exhausted; using local model now")
+                    break
+                wait = min(
+                    _retry_after_seconds(resp) or
+                    config.GENERATION_API_BACKOFF_BASE * (2 ** attempt),
+                    config.GENERATION_API_MAX_WAIT)
                 _log.info("Provider busy (%s); retrying in %.1fs "
                           "(attempt %d/%d)", resp.status_code, wait,
                           attempt + 1, config.GENERATION_API_MAX_RETRIES)

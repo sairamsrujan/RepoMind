@@ -90,3 +90,44 @@ def is_indexed_and_reusable(
     """True only if ``ref`` is indexed AND its index is reusable per config."""
     entry = find(ref, repositories_dir)
     return bool(entry and entry.reusable)
+
+
+class DeleteError(RuntimeError):
+    """Raised when a repository directory cannot be safely deleted."""
+
+
+def delete_repository(slug: str, repositories_dir: Path | None = None) -> int:
+    """Permanently delete one indexed repository's directory.
+
+    Removes the raw data, chunks, embeddings, and index for ``slug`` so the disk
+    space is reclaimed and it disappears from the registry. The repository can
+    always be re-indexed from GitHub afterwards — nothing unrecoverable is lost.
+
+    Guardrails, because this deletes a directory tree:
+      * ``slug`` must be a bare directory name (no ``/``, ``\\``, or ``..``)
+      * the resolved path must sit directly inside ``repositories/``
+      * the target must exist and be a directory
+
+    Returns the number of bytes freed. Raises :class:`DeleteError` if any
+    guardrail fails, rather than deleting something unintended.
+    """
+    import shutil
+
+    base = (repositories_dir or config.REPOSITORIES_DIR).resolve()
+    if not slug or slug in (".", "..") or "/" in slug or "\\" in slug:
+        raise DeleteError(f"Unsafe repository name: {slug!r}")
+
+    target = (base / slug).resolve()
+    # Must be a direct child of repositories/ — blocks traversal and symlinks.
+    if target.parent != base:
+        raise DeleteError(f"Refusing to delete outside {base}: {target}")
+    if target == base:
+        raise DeleteError("Refusing to delete the repositories root")
+    if not target.exists():
+        raise DeleteError(f"No such indexed repository: {slug}")
+    if not target.is_dir():
+        raise DeleteError(f"Not a directory: {target}")
+
+    freed = sum(f.stat().st_size for f in target.rglob("*") if f.is_file())
+    shutil.rmtree(target)
+    return freed

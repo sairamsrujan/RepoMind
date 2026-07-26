@@ -203,3 +203,55 @@ def test_4xx_not_retried(api_on, monkeypatch):
     with pytest.raises(GenerationError, match="401"):
         Answerer()._chat_api([{"role": "user", "content": "x"}])
     assert calls["n"] == 1          # no pointless retries
+
+
+# --------------------------------------------------------------------------- #
+# Daily-quota exhaustion must fail over FAST, not stall every query
+# --------------------------------------------------------------------------- #
+def test_daily_quota_falls_back_immediately(api_on, monkeypatch):
+    """A 'tokens per day' 429 clears in minutes — never sit on it."""
+    slept = []
+    monkeypatch.setattr("generation.answerer.time.sleep", lambda s: slept.append(s))
+    body = {"error": {"message": "Rate limit reached ... on tokens per day (TPD): "
+                                 "Limit 100000, Used 99911"}}
+    resp = _Resp(429, body, {"Retry-After": "1243"})
+    monkeypatch.setattr(requests, "post", lambda *a, **k: resp)
+    _local(monkeypatch)
+
+    r = Answerer().answer("q?", CHUNKS)
+    assert r.fell_back is True
+    assert sum(slept) == 0, f"must not wait on a daily quota, slept {slept}"
+
+
+def test_long_retry_after_is_not_honoured(api_on, monkeypatch):
+    """Retry-After longer than GENERATION_API_MAX_WAIT => go local now."""
+    slept = []
+    monkeypatch.setattr("generation.answerer.time.sleep", lambda s: slept.append(s))
+    monkeypatch.setattr(requests, "post",
+                        lambda *a, **k: _Resp(429, {"e": "slow down"},
+                                              {"Retry-After": "600"}))
+    _local(monkeypatch)
+    Answerer().answer("q?", CHUNKS)
+    assert sum(slept) == 0
+
+
+def test_short_burst_limit_is_still_retried(api_on, monkeypatch):
+    """A per-minute burst limit is transient — that one IS worth retrying."""
+    slept = []
+    monkeypatch.setattr("generation.answerer.time.sleep", lambda s: slept.append(s))
+    seq = [_Resp(429, {"error": "per minute burst"}, {"Retry-After": "2"}),
+           _Resp(200, _OK)]
+    monkeypatch.setattr(requests, "post", lambda *a, **k: seq.pop(0))
+    assert Answerer()._chat_api([{"role": "user", "content": "x"}]) == "cloud answer [pr_1]"
+    assert slept == [2.0]
+
+
+def test_wait_is_capped_by_max_wait(api_on, monkeypatch):
+    """Even a retryable wait never exceeds the configured ceiling."""
+    monkeypatch.setattr(config, "GENERATION_API_MAX_WAIT", 3.0)
+    slept = []
+    monkeypatch.setattr("generation.answerer.time.sleep", lambda s: slept.append(s))
+    seq = [_Resp(503, {}), _Resp(200, _OK)]
+    monkeypatch.setattr(requests, "post", lambda *a, **k: seq.pop(0))
+    Answerer()._chat_api([{"role": "user", "content": "x"}])
+    assert all(s <= 3.0 for s in slept), slept

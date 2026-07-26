@@ -391,7 +391,7 @@ def answer_panel(ctx: RepositoryContext, manifest: dict) -> None:
     chip_cols = st.columns(len(EXAMPLE_QUESTIONS))
     for col, ex in zip(chip_cols, EXAMPLE_QUESTIONS):
         col.button(ex, key=f"ex_{ex}", on_click=_set_example, args=(ex,),
-                   use_container_width=True)
+                   width="stretch")
 
     question = st.text_input(
         "Your question", key="question_input", label_visibility="collapsed",
@@ -441,7 +441,7 @@ def relationship_graph_section(ctx: RepositoryContext) -> None:
     with st.expander(f"🕸️ Evolution graph — {n_links} issue↔PR↔commit links"):
         st.caption("How issues were resolved: which PR closed them, which "
                    "commits implemented the fix, and which release shipped it.")
-        st.graphviz_chart(linker.to_dot(graph), use_container_width=True)
+        st.graphviz_chart(linker.to_dot(graph), width="stretch")
 
 
 # --------------------------------------------------------------------------- #
@@ -470,6 +470,28 @@ def stats_panel(manifest: dict) -> None:
 # --------------------------------------------------------------------------- #
 # Sidebar
 # --------------------------------------------------------------------------- #
+def _delete_repo(slug: str, display_name: str) -> None:
+    """Delete an indexed repository and clear anything still pointing at it."""
+    try:
+        freed = registry.delete_repository(slug)
+    except Exception as exc:  # noqa: BLE001 - surface the reason, never crash
+        st.session_state.pop("confirm_delete", None)
+        st.error(f"Could not delete {display_name}: {exc}")
+        return
+
+    # Drop cached retriever/answer state so nothing references the deleted index.
+    _get_retriever.clear()
+    st.session_state.pop("confirm_delete", None)
+    if st.session_state.get("active_slug") == slug:
+        st.session_state.pop("active_slug", None)
+    st.session_state.pop("last_answer", None)
+    st.session_state["history"] = [
+        h for h in st.session_state.get("history", []) if h.get("slug") != slug
+    ]
+    st.toast(f"Deleted {display_name} ({freed / 1e6:.1f} MB freed)", icon="🗑️")
+    st.rerun()
+
+
 def _sidebar() -> None:
     with st.sidebar:
         st.markdown("### 📚 Indexed repositories")
@@ -481,17 +503,45 @@ def _sidebar() -> None:
                 labels[f"{dot}  {e.full_name}"] = e.slug
             picked = st.selectbox("Switch repository", list(labels),
                                   label_visibility="collapsed")
-            if st.button("Open selected", use_container_width=True):
-                st.session_state["active_slug"] = labels[picked]
+            picked_slug = labels[picked]
+            col_open, col_del = st.columns([3, 1])
+            if col_open.button("Open selected", width="stretch"):
+                st.session_state["active_slug"] = picked_slug
                 st.session_state.pop("last_answer", None)
                 st.rerun()
+            if col_del.button("🗑️", width="stretch",
+                              help="Delete this repository's index from disk"):
+                st.session_state["confirm_delete"] = picked_slug
+                st.rerun()
+
+            # Two-step confirmation: deleting an index is destructive (though
+            # always recoverable by re-indexing from GitHub).
+            pending = st.session_state.get("confirm_delete")
+            if pending:
+                entry = next((e for e in entries if e.slug == pending), None)
+                name = entry.full_name if entry else pending
+                st.warning(f"Delete **{name}**? This removes its downloaded "
+                           f"data and index from disk. You can re-index it "
+                           f"from GitHub at any time.")
+                c1, c2 = st.columns(2)
+                if c1.button("Yes, delete", type="primary",
+                             width="stretch"):
+                    _delete_repo(pending, name)
+                if c2.button("Cancel", width="stretch"):
+                    st.session_state.pop("confirm_delete", None)
+                    st.rerun()
         else:
             st.caption("None yet — index one to get started.")
 
         st.divider()
         st.markdown("#### ⚙️ Pipeline")
         st.caption(f"Embeddings · `{config.EMBEDDING_MODEL}`")
-        st.caption(f"Generation · `{config.GENERATION_MODEL}`")
+        # Show the model that will actually answer, not just the local default.
+        if config.api_generation_enabled():
+            st.caption(f"Generation · ☁️ `{config.GENERATION_API_MODEL}`")
+            st.caption(f"↳ falls back to `{config.GENERATION_MODEL}` if offline")
+        else:
+            st.caption(f"Generation · 💻 `{config.GENERATION_MODEL}`")
         st.caption(f"Reranker · `{config.RERANKER_MODEL.split('/')[-1]}`")
         st.caption(f"Guard · NLI `{config.NLI_MODEL.split('/')[-1]}`")
 
@@ -678,7 +728,7 @@ def render_eval_matrix(results: dict) -> None:
     st.caption("Metrics matrix — rows are query categories; a blank cell means "
                "that metric doesn't apply to the category (e.g. faithfulness "
                "for unanswerable items, or abstention accuracy elsewhere).")
-    st.dataframe(rows, use_container_width=True, hide_index=True)
+    st.dataframe(rows, width="stretch", hide_index=True)
 
     dist = results.get("distribution", {})
     if dist:
@@ -725,7 +775,7 @@ def evaluation_panel(ctx: RepositoryContext, manifest: dict) -> None:
 
         col1, col2 = st.columns([3, 1])
         col1.caption(f"Golden set: `eval/datasets/{slug}.jsonl`")
-        if col2.button("▶️ Run evaluation", use_container_width=True):
+        if col2.button("▶️ Run evaluation", width="stretch"):
             _start_eval_run(full_name, dataset_path, slug)
             st.rerun()
 
@@ -768,7 +818,7 @@ def main() -> None:
         months = col2.number_input("Months", 1, 60, config.DEFAULT_LOOKBACK_MONTHS)
         col3.markdown("<div style='height:1.75rem'></div>", unsafe_allow_html=True)
         submitted = col3.form_submit_button("Index / Open", type="primary",
-                                            use_container_width=True)
+                                            width="stretch")
 
     if submitted and repo_input.strip():
         try:
