@@ -64,7 +64,12 @@ NLI_MODEL: str = os.getenv("NLI_MODEL", "cross-encoder/nli-deberta-v3-base")
 # RAGAS judge — swappable. One flag chooses the provider; never hardcoded.
 #   JUDGE_PROVIDER in {"groq", "gemini", "ollama"}
 # --------------------------------------------------------------------------- #
+# Which provider grades answers (RAGAS-style faithfulness / relevancy).
 JUDGE_PROVIDER: str = os.getenv("JUDGE_PROVIDER", "groq")
+# Which provider WRITES the golden-set questions. Deliberately a different
+# provider from the judge: one model both authoring and grading favours its own
+# phrasing (self-preference bias), which inflates the scores.
+QUESTIONGEN_PROVIDER: str = os.getenv("QUESTIONGEN_PROVIDER", "gemini")
 JUDGE_MODEL_GROQ: str = os.getenv("JUDGE_MODEL_GROQ", "llama-3.3-70b-versatile")
 JUDGE_MODEL_GEMINI: str = os.getenv("JUDGE_MODEL_GEMINI", "gemini-1.5-flash")
 JUDGE_MODEL_OLLAMA: str = os.getenv("JUDGE_MODEL_OLLAMA", "qwen2.5:7b-instruct")

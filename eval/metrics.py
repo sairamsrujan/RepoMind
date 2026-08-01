@@ -159,17 +159,15 @@ def _judge_via_gemini(prompt: str, model: str) -> str:
 def make_judge() -> Callable[[str], str]:
     """Return a text->text judge callable for the configured provider.
 
-    One function, config-driven: ``JUDGE_PROVIDER`` in {groq, gemini, ollama}.
-    Defaults to the fully-local Ollama judge (zero cost) if a key is missing.
+    Config-driven via ``JUDGE_PROVIDER``, which may name any provider in
+    :mod:`providers` (groq, gemini, nvidia, openrouter, ollama). Falls back to
+    the local model when the chosen provider has no key or fails, so a run
+    never dies because a free tier ran out.
     """
-    provider = config.JUDGE_PROVIDER
-    if provider == "groq" and config.GROQ_API_KEY:
-        return lambda p: _judge_via_openai_compatible(
-            p, config.GROQ_BASE_URL, config.GROQ_API_KEY, config.JUDGE_MODEL_GROQ)
-    if provider == "gemini" and config.GEMINI_API_KEY:
-        return lambda p: _judge_via_gemini(p, config.JUDGE_MODEL_GEMINI)
-    # Local fallback (also the explicit "ollama" choice).
-    return lambda p: _judge_via_ollama(p, config.JUDGE_MODEL_OLLAMA)
+    import providers
+
+    return lambda prompt: providers.chat(
+        config.JUDGE_PROVIDER, prompt, temperature=0.0)[0]
 
 
 def build_judge_prompt(question: str, answer: str, contexts: list[str]) -> str:
@@ -193,14 +191,12 @@ def judge_faithfulness_relevancy(
     disk-cached, rate-limited judge in the evaluation runner). When None, the
     provider-selected judge from :func:`make_judge` is used.
     """
-    # Determine the *effective* provider+model actually used, so the label is
-    # honest even when a configured API provider falls back to local Ollama.
-    provider = config.JUDGE_PROVIDER
-    has_key = bool(config.GROQ_API_KEY or config.GEMINI_API_KEY)
-    if provider in ("groq", "gemini") and not has_key:
-        label = f"ollama (fallback: no {provider} key):{config.JUDGE_MODEL_OLLAMA}"
-    else:
-        label = f"{provider}:{config.judge_model_name()}"
+    # The label reports the provider that will ACTUALLY answer (resolve() drops
+    # back to local when a key is missing), so results never claim a provider
+    # that was merely requested.
+    import providers
+
+    label = providers.describe(config.JUDGE_PROVIDER)
 
     judge = judge_fn or make_judge()
     prompt = _JUDGE_PROMPT.format(

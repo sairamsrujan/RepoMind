@@ -159,7 +159,12 @@ def test_eval_run_end_to_end(tmp_path, monkeypatch):
         subset="full", out_dir=tmp_path / "out", sleep=0.0, limit=None)
     assert rc == 0
     results = json.loads((tmp_path / "out" / "results.json").read_text())
-    assert "unanswerable" in results["by_query_type"]
-    assert results["by_query_type"]["unanswerable"]["n"] == 1
+    # Assert structure, not exact counts — golden sets are regenerable, so a
+    # fixed count here goes stale every time the set is rebuilt.
+    un = results["by_query_type"].get("unanswerable")
+    assert un, "unanswerable category must be reported"
+    assert un["n"] >= 1
     # The abstention metric must be present for the unanswerable category.
-    assert "abstention_accuracy" in results["by_query_type"]["unanswerable"]
+    assert "abstention_accuracy" in un
+    # Provenance must record which models produced the run.
+    assert results.get("models", {}).get("generation")
