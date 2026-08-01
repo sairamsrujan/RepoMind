@@ -8,7 +8,7 @@ Written to still make sense months from now.
 ## 1. Quick start (if it's already set up on this machine)
 
 ```bash
-cd "/Users/rsairamsrujankumar/Projects/FINAL YEAR PROJECT/RepoMind"
+cd /path/to/RepoMind
 open -a Ollama
 .venv/bin/streamlit run app.py
 ```
@@ -22,7 +22,7 @@ To stop the app: press `Ctrl+C` in the terminal, or run `pkill -f "streamlit run
 ## 2. Before a demo — always run this first
 
 ```bash
-cd "/Users/rsairamsrujankumar/Projects/FINAL YEAR PROJECT/RepoMind"
+cd /path/to/RepoMind
 .venv/bin/python scripts/demo_check.py
 ```
 
@@ -48,7 +48,7 @@ the risk of finding out live that something broke.
 ## 3. Monthly health check (during the months before the final evaluation)
 
 ```bash
-cd "/Users/rsairamsrujankumar/Projects/FINAL YEAR PROJECT/RepoMind"
+cd /path/to/RepoMind
 .venv/bin/python scripts/smoke_test.py
 ```
 
@@ -88,7 +88,7 @@ against environment drift over nine months.
 ## 5. First-time setup (new machine, or if `.venv` is missing)
 
 ```bash
-cd "/Users/rsairamsrujankumar/Projects/FINAL YEAR PROJECT/RepoMind"
+cd /path/to/RepoMind
 python3.11 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ```
