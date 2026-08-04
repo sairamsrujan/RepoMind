@@ -17,9 +17,9 @@ with clickable citations, and a hallucination guard that **refuses to answer rat
 [![ChromaDB](https://img.shields.io/badge/Vectors-ChromaDB-FF6F00?style=flat-square)](https://www.trychroma.com/)
 [![PyTorch](https://img.shields.io/badge/Cross--encoders-PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)](https://pytorch.org/)
 
-[![Tests](https://img.shields.io/badge/tests-187-brightgreen?style=flat-square&logo=pytest&logoColor=white)](#testing)
-[![Abstention accuracy](https://img.shields.io/badge/abstention%20accuracy-1.00-success?style=flat-square)](#results)
-[![Benchmark](https://img.shields.io/badge/benchmark-175%20questions%20%C2%B7%204%20repos-blueviolet?style=flat-square)](#how-the-benchmark-is-built)
+[![Tests](https://img.shields.io/badge/tests-216-brightgreen?style=flat-square&logo=pytest&logoColor=white)](#testing)
+[![Abstention accuracy](https://img.shields.io/badge/abstention%20accuracy-0.90-success?style=flat-square)](#results)
+[![Benchmark](https://img.shields.io/badge/benchmark-330%20questions%20%C2%B7%205%20repos-blueviolet?style=flat-square)](#how-the-benchmark-is-built)
 [![Offline](https://img.shields.io/badge/runs-100%25%20offline-0f766e?style=flat-square)](#privacy-and-offline-operation)
 [![License](https://img.shields.io/badge/license-MIT-yellow?style=flat-square)](LICENSE)
 
@@ -90,7 +90,7 @@ Three things enforce that:
 |:---:|---|---|
 | 🔗 | **Every claim is cited** | Inline `[chunk_id]` markers link to the real GitHub page |
 | 🛡️ | **Every citation is verified** | A two-stage guard checks the citation exists *and* actually supports the claim |
-| 🚫 | **It says "I don't know"** | Measured **abstention accuracy of 1.00** on questions with no answer in the repository |
+| 🚫 | **It says "I don't know"** | Measured **abstention accuracy of 0.90** across 150 questions with no answer in the repository |
 
 ---
 
@@ -236,27 +236,50 @@ unverified answer as verified.
 
 ## Results
 
-Evaluated on **175 auto-generated questions across 4 repositories**, in five
-categories (factual, causal, cross-commit, evolution, unanswerable).
+Evaluated on **330 auto-generated questions across 5 real repositories** — 180
+dedicated unanswerable questions plus 150 mixed-category ones (factual, causal,
+cross-commit, evolution).
 
 ### The headline metric
 
+**Abstention accuracy** = how often the system correctly refuses when the answer
+genuinely isn't in the repository. Most RAG systems *claim* to reduce
+hallucination. This measures it, on **30 verified-unanswerable questions per
+repository**.
+
 <div align="center">
 
-| Repository | Questions | **Abstention accuracy** |
-|---|:---:|:---:|
-| `pallets/click` | 50 | **1.00** ✅ |
-| `psf/requests` | 50 | **1.00** ✅ |
-| `acme/widgets` | 25 | **1.00** ✅ |
-| `fastapi/fastapi` | 50 | 0.86 |
+| Repository | Questions | **Abstention accuracy** | Hallucinated |
+|---|:---:|:---:|:---:|
+| `pallets/click` | 30 | **0.967** | 1 |
+| `psf/requests` | 30 | **0.933** | 2 |
+| `fastapi/fastapi` | 30 | **0.900** | 3 |
+| `pydantic/pydantic` | 30 | **0.867** | 4 |
+| `psf/black` | 30 | **0.833** | 5 |
+| **Mean** | **150** | **0.900** | **12** |
 
 </div>
 
-**Abstention accuracy** = how often the system correctly refuses when the answer
-genuinely isn't in the repository. Most RAG systems *claim* to reduce
-hallucination. This measures it.
+> [!NOTE]
+> **An earlier version of this table reported 1.00 — on 7 questions per
+> repository.** That was a small-sample artifact, so the abstention set was
+> enlarged to 30 per repository and the honest figure is 0.90. A lower number on
+> a defensible sample is worth more than a perfect one that collapses the moment
+> someone asks "on how many questions?"
+>
+> These runs also fell back to the **local Qwen-7B** model, because the cloud
+> provider's daily token quota was exhausted. They are therefore the pessimistic
+> figures — a cloud-backed re-run should score at least as well.
 
 ### Full metrics
+
+> [!WARNING]
+> The mixed-category metrics below were produced by an **earlier
+> configuration** — before `fastapi` was re-indexed with its pull requests, and
+> while the judge was still the same model as the answerer (see
+> [self-preference](#how-the-benchmark-is-built)). They are retained for
+> reference only and are being regenerated; treat the abstention table above as
+> the current result.
 
 | Repository | Faithfulness | Answer relevancy | Recall@6 | Citation precision |
 |---|:---:|:---:|:---:|:---:|
@@ -265,18 +288,47 @@ hallucination. This measures it.
 | `fastapi/fastapi` | 0.59 | 0.80 | 0.66 | 0.42 |
 | `acme/widgets` | 0.94 | 0.84 | 0.96 | 0.53 |
 
+### Does graph expansion help? (measured, not assumed)
+
+Multi-hop questions need evidence spread across linked records, so retrieval can
+follow the issue↔PR↔commit graph instead of stopping at the best text match.
+Retrieval-only A/B on `pallets/click`:
+
+| Category | Recall OFF → ON | nDCG OFF → ON | Verdict |
+|---|:---:|:---:|---|
+| `cross_commit` | 0.444 → **0.528** | 0.498 → **0.562** | both improve |
+| `factual` | 0.538 → **0.615** | 0.482 → 0.425 | recall up, ranking down |
+| `evolution` | 0.360 → **0.394** | 0.461 → 0.408 | modest gain |
+| `causal` | 0.750 → 0.750 | 0.750 → 0.704 | pure cost |
+| **Overall** | 0.510 → **0.564** | 0.531 → 0.511 | latency 3.2s → 5.0s |
+
+It genuinely helps where an answer spans linked records and costs latency
+elsewhere — so it ships behind a flag, defaulted **off**, and is measured as an
+ablation configuration rather than asserted. Reproduce with
+`python scripts/measure_graph_expansion.py --repo pallets/click`.
+
 Per-category breakdowns are in [`results/`](results/) — one `report.txt` and
 `results.json` per repository, including per-question rows and full model
 provenance.
 
 ### Indexed corpora
 
-| Repository | Commits | PRs | Issues | Releases | Chunks | Index |
-|---|---:|---:|---:|---:|---:|---:|
-| `pallets/click` | 286 | 570 | 158 | 8 | 1,059 | 18.6 MB |
-| `psf/requests` | 119 | 658 | 412 | 7 | 1,260 | 22.5 MB |
-| `fastapi/fastapi` | 1,609 | 0 | 148 | 128 | 1,885 | 16.4 MB |
-| `acme/widgets` | 3 | 2 | 3 | 1 | 11 | 0.7 MB |
+Five real repositories, deliberately spanning five different domains — a CLI
+toolkit, an HTTP client, a web framework, a code formatter and a validation
+library — so results are not an artifact of one project's conventions.
+
+| Repository | Domain | Commits | PRs | Issues | Releases | Chunks | Graph links | Index |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| `fastapi/fastapi` | web framework | 1,609 | 2,709 | 222 | 128 | 5,170 | 127 | 76.0 MB |
+| `pydantic/pydantic` | validation | 590 | 1,446 | 1,298 | 32 | 3,558 | **650** | 58.2 MB |
+| `psf/black` | formatter | 292 | 901 | 305 | 13 | 1,594 | 197 | 27.5 MB |
+| `psf/requests` | HTTP client | 119 | 658 | 412 | 7 | 1,260 | 156 | 22.5 MB |
+| `pallets/click` | CLI | 286 | 570 | 158 | 8 | 1,059 | 376 | 18.6 MB |
+| `acme/widgets` | *synthetic fixture* | 3 | 2 | 3 | 1 | 11 | 4 | 0.7 MB |
+
+`acme/widgets` is a tiny hand-built repository used for fast, deterministic
+tests. It is **excluded from the headline averages** — its 11 chunks make it far
+easier than any real corpus.
 
 ### Performance
 
@@ -291,11 +343,15 @@ provenance.
 > question before a live demo.
 
 > [!NOTE]
-> **Provenance caveat.** The evaluation answers were generated by Groq
-> Llama-3.3-70B **with automatic local fallback on quota exhaustion** — a free
-> tier allows roughly 25 questions/day, and a 175-question run exceeds that. The
-> reported latencies in `results/` therefore reflect a mix of cloud and local
-> generation, not the ~4 s cloud figure above.
+> **Provenance caveat.** A bulk evaluation run does not stay on the cloud model.
+> Free daily token caps are exhausted after a few dozen questions, after which
+> every answer comes from the local model — so the latencies recorded in
+> `results/` reflect local generation, not the ~4 s cloud figure above.
+>
+> This is measured rather than assumed: each run records an `answered_by` count
+> of how many answers each model actually produced. The published abstention
+> figures came **entirely from local Qwen-7B**, which makes them a floor rather
+> than a best case.
 
 ---
 
@@ -304,20 +360,30 @@ provenance.
 Documented rather than hidden — see [`results/failure_gallery.md`](results/failure_gallery.md)
 for 15 real failure cases, categorised by which stage broke.
 
-- **Multi-hop "evolution" questions are weakest** (recall 0.30–0.38). Tracing a
-  feature across many commits over time is genuinely the hard case in RAG.
+- **Abstention is 0.90, not 1.00.** Roughly one unanswerable question in ten
+  still gets an answer it should have refused. The failures are concentrated in
+  plausible-sounding premises that partially echo real repository vocabulary.
+- **Multi-hop "evolution" questions are weakest** (recall 0.36–0.39 even with
+  graph expansion). Tracing a feature across many commits over time is genuinely
+  the hard case in RAG.
 - **Citation precision ~0.5** — partly an artefact: the model often cites *more*
   correct evidence than the strict ground-truth list, and the extras count against it.
-- **`fastapi/fastapi` has 0 PRs indexed** — it was indexed before a working
-  `GITHUB_TOKEN` existed (GitHub's GraphQL API requires auth). Re-indexing fixes it.
-  It is consequently the only repository scoring below 1.00 on abstention.
-- **Free-tier API limits are real.** Bulk evaluation falls back to local models
-  automatically; this is expected behaviour, not a bug.
+- **The ground truth is LLM-generated.** Questions and reference answers are
+  written by a reasoning model from real evidence, so retrieval metrics partly
+  measure agreement with another model's judgement rather than human-verified
+  truth. The *unanswerable* set is stronger evidence, because each item is
+  verified absent by actually searching for it.
+- **Free-tier API limits are real, and providers churn.** In a single session
+  Gemini retired two models and rate-limited the rest, Cerebras returned 402,
+  and Groq's daily token cap was exhausted. Every role therefore walks a
+  fallback chain ending at a local model — but bulk evaluation genuinely does
+  end up local, which is why the abstention figures above are pessimistic.
 - **Coverage is a date window**, not full history — scoped deliberately so any
   repository indexes in minutes.
 - **The multi-repository ablation table is not complete.** `eval/ablation.py`
-  exists, is tested, and supports 7 configurations (including dense-only /
-  sparse-only channel isolation), but a full 7 × 175 run was never executed.
+  exists, is tested, and supports 8 configurations (including dense-only /
+  sparse-only channel isolation and graph expansion), but the full run is
+  expensive and has not been executed end to end.
 
 ---
 
@@ -334,10 +400,10 @@ for 15 real failure cases, categorised by which stage broke.
 | **Reranker** | `BAAI/bge-reranker-v2-m3` | Cross-encoder — reads query + chunk *together* |
 | **Generation** | Groq Llama-3.3-70B ↔ Ollama Qwen-2.5-7B | Cloud quality, local guarantee |
 | **Guard** | `cross-encoder/nli-deberta-v3-base` | Entailment checking |
-| **Question generation** | NVIDIA Nemotron 3 Nano | Reasoning model authors the benchmark |
-| **Testing** | pytest | 187 tests |
+| **Question generation** | NVIDIA Nemotron 3 Nano (30B MoE, ~3B active) | Reasoning where it's worth paying for |
+| **Testing** | pytest | 216 tests |
 
-### Five models, each doing one job
+### Models, each doing one job
 
 ```mermaid
 flowchart LR
@@ -346,16 +412,40 @@ flowchart LR
         R["Reranker<br/><i>bge-reranker-v2-m3</i>"]
         N["NLI Guard<br/><i>nli-deberta-v3</i>"]
     end
-    subgraph SWAP["☁️ Cloud, with local fallback"]
-        G["Generation<br/><i>Llama-3.3-70B</i>"]
-        J["Judge — offline only<br/><i>Llama-3.3-70B</i>"]
+    subgraph SWAP["☁️ Cloud, chain with local fallback"]
+        G["Answerer<br/><i>Llama-3.3-70B</i>"]
+        J["Judge — offline only<br/><i>DeepSeek-v4</i>"]
+        Q["Question author — offline<br/><i>Nemotron-3-nano</i>"]
     end
     style LOCAL fill:#0f766e,color:#fff
     style SWAP fill:#1e40af,color:#fff
 ```
 
-Only generation and the evaluation judge use the cloud. The reranker and guard
-are **classifiers, not chatbots** — the right tool per job, not an LLM everywhere.
+The reranker and guard are **classifiers, not chatbots** — the right tool per
+job, not an LLM everywhere.
+
+#### Sized per role, and never the same model twice
+
+Free tiers cap **tokens per day**, and input cost is identical whatever model
+reads it. A 550B model therefore burns the daily budget several times faster
+while adding nothing to a grounding-and-formatting task. Each role uses the
+smallest model that does its job — and three *different* model families, so no
+model ever grades its own output:
+
+| Role | Model | Why this one |
+|---|---|---|
+| **Answerer** | Groq `llama-3.3-70b-versatile` | Needs instruction-following (cite every claim, refuse when thin), not scale |
+| **Judge** | NVIDIA `deepseek-v4-flash` | Emits two calibrated floats; wants consistency, not creativity. Offline, so latency is irrelevant |
+| **Question author** | NVIDIA `nemotron-3-nano-30b-a3b` | Must infer *why* from scattered evidence — reasoning at ~3B active parameters |
+
+Each role walks an **ordered fallback chain** ending at the local model. This is
+the durability mechanism, not a nicety: in one session Gemini retired two models
+and rate-limited the rest, Cerebras returned `402`, and Groq's daily cap ran out
+— and the pipeline kept working by falling through to the next link.
+
+```bash
+python scripts/check_providers.py   # audits every provider + the role assignment
+```
 
 ---
 
@@ -469,8 +559,14 @@ the API key — that cloud generation really does degrade to local.
 pytest -q
 ```
 
-**187 tests · 178 passing · 0 failures.** The 9 remaining tests are integration
-tests that skip automatically when Ollama isn't running; they pass with it up.
+**216 tests · 0 failures.** All pass with Ollama running; a handful skip
+automatically when it isn't, so the suite is usable without a model server.
+
+```bash
+python scripts/check_providers.py           # every provider + role assignment
+python scripts/measure_graph_expansion.py --repo pallets/click   # retrieval A/B
+bash scripts/run_full_evaluation.sh         # the whole evaluation, resumably
+```
 
 ---
 
@@ -489,14 +585,16 @@ RepoMind/
 ├── process/                # chunker · linker (evolution graph)
 ├── index/                  # embedder · Chroma + BM25 builders
 ├── retrieval/              # RRF retriever · MMR · reranker · filters
+│                           #   + graph_expansion (multi-hop, flag-gated)
 ├── generation/             # prompt builder · answerer (cloud + local fallback)
 ├── guard/                  # reference validator · NLI verifier
 ├── jobs/                   # background ingestion runner + status file
 │
 ├── eval/                   # golden sets · metrics · runner · ablation  (offline only)
 ├── results/                # evaluation reports + failure gallery
-├── scripts/                # demo_check · smoke_test · freeze_environment
-└── tests/                  # 187 tests
+├── scripts/                # demo_check · smoke_test · check_providers
+│                           #   · measure_graph_expansion · run_full_evaluation
+└── tests/                  # 216 tests
 ```
 
 > [!WARNING]
@@ -509,7 +607,7 @@ RepoMind/
 
 ## How the benchmark is built
 
-The 175 evaluation questions are **auto-generated from each repository's real
+All 330 evaluation questions are **auto-generated from each repository's real
 history**, not hand-written or generic:
 
 ```mermaid
@@ -536,12 +634,35 @@ flowchart LR
    a fictional premise is rejected if anything scores above threshold. So it is a
    genuine abstention test, not an untested guess.
 
-Question generation and grading deliberately use **different providers** —
-a model that both writes and marks its own exam exhibits *self-preference bias*,
-which inflates the reported scores.
+Mixed-category sets follow a fixed 25/15/25/20/15 % split across
+`factual` · `causal` · `cross_commit` · `evolution` · `unanswerable`. The
+**abstention sets are separate and larger** — 30 verified-unanswerable questions
+per repository — because that is the headline claim and it deserves a sample
+size that can withstand scrutiny. They also cost nothing to run: unanswerable
+items skip the judge entirely.
 
-Categories follow a fixed 25/15/25/20/15 % split across
-`factual` · `causal` · `cross_commit` · `evolution` · `unanswerable`.
+### Guarding against self-preference bias
+
+Three roles, three **different model families**, enforced in code:
+
+| Role | Must differ from | Why |
+|---|---|---|
+| Question author | judge | A model that writes *and* marks its own exam rewards its own phrasing |
+| Answerer | judge | A model grading its own output scores itself generously |
+
+`config.roles_are_distinct()` checks this on **canonical** model names — Groq's
+`openai/gpt-oss-120b` and Cerebras's `gpt-oss-120b` are the same model in
+different vendor packaging — and every `results.json` records the outcome, so a
+reviewer can verify it without trusting the prose.
+
+> This check was added after finding a real instance of the bug: the judge had
+> been the same model as the answerer, so faithfulness scores were partly
+> self-assessed.
+
+Each run also records `answered_by` — the count of answers produced by each
+model. A long run routinely spans two models as a provider's daily quota runs
+out mid-way, and reporting only the *configured* model would misdescribe most of
+its own rows.
 
 ---
 
@@ -566,10 +687,14 @@ modes without adding value to the research question, which is:
 
 > *Can a retrieval system be made to reliably admit when it doesn't know?*
 
-The answer this project offers is a measured abstention accuracy of **1.00** on
-three of four benchmark repositories, backed by a two-stage verification guard,
-a self-generated 175-question benchmark, and a documented gallery of the cases
-where it still fails.
+The answer this project offers is a measured abstention accuracy of **0.90
+across 150 unanswerable questions on five real repositories** — backed by a
+two-stage verification guard, a self-generated 330-question benchmark, and a
+documented gallery of the cases where it still fails.
+
+That number was previously reported as 1.00, on 7 questions per repository.
+Enlarging the sample lowered it. The lower figure is the better result: it is
+the one that survives being asked *"on how many questions, and which ones?"*
 
 ---
 

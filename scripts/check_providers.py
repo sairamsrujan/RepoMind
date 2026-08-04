@@ -51,7 +51,10 @@ def audit_providers() -> tuple[int, int]:
             broken += 1
             continue
         working += 1
-        default_ok = (not ids) or (p.default_model in ids)
+        # Compare canonically: Google lists "models/<id>" and OpenRouter appends
+        # ":free", so raw string matching reports false failures.
+        canon = {providers.canonical_model(i) for i in ids}
+        default_ok = (not ids) or (providers.canonical_model(p.default_model) in canon)
         mark = OK if default_ok else WARN
         note = "" if default_ok else f"  (default {p.default_model!r} NOT offered)"
         print(f"  {mark} {name:<11} {len(ids):>3} models{note}")

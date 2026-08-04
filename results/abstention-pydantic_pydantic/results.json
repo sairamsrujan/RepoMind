@@ -1,0 +1,343 @@
+{
+  "repo": "pydantic/pydantic",
+  "dataset": "eval/datasets/pydantic_pydantic_abstention.jsonl",
+  "distribution": {
+    "causal": 0,
+    "cross_commit": 0,
+    "evolution": 0,
+    "factual": 0,
+    "unanswerable": 30
+  },
+  "by_query_type": {
+    "unanswerable": {
+      "n": 30,
+      "abstention_accuracy": 0.8666666666666667,
+      "hallucinated": 4,
+      "latency_ms_mean": 55140.403216600076,
+      "latency_ms_p95": 94209.1817499986
+    }
+  },
+  "rows": [
+    {
+      "id": "auto-unanswerable-000",
+      "query_type": "unanswerable",
+      "latency_ms": 60694.00758300071,
+      "answer": "The evidence provided does not contain any information about `field_validator_v3` being added. The closest related item is a pull request [pr_12989] that adds validators documentation, but it specifically mentions adding examples for `field_validator`, `model_validator`, and other validator types, without mentioning `field_validator_v3`. Therefore, I cannot provide a reason for the addition of `field_validator_v3` based on the given evidence.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-001",
+      "query_type": "unanswerable",
+      "latency_ms": 86244.11383299957,
+      "answer": "The provided evidence does not contain a specific mention of `model_config_override` being removed. The issue #12372 [issue_12372#0] discusses preventing mutations to `model_config` after model definition but does not indicate that `model_config_override` was removed. Therefore, based on the given evidence, there is no information about why `model_config_override` might have been removed.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-002",
+      "query_type": "unanswerable",
+      "latency_ms": 59789.156291000836,
+      "answer": "The provided evidence does not contain any information about `typeguard_integration` being dropped or related discussions. Therefore, based on the given context, I cannot provide a reason for why `typeguard_integration` was dropped [issue_12304#1][commit_d286c73df5d3]. The evidence focuses on issues and PRs related to numeric constraints, UUID validation, polymorphic serialization, version guards, and supporting discriminator metadata outside union type aliases. There is no mention of `typeguard_integration` in the provided chunks [issue_12304#1][commit_d286c73df5d3].",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-003",
+      "query_type": "unanswerable",
+      "latency_ms": 67154.60533300029,
+      "answer": "The evidence provided does not contain a specific removal of `alias_generator`. The closest related PR is [pr_13424], which removed an example that involved overriding methods like `__iter__` and `__getitem__` in `RootModel`, but it did not remove the `alias_generator` functionality itself. Therefore, based on the given evidence, there is no information about why `alias_generator` was removed.\n\n[pr_13424]",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-004",
+      "query_type": "unanswerable",
+      "latency_ms": 94209.1817499986,
+      "answer": "The evidence provided does not directly mention `model_property_cache`. However, it discusses several optimizations related to cached properties in Pydantic models:\n\n- **PR #12649** introduced a fix for cached properties when `validate_assignment` is set to `True`, ensuring that cached values are properly invalidated and recomputed [pr_12649].\n  \n- **PR #12940** addresses the issue where cached property values persist in copied models, suggesting that some form of caching mechanism exists but needs proper handling during model copying operations [pr_12940].\n\nGiven these points, it can be inferred that `model_property_cache` might refer to a caching mechanism for properties within Pydantic models, which is being managed and optimized. However, the exact introduction or definition of such a cache is not explicitly detailed in the provided evidence.\n\nIf you need more specific information about when and why `model_property_cache` was introduced, additional context from earlier commits or PRs would be required.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "auto-unanswerable-005",
+      "query_type": "unanswerable",
+      "latency_ms": 73864.6972080005,
+      "answer": "The provided evidence does not contain a specific mention of the `auto_serde` feature being removed or discussed. Therefore, based on the given information, I cannot provide a reason for its removal [issue_6375][pr_12416][commit_979b05fcdef2][commit_664558e5fef8]. The evidence focuses more on other changes such as documentation improvements, serialization optimizations, and deprecations but does not address the `auto_serde` feature.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-006",
+      "query_type": "unanswerable",
+      "latency_ms": 72449.22716700057,
+      "answer": "The provided evidence does not contain a specific introduction of the `strict_json` flag. The closest related change is in Pull Request [pr_12726], where the author mentions looking at refactoring config consumption inside validator building, but does not explicitly introduce or describe the `strict_json` flag.\n\nTherefore, based on the given evidence, there is no clear information about why the `strict_json` flag was introduced. The evidence focuses more on other validation-related changes and does not provide details about this particular flag.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-007",
+      "query_type": "unanswerable",
+      "latency_ms": 75972.41962500084,
+      "answer": "The provided evidence does not contain any specific information about why the `field_dependencies` validation rule was added. Therefore, based on the given context, I cannot provide a reason for its addition [commit_e1ce47a24b3e][pr_13558][issue_7534#0][review_13275_3][pr_12567]. The evidence focuses on other aspects such as ordering of validation, documentation updates, and UUID safety but does not mention `field_dependencies`.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-008",
+      "query_type": "unanswerable",
+      "latency_ms": 58668.46912500114,
+      "answer": "The evidence provided does not contain information about a change in `mutable_defaults` behavior, nor is there any discussion of mutable defaults within the given pull requests or issues. Therefore, based on the available evidence, I cannot provide an answer to why `mutable_defaults` default behavior was changed.\n\nThe closest related issue is [issue_8379], which discusses alias behavior for validation and serialization but does not mention `mutable_defaults`. If you have more specific information about a change in `mutable_defaults`, it may be outside the indexed coverage window or not present in the provided evidence.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-009",
+      "query_type": "unanswerable",
+      "latency_ms": 55959.107000000586,
+      "answer": "The provided evidence does not contain information about `typeguard` integration being removed. The evidence includes issues, pull requests, and commits related to various changes in the Pydantic project but does not mention any removal of `typeguard` integration.\n\nTherefore, based on the given evidence, there is no information available to answer why `typeguard` integration was removed [chunk_id_not_found].",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-010",
+      "query_type": "unanswerable",
+      "latency_ms": 77072.13345899982,
+      "answer": "The provided evidence does not contain a direct mention of an `json_schema_extensions` option being added. Therefore, based on the given information, I cannot provide a reason for its addition.\n\nIf you have any other questions or need more specific details from within the provided evidence, please let me know! [pr_13004#0][commit_d398a5f601ee]",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-011",
+      "query_type": "unanswerable",
+      "latency_ms": 86347.00075,
+      "answer": "The evidence provided does not directly state why `recursive_model` handling was disabled. However, it does provide context on recursive model handling through various pull requests and issues that discuss related topics.\n\nFor instance, [pr_12654] addresses adding recursion-safe equality fallback to avoid `RecursionError`, which suggests there were issues with recursive models causing infinite loops or stack overflows. This indicates that the implementation of recursive model handling had some problems that needed addressing.\n\nAdditionally, [commit_64fca3acd732] fixes an issue with recursive generic models, suggesting that there were specific bugs related to recursion in generic models that required correction.\n\nWhile these pieces of evidence do not explicitly state why `recursive_model` handling was disabled, they imply that the implementation had issues that needed resolution. The exact decision or discussion leading to disabling it is not directly covered by the provided evidence.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "auto-unanswerable-012",
+      "query_type": "unanswerable",
+      "latency_ms": 65780.24837500016,
+      "answer": "The evidence provided does not contain any information about why the `lazy_import` engine was deprecated. The closest related issue is [issue_13139#0], which discusses issues with Pydantic v2 and Python 3.15, but it does not mention anything specific about deprecating a `lazy_import` feature or engine.\n\nTherefore, based on the given evidence, I cannot provide an answer to why `lazy_import` was deprecated. [issue_13139#0]",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-013",
+      "query_type": "unanswerable",
+      "latency_ms": 124699.70466599989,
+      "answer": "The provided evidence does not contain direct information about why `strict_json` mode was added in Pydantic. The closest related change is found in [pr_13197#0], which addresses how constraints are handled in JSON schema generation for certain field types but does not mention the addition of `strict_json`. Therefore, based on the given evidence, I cannot provide a specific reason for why `strict_json` mode was added.",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-014",
+      "query_type": "unanswerable",
+      "latency_ms": 20487.65558299965,
+      "answer": "The provided evidence does not contain information about why the `auto_alias` option was removed. The closest related issue is [issue_8379], which discusses inconsistent behavior of aliases in validation and serialization but does not mention removing an `auto_alias` option. Therefore, based on the given evidence, I cannot provide a reason for the removal of the `auto_alias` option.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-015",
+      "query_type": "unanswerable",
+      "latency_ms": 24905.52383300019,
+      "answer": "The introduction of a new `field_serializer` override was not directly introduced in the provided evidence, but there is discussion about supporting multiple serializers for the same field [issue_12137]. This issue discusses the need to allow using both decorator and `Pain/WrapSerializer` annotated metadata together. However, it does not explicitly state that a new `field_serializer` override was introduced.\n\nThe evidence focuses more on discussions around serializer flexibility rather than detailing the introduction of a specific new feature [issue_12137]. Therefore, based on the provided information, we cannot confirm why a new `field_serializer` override was specifically introduced.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "auto-unanswerable-016",
+      "query_type": "unanswerable",
+      "latency_ms": 26357.604124999853,
+      "answer": "The evidence provided does not contain a specific change related to altering `validate_default` behavior. Therefore, based on the given information, it is outside the indexed coverage window or no such changes were documented within the specified date range [pr_12920#0][commit_d9a9edb084d1][pr_13137][commit_c9688f493b05][pr_13247].",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-017",
+      "query_type": "unanswerable",
+      "latency_ms": 26580.50245800041,
+      "answer": "The evidence provided does not directly state why `model_config` was moved to a nested class. The issue [issue_12372#0] discusses preventing mutations to `model_config` after model definition but does not mention any changes involving moving `model_config` to a nested class. Therefore, based on the given evidence, it is outside the indexed coverage window whether or not such a change occurred and why.\n\n[issue_12372#0]",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-018",
+      "query_type": "unanswerable",
+      "latency_ms": 35865.711332999126,
+      "answer": "The provided evidence does not directly explain why the `strict_mode` flag was replaced by `validate_assignment`. The evidence mentions `strict_mode` in commit [commit_fc46ae6b8bc0], but it is not discussed in relation to being replaced by `validate_assignment`. Therefore, based on the given information, I cannot provide a reason for this change.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-019",
+      "query_type": "unanswerable",
+      "latency_ms": 46831.598667000435,
+      "answer": "The simplification of the `PlainSerializer` API was not directly addressed in the provided evidence. The closest related PR is [pr_12985#1], which focused on replacing certain \"wrap\" serializers with \"simple\" serializers for some `any` cases, but it did not mention changes to the `PlainSerializer` API specifically.\n\nThe evidence does not provide explicit details about why the `PlainSerializer` API was simplified. Therefore, based solely on the given information, I cannot state a reason for this simplification.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "auto-unanswerable-020",
+      "query_type": "unanswerable",
+      "latency_ms": 38531.25733399975,
+      "answer": "The evidence provided does not contain explicit information about why the 'lazy-serialization' flag was introduced [commit_adf330b9eee0][commit_979b05fcdef2]. The commits mentioned are related to other features and bug fixes, such as fixing a missing `max_length` check on lazy iteration validation [commit_adf330b9eee0] and removing redundant serialization attempts in nested unions [commit_979b05fcdef2], but do not mention the introduction of 'lazy-serialization'. Therefore, based solely on the provided evidence, it is outside the indexed coverage window to determine the reason for introducing this flag.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-021",
+      "query_type": "unanswerable",
+      "latency_ms": 46099.35233400029,
+      "answer": "The provided evidence does not contain any information about using 'typed-lru-cache' for validators. Therefore, I cannot provide an answer based on the given data [pr_13530][issue_13545#6][pr_12676#0][commit_fad80bafc093][review_13308_0][commit_c96888f493b05]. The question is outside the indexed coverage window or the relevant information is not present in the evidence.",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-022",
+      "query_type": "unanswerable",
+      "latency_ms": 44748.214041999745,
+      "answer": "The default 'recursive-models' setting was not specifically mentioned as being disabled in the provided evidence. The closest related issue is [issue_13545#0], which discusses optimizations for model build memory and startup, including a change that affects recursive models. However, this does not explicitly state that the default setting was disabled.\n\nThe evidence suggests that there were optimizations made to handle recursive models more efficiently, but it does not provide information on why or if the default behavior related to recursive models was changed. Therefore, based solely on the provided evidence, I cannot answer why the default 'recursive-models' setting was disabled.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-023",
+      "query_type": "unanswerable",
+      "latency_ms": 41174.882332999914,
+      "answer": "The provided evidence does not contain a direct explanation for why 'BaseModel' was replaced with 'Model' in the public API. The closest related issue is [issue_9048#1], which discusses `model_dump()` and mentions schema changes but does not address the naming change between 'BaseModel' and 'Model'. Therefore, based on the given evidence, there is insufficient information to provide a specific reason for this change.\n\nThe evidence covers the period from 2025-08-09T13:07:07Z to 2026-08-04T13:07:07Z and does not include any direct discussion or commit message related to renaming 'BaseModel' to 'Model'. [issue_9048#1] [commit_177d21b0c375]",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-024",
+      "query_type": "unanswerable",
+      "latency_ms": 62197.39049999953,
+      "answer": "The evidence provided does not contain a specific explanation for why 'strict-env' mode was made opt-in. The changes related to environment variable handling in PR [pr_13105#1] mention updates and deprecations but do not provide a reason for the change in behavior regarding strictness of environment variables. Therefore, based on the given evidence, I cannot cite a specific reason for this change.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-025",
+      "query_type": "unanswerable",
+      "latency_ms": 43821.95645799948,
+      "answer": "The provided evidence does not contain a specific mention of adding a 'json-strict' parser that rejects trailing commas. Therefore, based on the given information, I cannot provide an answer to why such a parser was added [pr_12726][issue_7186]. The closest related change is in PR #12726 where tests and behaviors of strict validation are discussed, but there is no explicit mention of trailing commas or 'json-strict' parsers.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-026",
+      "query_type": "unanswerable",
+      "latency_ms": 32224.617500000022,
+      "answer": "The evidence provided does not contain a direct explanation for why the 'field-order' preservation feature was rolled back. The closest related information is found in [review_12689_0], where it mentions resolving an issue with c8c7ddb, but no specific reason for rolling back field-order preservation is given.\n\nTherefore, based on the provided evidence, I cannot provide a concrete reason for why the 'field-order' preservation feature was rolled back. [review_12689_0] only indicates that CI checks were about to pass after some commits, but does not explain the rollback decision.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-027",
+      "query_type": "unanswerable",
+      "latency_ms": 44302.690874999826,
+      "answer": "The provided evidence does not contain any information about a 'validation-timeout' setting for custom validators. Therefore, I cannot provide an answer based on the given data [issue_13471#0][pr_12992#1][commit_e49d758d2916][commit_ac4f3ccb39cd][review_13308_0]. The question appears to be outside the indexed coverage window or the relevant information is not present in the provided evidence.",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-028",
+      "query_type": "unanswerable",
+      "latency_ms": 33357.52225000033,
+      "answer": "The provided evidence does not contain information about a `strict_type` flag being removed or any related changes. Therefore, I cannot provide an answer based on the given data.\n\nIf you have additional context or another source that mentions this change, please share it so I can assist further within the coverage window and rules outlined.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-029",
+      "query_type": "unanswerable",
+      "latency_ms": 27821.544708000147,
+      "answer": "The provided evidence does not contain explicit information about why the `auto_alias` generation feature was added. The closest related issue is [issue_8379], which discusses inconsistent behavior of aliases in validation and serialization, but it does not mention anything specific about an `auto_alias` feature being added.\n\n[issue_8379] outlines a proposal for V3 to use `alias` by default for both validation and serialization, aiming for more consistent behavior. However, this is described as a breaking change and does not directly address the addition of an `auto_alias` generation feature.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    }
+  ],
+  "judge": {
+    "available": true
+  },
+  "created_at": "2026-08-04T15:22:18.159047+00:00",
+  "models": {
+    "generation": "llama-3.3-70b-versatile",
+    "embedding": "qwen3-embedding:0.6b",
+    "reranker": "BAAI/bge-reranker-v2-m3",
+    "nli": "cross-encoder/nli-deberta-v3-base",
+    "judge_provider": "groq",
+    "judge_model": "openai/gpt-oss-120b"
+  },
+  "evaluation_roles": {
+    "answerer": "llama-3.3-70b-versatile",
+    "judge": "groq:openai/gpt-oss-120b",
+    "question_gen": "nvidia:nvidia/nemotron-3-nano-30b-a3b"
+  },
+  "roles_distinct": {
+    "ok": true,
+    "detail": "all roles distinct"
+  }
+}

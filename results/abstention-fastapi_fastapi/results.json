@@ -1,0 +1,343 @@
+{
+  "repo": "fastapi/fastapi",
+  "dataset": "eval/datasets/fastapi_fastapi_abstention.jsonl",
+  "distribution": {
+    "causal": 0,
+    "cross_commit": 0,
+    "evolution": 0,
+    "factual": 0,
+    "unanswerable": 30
+  },
+  "by_query_type": {
+    "unanswerable": {
+      "n": 30,
+      "abstention_accuracy": 0.9,
+      "hallucinated": 3,
+      "latency_ms_mean": 62392.86215573344,
+      "latency_ms_p95": 173679.25937499967
+    }
+  },
+  "rows": [
+    {
+      "id": "auto-unanswerable-000",
+      "query_type": "unanswerable",
+      "latency_ms": 36488.113834000615,
+      "answer": "The evidence provided does not mention the introduction of an `auto_reload_on_import` flag in the server startup. None of the pull requests, reviews, or issues within the indexed coverage window (2025-08-09 to 2026-08-04) reference this specific flag or its rationale. Therefore, the question falls outside the scope of the available evidence.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-001",
+      "query_type": "unanswerable",
+      "latency_ms": 44844.45904200038,
+      "answer": "The evidence provided does not mention the removal of a `TypedDict` validation shortcut in v0.110 or any related changes. None of the included commits, pull requests, or issues address this specific topic. Therefore, the question falls outside the scope of the available evidence.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-002",
+      "query_type": "unanswerable",
+      "latency_ms": 61247.38695900123,
+      "answer": "The evidence does not explicitly state that a `pydantic_v2` compatibility layer was added to the **routing engine**. While [commit_2e7d3754cd1c] mentions refactoring Pydantic v2 compatibility internal utilities, it does not specify that these changes were applied to the routing engine specifically. Other evidence items (e.g., [pr_15210#0], which restructured routing internals) focus on architectural modularization without mentioning Pydantic compatibility.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "auto-unanswerable-003",
+      "query_type": "unanswerable",
+      "latency_ms": 114412.83470899907,
+      "answer": "The provided evidence does not contain information about an `dependency_injector` integration experiment or its merge. Therefore, I cannot provide a reason for such a merge based on the given data.\n\nThe closest related PR is [pr_14441], which discusses performance and code refactoring but does not mention dependency injection or `dependency_injector`. The other PRs ([pr_15357][pr_15357], [pr_14283][pr_14283], [pr_14820][pr_14820]) are about different features and do not reference `dependency_injector` either.\n\n[pr_15357]: pr_15357\n[pr_14283]: pr_14283\n[pr_14820]: pr_14820",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-004",
+      "query_type": "unanswerable",
+      "latency_ms": 41981.843542000206,
+      "answer": "The evidence provided does not explicitly state why `response_model_exclude_unset` behavior was made opt-in. None of the included pull requests, reviews, or issues directly address the rationale for making this specific behavior opt-in. The documentation updates and fixes in the evidence focus on clarifying usage, correcting parameter handling, or updating references, but they do not explain the design decision behind requiring explicit activation of `response_model_exclude_unset`. \n\nIf this information exists in the repository, it would likely be found in earlier discussions, issues, or PRs outside the indexed coverage window (2025-08-09 to 2026-08-04) or in unprovided evidence.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-005",
+      "query_type": "unanswerable",
+      "latency_ms": 23403.080084000976,
+      "answer": "The evidence provided does not mention the `starlette_extras` plugin or any decision to bundle it with FastAPI by default. None of the pull requests or changes in the indexed coverage window (2025-08-09 to 2026-08-04) reference this plugin or its inclusion rationale.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-006",
+      "query_type": "unanswerable",
+      "latency_ms": 115051.54679200132,
+      "answer": "The provided evidence does not contain any information about renaming the `auto_reload` flag to `live_reload`. The closest related PR is [pr_14063], which clarifies the behavior of auto-reload but does not mention a name change.\n\nTherefore, based on the given evidence, there is no record of the `auto_reload` flag being renamed to `live_reload` in the CLI.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-007",
+      "query_type": "unanswerable",
+      "latency_ms": 66049.43220799942,
+      "answer": "The evidence provided does not indicate that the `Response` model was replaced with a new `JSONResponse` class. The `JSONResponse` class appears to be an existing part of the framework (e.g., used in tests and examples [pr_16123#0][review_14794_0]), and no PR or issue in the evidence describes deprecating or replacing `Response` with `JSONResponse`. The changes discussed focus on test coverage [pr_16123#0], custom response class handling [pr_14927], and performance optimizations with `PydanticJSONResponse` [pr_14299], but none address replacing the base `Response` model. \n\nAnswer: The evidence is insufficient to answer this question, as there is no mention of replacing `Response` with `JSONResponse` in the provided material.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-008",
+      "query_type": "unanswerable",
+      "latency_ms": 18091.226083999572,
+      "answer": "The evidence provided does not mention the removal of a `dependencies` parameter from endpoint signatures. None of the included commits, pull requests, or issues address this specific change. The question falls outside the scope of the indexed evidence.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-009",
+      "query_type": "unanswerable",
+      "latency_ms": 58511.51812500029,
+      "answer": "The evidence does not indicate that the `Path` conversion type was changed from `str` to `UUID` by default. Instead, the provided data suggests that path parameters are handled as strings by default unless explicitly annotated with a specific type (e.g., `int`, `UUID`), which triggers type conversion and validation [issue_11251#0][pr_15375]. \n\nFor example, in issue #11251, the user observes that with Pydantic v2, path parameters are interpreted as `str` unless a type is specified, and in PR #15375, documentation was improved to clarify this behavior. There is no evidence of a default change to `UUID`\u2014UUID conversion requires explicit type hints, and issues like #10007 highlight challenges with UUID handling in Pydantic v2 rather than a default change. \n\nThus, the premise of the question appears inconsistent with the evidence provided.",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-010",
+      "query_type": "unanswerable",
+      "latency_ms": 25811.597916999744,
+      "answer": "The question about renaming `APIRouter` to `RouterKit` in version 0.118 falls outside the indexed coverage window (2025-08-09 to 2026-08-04). None of the provided evidence references version 0.118, the term `RouterKit`, or any renaming of `APIRouter`. The earliest release in the evidence is 0.128.6 (2026-02-09), and all PRs refer to `APIRouter` without indication of a rename. \n\nAnswer: The evidence does not cover version 0.118 or any renaming of `APIRouter` to `RouterKit`, as it falls outside the indexed coverage window.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-011",
+      "query_type": "unanswerable",
+      "latency_ms": 34347.96724999978,
+      "answer": "The evidence provided does not mention the `Depends` annotation being replaced with a `Provider` base class. None of the commits, pull requests, or reviews in the indexed coverage window (2025-08-09 to 2026-08-04) reference such a change. The term \"Provider base class\" does not appear in any of the evidence chunks, and discussions around `Depends` focus on enhancements (e.g., type hinting in [pr_14335], handling forward refs in [review_15300_0], or dependency resolution in [pr_14615]) rather than replacement. \n\nIf this change occurred outside the indexed date range or in unprovided evidence, it cannot be addressed here.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-012",
+      "query_type": "unanswerable",
+      "latency_ms": 69232.15812499984,
+      "answer": "The evidence provided does not mention any change making OpenAPI schema generation synchronous instead of asynchronous. None of the commits, pull requests, issues, or reviews within the indexed coverage window (2025-08-09 to 2026-08-04) address this specific topic.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-013",
+      "query_type": "unanswerable",
+      "latency_ms": 36038.504124999236,
+      "answer": "The evidence provided does not mention the \"Quantum Cache\" feature or its removal. There is no reference to this feature in any of the included commits, pull requests, issues, or reviews within the indexed coverage window (2025-08-09 to 2026-08-04). \n\nIf the removal occurred outside this timeframe or in a repository/issue not included in the evidence, it cannot be addressed here.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-014",
+      "query_type": "unanswerable",
+      "latency_ms": 44368.360083999505,
+      "answer": "The evidence provided does not mention the addition of a \"Deep Learning Middleware\" integration or any related functionality. None of the pull requests, reviews, or commits in the indexed coverage window (2025-08-09 to 2026-08-04) reference deep learning, AI/ML middleware, or similar concepts. The available evidence focuses on middleware execution order documentation [pr_15480], slow request monitoring [pr_15386], route-level middleware [pr_15043], database session fixes [pr_14930], and documentation link updates [review_15815_0], but no deep learning integration is documented here. \n\nAnswer: The evidence is insufficient to determine why \"Deep Learning Middleware\" was added, as it is not mentioned in any of the provided GitHub activity.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-015",
+      "query_type": "unanswerable",
+      "latency_ms": 50589.13625000059,
+      "answer": "The evidence provided does not mention the deprecation of a \"Zero-Latency Streaming\" endpoint or provide reasons for such a deprecation. The closest references to streaming involve fixes for streaming response configurations [pr_15214] and additions to streaming capabilities [commit_749cefdeb142], but none address deprecation. The question falls outside the scope of the indexed evidence.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-016",
+      "query_type": "unanswerable",
+      "latency_ms": 169054.0315420003,
+      "answer": "The provided evidence does not contain any information about why the 'Schema-Free Validation' option was disabled. The evidence focuses on changes related to error handling, schema validation, and documentation improvements [pr_15354][commit_75c47187f31b][pr_15173]. Therefore, I cannot provide a reason for the disabling of 'Schema-Free Validation' based on the given information.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-017",
+      "query_type": "unanswerable",
+      "latency_ms": 187567.39462500083,
+      "answer": "The provided evidence does not contain any information about a 'GraphQL-to-OpenAPI' converter being introduced. The closest related change is in PR [pr_16076], which improves OpenAPI generation performance and memory usage, but it does not mention anything about converting GraphQL to OpenAPI.\n\n[pr_16076] discusses optimizing the way dependencies are handled during OpenAPI generation, making the process more efficient by avoiding unnecessary allocations and traversals. However, there is no evidence of a 'GraphQL-to-OpenAPI' converter being introduced within the indexed coverage window.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-018",
+      "query_type": "unanswerable",
+      "latency_ms": 55492.989582999144,
+      "answer": "The evidence provided does not mention the removal of an \"Async Cron Scheduler\" or any related functionality. None of the commits, pull requests, or reviews in the indexed coverage window (2025-08-09 to 2026-08-04) reference such a change. \n\nIf this removal occurred outside the provided evidence or timeframe, it cannot be addressed based on the current data.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-019",
+      "query_type": "unanswerable",
+      "latency_ms": 42351.58583299926,
+      "answer": "The evidence provided does not mention the addition of \"Typed Cookie\" support to FastAPI within the indexed coverage window (2025-08-09 to 2026-08-04). The only related discussion is in [issue_754], which dates to 2019 and falls outside the coverage window, addressing session support rather than typed cookies specifically. No commits, PRs, or issues in the provided evidence directly explain the rationale for adding \"Typed Cookie\" support.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-020",
+      "query_type": "unanswerable",
+      "latency_ms": 95856.417125,
+      "answer": "The evidence provided does not contain any information about a 'Dynamic Rate Limiter' middleware being discontinued, nor does it mention any specific discontinuation of middlewares in general [issue_11143#1][pr_15386][pr_14951][pr_16084]. Therefore, based on the given evidence, there is no information to conclude why a 'Dynamic Rate Limiter' middleware was discontinued.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-021",
+      "query_type": "unanswerable",
+      "latency_ms": 30791.119792000245,
+      "answer": "The caching-layer middleware was introduced to address the lack of built-in caching in FastAPI, which required manual Redis setup and led to teams repeatedly implementing custom caching solutions. This was driven by the need for automatic request/response caching with smart invalidation strategies to improve endpoint response times (70-90% improvement), reduce database load (50% reduction), and enhance scalability [issue_15713]. \n\nNo other evidence directly references the introduction of caching-layer middleware. The coverage window (2025-08-09 to 2026-08-04) includes the relevant issue [issue_15713] from 2026-06-09.",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-022",
+      "query_type": "unanswerable",
+      "latency_ms": 32136.954958999922,
+      "answer": "The evidence provided does not mention the removal of a \"request-id-header feature\" or any related deprecation. The only reference to `X-Request-ID` is in [pr_14947], which *adds* clarification about using middleware for request tracing with this header, not removal. No other evidence addresses removal of such a feature. \n\nIf the question pertains to events outside the indexed coverage window (2025-08-09 to 2026-08-04) or lacks supporting evidence, it cannot be answered based on the provided data.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-023",
+      "query_type": "unanswerable",
+      "latency_ms": 35535.59883300113,
+      "answer": "The evidence does not provide information on why async-openapi support was added. While PR #15004 mentions \"Add AsyncAPI support for Websockets\" [pr_15004], the evidence chunk only includes the PR title and closing tag, with no details on the motivation or reasoning behind the change. No other evidence in the provided dataset addresses the rationale for adding async-openapi support.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "auto-unanswerable-024",
+      "query_type": "unanswerable",
+      "latency_ms": 34076.15516700025,
+      "answer": "The evidence does not mention any changes to \"response-cookies annotations\" or provide reasoning for such modifications. The closest related changes involve:  \n1. Fixing frontend dependencies not propagating cookies/headers [pr_15919#0], which addressed behavior rather than annotations.  \n2. Allowing `Response` as a dependency annotation type [commit_b49435becdf5], but this commit does not specify cookie-related motivations.  \n\nNo evidence directly explains changes to response-cookie annotations.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-025",
+      "query_type": "unanswerable",
+      "latency_ms": 173679.25937499967,
+      "answer": "The dependency-profiling functionality was added as part of a broader refactoring effort aimed at improving internal command handling and profiling mechanisms within the project [pr_15720#11]. This change included renaming and centralizing various components related to benchmarking and profiling, such as commands and metadata, which suggests an intention to better manage and understand the execution flow and performance of different parts of the application. However, specific details about why dependency-profiling was added are not explicitly stated in the provided evidence [pr_15720#11].",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "auto-unanswerable-026",
+      "query_type": "unanswerable",
+      "latency_ms": 36556.81399999958,
+      "answer": "The evidence provided does not mention the introduction of route-versioning logic or any related changes. None of the commits, pull requests, or issues in the indexed coverage window (2025-08-09 to 2026-08-04) address route-versioning. The closest reference to versioning in [pr_16135] concerns dependency version comparison, not route-versioning. \n\nAnswer: The evidence does not explain why route-versioning logic was introduced, as it falls outside the scope of the provided data.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-027",
+      "query_type": "unanswerable",
+      "latency_ms": 40305.20758300008,
+      "answer": "The evidence provided does not mention the addition of \"http2-push integration\" or any related changes. The closest reference to HTTP/2 is in [pr_15502#0], which notes that urllib3 is fundraising for HTTP/2 support, but this pertains to the urllib3 library, not the project's own integration. No other evidence addresses http2-push integration. \n\nAnswer: The evidence does not cover the addition of http2-push integration.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-028",
+      "query_type": "unanswerable",
+      "latency_ms": 55845.55137499956,
+      "answer": "The evidence provided does not mention the addition of `auth-jwt-revocation` support. None of the commits, pull requests, or issues in the indexed coverage window (2025-08-09 to 2026-08-04) reference this feature or its rationale.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-029",
+      "query_type": "unanswerable",
+      "latency_ms": 42067.61975000154,
+      "answer": "The evidence provided does not mention the addition of `StreamingResponseCache` or any related changes. There is no commit, pull request, or issue in the indexed coverage window (2025-08-09 to 2026-08-04) that references `StreamingResponseCache` or explains its purpose. Therefore, the question falls outside the scope of the available evidence.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    }
+  ],
+  "judge": {
+    "available": true
+  },
+  "created_at": "2026-08-04T15:53:53.301516+00:00",
+  "models": {
+    "generation": "llama-3.3-70b-versatile",
+    "embedding": "qwen3-embedding:0.6b",
+    "reranker": "BAAI/bge-reranker-v2-m3",
+    "nli": "cross-encoder/nli-deberta-v3-base",
+    "judge_provider": "groq",
+    "judge_model": "openai/gpt-oss-120b"
+  },
+  "evaluation_roles": {
+    "answerer": "groq:llama-3.3-70b-versatile",
+    "judge": "nvidia:deepseek-ai/deepseek-v4-flash",
+    "question_gen": "nvidia:nvidia/nemotron-3-nano-30b-a3b"
+  },
+  "roles_distinct": {
+    "ok": true,
+    "detail": "all roles distinct"
+  }
+}

@@ -1,0 +1,6 @@
+Evaluation — pallets/click   (30 questions)
+============================================================
+
+[unanswerable]  n=30
+  abstention_accuracy : 0.967 (1 hallucinated)
+  latency_ms mean/p95 : 23707 / 30469

@@ -1,0 +1,6 @@
+Evaluation — psf/requests   (30 questions)
+============================================================
+
+[unanswerable]  n=30
+  abstention_accuracy : 0.933 (2 hallucinated)
+  latency_ms mean/p95 : 28368 / 38754

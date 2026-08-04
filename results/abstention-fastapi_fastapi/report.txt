@@ -1,0 +1,6 @@
+Evaluation — fastapi/fastapi   (30 questions)
+============================================================
+
+[unanswerable]  n=30
+  abstention_accuracy : 0.900 (3 hallucinated)
+  latency_ms mean/p95 : 62393 / 173679

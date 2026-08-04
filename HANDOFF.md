@@ -37,25 +37,32 @@ where they disagree, **this file and the code are current**.
 
 | Thing | State |
 |---|---|
-| Test suite | **187 passing, 0 failures** (`pytest -q`) |
-| Demo readiness | **9/9 checks pass** (`python scripts/demo_check.py`) |
-| Git | 10 commits, clean tree, tag `v1.0-complete` |
-| Test files | 25 under `tests/` |
-| Golden sets | 175 questions across 4 repos, all validating |
-| Evaluations | 175/175 run; 147/147 answerable questions judged |
+| Test suite | **216 passing, 0 failures** (`pytest -q`, Ollama up) |
+| Demo readiness | `python scripts/demo_check.py` |
+| Provider health | `python scripts/check_providers.py` |
+| Golden sets | 330 questions across 5 real repos + 1 fixture |
+| Abstention | **0.90 mean** over 150 unanswerable questions (30/repo) |
 | Failure gallery | 15 real cases in `results/failure_gallery.md` |
+| Published | https://github.com/sairamsrujan/RepoMind |
 
 ### Indexed repositories
 
-| Repo | Commits | PRs | Chunks | Note |
-|---|---|---|---|---|
-| `pallets/click` | 286 | 570 | 1059 | **best demo repo** — 376 graph links |
-| `psf/requests` | 119 | 658 | 1260 | well-known project |
-| `fastapi/fastapi` | 1609 | **0** | 1885 | indexed before the token existed |
-| `acme/widgets` | 3 | 2 | 11 | tiny synthetic repo, fast + predictable |
+| Repo | Domain | Commits | PRs | Chunks | Graph links |
+|---|---|---|---|---|---|
+| `fastapi/fastapi` | web framework | 1609 | 2709 | 5170 | 127 |
+| `pydantic/pydantic` | validation | 590 | 1446 | 3558 | **650** |
+| `psf/black` | formatter | 292 | 901 | 1594 | 197 |
+| `psf/requests` | HTTP client | 119 | 658 | 1260 | 156 |
+| `pallets/click` | CLI | 286 | 570 | 1059 | 376 |
+| `acme/widgets` | *fixture* | 3 | 2 | 11 | 4 |
 
-`fastapi/fastapi` has **0 PRs** because it was indexed before a working
-`GITHUB_TOKEN` existed. Re-indexing it would fix that. Not required.
+`pallets/click` is still the **best demo repo** (high link density, familiar
+project). `acme/widgets` is a synthetic fixture for fast deterministic tests and
+is excluded from headline averages — 11 chunks makes it far easier than any real
+corpus.
+
+`fastapi/fastapi` was re-indexed with a working token: **0 → 2709 PRs**, and its
+abstention rose from 0.857 to 0.900.
 
 ---
 
@@ -196,21 +203,35 @@ exactly this reason. `eval/` imports *from* the pipeline, never the reverse.
 
 #2 and #4 are **classifiers, not chatbots**. Only #3 and #5 can use cloud.
 
-### Provider roles (deliberate)
+### Provider roles — THREE roles, THREE distinct model families
 
 ```
-QUESTIONGEN_PROVIDER=nvidia   # Nemotron 3 Nano writes golden-set questions
-JUDGE_PROVIDER=groq           # Llama 3.3 70B grades the answers
+GENERATION_CHAIN   groq:llama-3.3-70b-versatile → nvidia:…nemotron-super-49b-v1.5
+JUDGE_CHAIN        nvidia:deepseek-v4-flash → deepseek-v4-pro → groq:gpt-oss-120b
+QUESTIONGEN_CHAIN  nvidia:nemotron-3-nano-30b-a3b → openrouter:nemotron-nano-9b:free
 ```
 
-These are **different on purpose**. One model both authoring and grading its own
-evaluation exhibits **self-preference bias** and inflates scores. Keep them
-distinct.
+All three must stay **different model families**. The question-author/judge split
+was always documented — but a real bug shipped for a while where the **judge was
+the same model as the answerer** (both Groq `llama-3.3-70b-versatile`), i.e. the
+model was grading its own output. That is the worse of the two collisions.
 
-**Never guess a cloud model ID.** Query the provider's `/models` endpoint. During
-development `gemini-2.5-flash` returned *"no longer available to new users"* and
-`nvidia/nemotron-nano-3-30b-a3b` returned 404 — the correct id is
-`nvidia/nemotron-3-nano-30b-a3b`.
+`config.roles_are_distinct()` now enforces this and every `results.json` records
+the outcome. It compares **canonical** model names, because Groq's
+`openai/gpt-oss-120b` and Cerebras's `gpt-oss-120b` are the same model wearing
+different vendor packaging.
+
+**Model sizing — do not reach for the biggest model.** Free tiers cap
+tokens-per-DAY, and input cost is identical whatever model reads it (~950 prompt
+tokens + six evidence chunks). A 550B model burns the daily budget several times
+faster while adding nothing to a grounding-and-formatting task. Each role uses
+the smallest model that does its job: the answerer needs instruction-following,
+the judge needs consistency (flash, not pro), and only question generation
+genuinely benefits from reasoning — served by a 30B MoE with ~3B active.
+
+**Never guess a cloud model ID.** Run `python scripts/check_providers.py`, which
+queries every provider and validates each role's model. Guessed ids fail as a
+404 that looks exactly like an outage.
 
 ---
 
@@ -228,9 +249,37 @@ on Groq's free tier — 132 fallback events occurred during the last full run.
 - **Bulk evaluation** → expect fallback to local; that is normal, not a bug
 - **Never run evaluations the same day you demo** — you'll exhaust the quota
 
-Gemini's free tier was also exhausted immediately on a key created via Google
-Cloud Console. Keys must come from **aistudio.google.com** (format `AIzaSy…`),
-not Cloud Console (format `AQ.…`), which has no free-tier quota.
+### Measured provider status — re-check before relying on any of it
+
+Free tiers are **not durable**. In one afternoon of testing, three of five
+providers broke:
+
+| Provider | Status | Detail |
+|---|---|---|
+| **NVIDIA** (build.nvidia.com) | ✅ best | 102 models; Nemotron + DeepSeek. Primary for judge + question-gen |
+| **Groq** | ✅ fast, small cap | Daily token cap exhausts after a few dozen questions |
+| **OpenRouter** | ✅ works | `:free` Nemotron models fine. Some 404 with *"No endpoints matching your guardrail"* — needs prompt-training enabled in privacy settings |
+| **Gemini** | ❌ unreliable | See below |
+| **Cerebras** | ❌ unusable | `402 Payment required` on all 3 models — free tier is not on every account |
+
+**Gemini correction (supersedes the old `AIzaSy` advice above).** Google no
+longer issues `AIza…` keys; AI Studio now issues `AQ.…` keys and **they
+authenticate correctly**. The blocker is availability, not the key format:
+`gemini-2.5-flash` and `-flash-lite` return 404 *"no longer available"*,
+`2.0-flash` and `2.5-pro` return 429, `3.5-flash` returns 503. Gemini is
+therefore kept **out of the default chains**.
+
+### Why chains exist
+
+Because of the table above. Each role walks an ordered chain and the **local
+model is always appended last**, so no third-party failure can take the app
+down. This is what makes "still works in nine months" true rather than hoped for.
+
+⚠️ **The chain is for OFFLINE roles only.** The interactive answer path still
+falls straight back to local — see §3.4. Trying more cloud providers before
+local costs a full timeout each and made every query dramatically slower. A test
+(`test_api_failure_falls_back_to_local`) enforces this; if it fails, someone has
+re-introduced cloud retries into the live query path.
 
 ---
 
@@ -256,25 +305,42 @@ Per query, warm:
 
 ## 8. Evaluation results (as of the last full run)
 
-Abstention accuracy — the headline number, proving the guard works:
+Abstention accuracy — the headline number, proving the guard works.
+**30 verified-unanswerable questions per repository:**
 
-| Repo | n | Abstention accuracy |
-|---|---|---|
-| `pallets/click` | 50 | **1.00** |
-| `psf/requests` | 50 | **1.00** |
-| `acme/widgets` | 25 | **1.00** |
-| `fastapi/fastapi` | 50 | 0.86 |
+| Repo | n | Abstention accuracy | Hallucinated |
+|---|---|---|---|
+| `pallets/click` | 30 | **0.967** | 1 |
+| `psf/requests` | 30 | **0.933** | 2 |
+| `fastapi/fastapi` | 30 | **0.900** | 3 |
+| `pydantic/pydantic` | 30 | **0.867** | 4 |
+| `psf/black` | 30 | **0.833** | 5 |
+| **mean (real repos)** | **150** | **0.900** | 12 |
 
-Other metrics vary by category: faithfulness 0.47–0.94, recall@k 0.30–1.00.
-**`evolution` questions are weakest** (recall 0.30–0.38) — multi-hop retrieval
-across time is genuinely the hard case. This is a documented, honest limitation
-with 15 failure cases behind it, **not something to hide or "fix" by tuning
-metrics**.
+⚠️ **Do not restore the old "1.00" figure.** It came from **7** questions per
+repo and was a small-sample artifact. The sample was deliberately enlarged to 30
+and the number fell to 0.90. That is the *better* result — it survives the
+question "on how many questions?", which 1.00 did not. Anyone re-reporting 1.00
+is quoting a superseded run.
 
-⚠️ **Provenance caveat that must stay in any report:** answers mix Groq-70B and
-local Qwen-7B because the daily quota ran out mid-run. The honest phrasing is
-*"generated by Groq Llama-3.3-70B with automatic local fallback on quota
-exhaustion."*
+**`evolution` questions remain weakest** (recall 0.36–0.39 even with graph
+expansion) — multi-hop retrieval across time is genuinely the hard case. This is
+a documented, honest limitation with 15 failure cases behind it, **not something
+to hide or "fix" by tuning metrics**.
+
+⚠️ **Provenance caveat that must stay in any report:** these answers came
+**entirely from local qwen2.5:7b**, because the cloud daily token cap was
+already exhausted when the run started. They are a floor, not a best case. Each
+run now records an `answered_by` count so this is verifiable rather than
+remembered — check it before quoting any number.
+
+The **mixed-category** results in `results/eval-*` are STALE: they predate the
+fastapi PR re-index and were produced while the judge was the same model as the
+answerer. Re-run before citing:
+
+```bash
+bash scripts/run_full_evaluation.sh
+```
 
 ---
 

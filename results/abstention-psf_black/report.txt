@@ -1,0 +1,6 @@
+Evaluation — psf/black   (30 questions)
+============================================================
+
+[unanswerable]  n=30
+  abstention_accuracy : 0.833 (5 hallucinated)
+  latency_ms mean/p95 : 44502 / 134012

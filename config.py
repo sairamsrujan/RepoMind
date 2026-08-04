@@ -98,6 +98,61 @@ JUDGE_MODEL: str = os.getenv("JUDGE_MODEL", "")
 QUESTIONGEN_MODEL: str = os.getenv("QUESTIONGEN_MODEL",
                                    "nvidia/nemotron-3-nano-30b-a3b")
 
+# --------------------------------------------------------------------------- #
+# Provider fallback chains — the reliability mechanism.
+#
+# Free tiers are not durable. Measured in one afternoon: Gemini returned "no
+# longer available" for two models and 429 for the rest, Cerebras returned 402
+# (its free tier is not on every account), and Groq's daily token cap was
+# exhausted after a few dozen questions. Any single-provider setting will be
+# broken long before this project is demonstrated.
+#
+# Each role therefore has an ORDERED chain: the first entry that answers wins,
+# and the local model is always appended last (no key, no network). This is what
+# makes "the app still works in nine months" true rather than hoped for.
+#
+# Format: "provider:model" (first colon splits; model ids may contain ':' and '/').
+# Families are kept distinct ACROSS roles so no model ever grades its own work.
+# --------------------------------------------------------------------------- #
+def _chain(env_name: str, default: list[str]) -> list[str]:
+    raw = os.getenv(env_name, "")
+    return [s.strip() for s in raw.split(",") if s.strip()] if raw else default
+
+
+# Model sizing note: on these free tiers the cap is tokens-per-DAY, and the
+# input cost is the same whatever model reads it (~950 prompt tokens plus six
+# evidence chunks). A 550B model therefore burns the daily budget far faster
+# than a 70B one while adding nothing to a task that is about following a
+# citation format and staying grounded. Each role below picks the SMALLEST
+# model that does its job well, not the largest one available.
+
+# ANSWERER — needs instruction-following (cite every claim as [chunk_id], refuse
+# when evidence is thin), not raw scale. This is the demo-facing model, so
+# quality is visible; ~70B is the sweet spot. Llama family.
+GENERATION_CHAIN: list[str] = _chain("GENERATION_CHAIN", [
+    "groq:llama-3.3-70b-versatile",                      # fast, strong follower
+    "nvidia:nvidia/llama-3.3-nemotron-super-49b-v1.5",   # 49B, cheaper backup
+])
+
+# JUDGE — emits two calibrated floats as JSON. Wants consistency, not
+# creativity, and runs offline so latency is irrelevant. DeepSeek family, kept
+# deliberately different from the answerer it grades. "flash" first: a grading
+# task does not need "pro", and flash costs far less of the daily quota.
+JUDGE_CHAIN: list[str] = _chain("JUDGE_CHAIN", [
+    "nvidia:deepseek-ai/deepseek-v4-flash",   # cheap, sufficient for scoring
+    "nvidia:deepseek-ai/deepseek-v4-pro",     # if flash is overloaded (529)
+    "groq:openai/gpt-oss-120b",               # last cloud resort
+])
+
+# QUESTION AUTHOR — must infer *why* a change happened from scattered evidence,
+# so reasoning genuinely helps here. Runs rarely (once per golden set), and
+# nemotron-3-nano is a 30B mixture-of-experts with only ~3B active parameters:
+# reasoning behaviour at a fraction of the token cost. Nemotron family.
+QUESTIONGEN_CHAIN: list[str] = _chain("QUESTIONGEN_CHAIN", [
+    "nvidia:nvidia/nemotron-3-nano-30b-a3b",          # 30B MoE / 3B active
+    "openrouter:nvidia/nemotron-nano-9b-v2:free",      # 9B free backup
+])
+
 GROQ_BASE_URL: str = "https://api.groq.com/openai/v1"
 
 # --------------------------------------------------------------------------- #
@@ -293,20 +348,32 @@ def evaluation_roles() -> dict[str, str]:
     question author are three different models (see the note above).
     """
     return {
-        "answerer": effective_generation_model(),
-        "judge": f"{JUDGE_PROVIDER}:{judge_model_name()}",
-        "question_gen": f"{QUESTIONGEN_PROVIDER}:{questiongen_model_name()}",
+        "answerer": GENERATION_CHAIN[0] if GENERATION_CHAIN
+        else effective_generation_model(),
+        "judge": JUDGE_CHAIN[0] if JUDGE_CHAIN
+        else f"{JUDGE_PROVIDER}:{judge_model_name()}",
+        "question_gen": QUESTIONGEN_CHAIN[0] if QUESTIONGEN_CHAIN
+        else f"{QUESTIONGEN_PROVIDER}:{questiongen_model_name()}",
     }
 
 
 def roles_are_distinct() -> tuple[bool, str]:
-    """True when no two evaluation roles share a model (self-preference check)."""
+    """True when no two evaluation roles share a model (self-preference check).
+
+    Comparison is on the *canonical* model, so the same underlying model offered
+    under different vendor packaging — Groq's ``openai/gpt-oss-120b`` versus
+    Cerebras's ``gpt-oss-120b`` — is correctly detected as a clash rather than
+    passing as two different judges.
+    """
+    import providers
+
     roles = evaluation_roles()
-    # Compare on the bare model id, ignoring the provider prefix.
-    bare = {k: v.split(":", 1)[-1] for k, v in roles.items()}
+    bare = {k: providers.canonical_model(v.split(":", 1)[-1])
+            for k, v in roles.items()}
+    names = list(bare)
     clashes = [
-        f"{a} and {b} both use {bare[a]!r}"
-        for i, a in enumerate(bare) for b in list(bare)[i + 1:]
+        f"{a} and {b} are both {bare[a]!r}"
+        for i, a in enumerate(names) for b in names[i + 1:]
         if bare[a] == bare[b]
     ]
     return (not clashes), "; ".join(clashes) if clashes else "all roles distinct"

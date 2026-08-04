@@ -166,9 +166,11 @@ def make_judge() -> Callable[[str], str]:
     """
     import providers
 
-    return lambda prompt: providers.chat(
-        config.JUDGE_PROVIDER, prompt, model=config.judge_model_name(),
-        temperature=0.0)[0]
+    # Walk the judge chain: free tiers retire models and exhaust quotas without
+    # warning, and a long evaluation must not die (or silently switch models)
+    # because the first provider went down. The chain always ends locally.
+    return lambda prompt: providers.chat_chain(
+        config.JUDGE_CHAIN, prompt, temperature=0.0)[0]
 
 
 def build_judge_prompt(question: str, answer: str, contexts: list[str]) -> str:

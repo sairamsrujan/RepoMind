@@ -1,0 +1,343 @@
+{
+  "repo": "pallets/click",
+  "dataset": "eval/datasets/pallets_click_abstention.jsonl",
+  "distribution": {
+    "causal": 0,
+    "cross_commit": 0,
+    "evolution": 0,
+    "factual": 0,
+    "unanswerable": 30
+  },
+  "by_query_type": {
+    "unanswerable": {
+      "n": 30,
+      "abstention_accuracy": 0.9666666666666667,
+      "hallucinated": 1,
+      "latency_ms_mean": 23706.585881866762,
+      "latency_ms_p95": 30468.679542000245
+    }
+  },
+  "rows": [
+    {
+      "id": "auto-unanswerable-000",
+      "query_type": "unanswerable",
+      "latency_ms": 25763.704916999814,
+      "answer": "The provided evidence does not contain any information about renaming the `click.Echo` class to `Print`. Therefore, based on the given context, I cannot provide an answer to why the click Echo class was renamed to Print [citation needed]. The evidence focuses on issues and pull requests related to parameter handling, documentation improvements, and test enhancements but does not mention any changes to the `Echo` class.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-001",
+      "query_type": "unanswerable",
+      "latency_ms": 26601.24758300026,
+      "answer": "The evidence provided does not contain a direct explanation for switching click option parsing to use rego policies. The closest related information is found in [pr_3404#0], which discusses changes around dual-option value arbitration but does not mention rego policies.\n\nTherefore, based on the given evidence, there is no explicit statement about why click option parsing was switched to use rego policies. The provided context focuses more on addressing specific issues like dual-option handling and error messaging for password inputs [issue_2809#0].",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-002",
+      "query_type": "unanswerable",
+      "latency_ms": 23221.942166999725,
+      "answer": "The evidence provided does not contain direct information about why the default auto_help behavior was inverted in version 8.5.0 [commit_4e869f3a172a]. The commit message for this version simply states the start of version 8.5.0 without any details on changes to `auto_help` or reasons behind its inversion.\n\nThe evidence does include a few pull requests and commits related to behavior changes, but none specifically address the default auto_help behavior [pr_3603#1][issue_2614][commit_b7e5fd4cc7de][commit_60cad4ad6583]. Therefore, based on the given evidence, it is not possible to provide a specific reason for why the default auto_help behavior was inverted in version 8.5.0.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-003",
+      "query_type": "unanswerable",
+      "latency_ms": 20296.616125000583,
+      "answer": "The provided evidence does not contain any information about a click testing harness being replaced with pytest-mock. The evidence discusses various pull requests and issues related to Click, including PRs that added CI jobs [issue_3157], restored parameter source visibility during type conversion [pr_3459], deprecated `isolated_filesystem()` [issue_3700], removed unused internal helpers [pr_3611], and ran tests with pytest [pr_3475#1]. There is no mention of a testing harness being replaced. Therefore, based on the given evidence, I cannot provide an answer to why click testing harness was replaced with pytest-mock.\n\nThe question appears to be outside the indexed coverage window or not covered by the provided evidence.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-004",
+      "query_type": "unanswerable",
+      "latency_ms": 20443.725666999853,
+      "answer": "The evidence provided does not contain any information about the `Context.ensure_object` method being renamed to `get_user`. Therefore, I cannot provide an answer based on the given evidence [pr_3051][pr_3058][pr_3137][commit_7a0a3447f6dd][commit_d42f15b71757].\n\nThe question appears to be outside the indexed coverage window, as none of the provided evidence mentions this specific method or its renaming.",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-005",
+      "query_type": "unanswerable",
+      "latency_ms": 24234.521917000166,
+      "answer": "The provided evidence does not contain specific information about why the `click` Version attribute was moved to a separate `click_version` module. The closest related issue is [issue_2331], which discusses potential issues with using the module name to get the package version, but it does not mention any changes involving moving the `Version` attribute.\n\nTherefore, based on the evidence provided within the specified date range, there is no explicit information about why the `click` Version attribute was moved to a separate `click_version` module.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-006",
+      "query_type": "unanswerable",
+      "latency_ms": 25928.17208300039,
+      "answer": "The provided evidence does not contain any information about click command line parsing being changed to use toml for configuration. Therefore, I cannot provide an answer based on the given data.\n\nThe closest related issue is [issue_3045#2], which discusses optional and required arguments but does not mention changes in configuration file formats like TOML. The other evidence focuses on documentation improvements, bug fixes, and code formatting, none of which relate to a change in parsing configuration files using TOML.\n\nGiven the coverage window from 2025-07-30T06:29:07Z to 2026-07-25T06:29:07Z and the lack of relevant information, I cannot confirm or deny any changes related to TOML configuration.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-007",
+      "query_type": "unanswerable",
+      "latency_ms": 20266.183249999813,
+      "answer": "The provided evidence does not contain any information about an `auto_import_env` flag being removed. Therefore, I cannot provide a reason for its removal based on the given data.\n\nThe closest related issue is [issue_3258], which discusses adding support for environment variables in file paths using `env_var_file=True`. However, this does not mention any removal of an `auto_import_env` flag.\n\nGiven the evidence's coverage window from 2025-07-30 to 2026-07-25, and since no relevant information is present within these dates, I cannot determine if or why such a flag was removed.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-008",
+      "query_type": "unanswerable",
+      "latency_ms": 22399.35879099994,
+      "answer": "The evidence provided does not contain any information about a `legacy_parser` module being introduced, nor is there any mention of why such a module might have been added. Therefore, based on the given evidence, I cannot provide an answer to why the `legacy_parser` module was introduced [chunk_id].",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-009",
+      "query_type": "unanswerable",
+      "latency_ms": 21041.717957999936,
+      "answer": "The evidence provided does not contain any information about why the `dual_help` option was deprecated. Therefore, I cannot provide a reason for its deprecation based on the given evidence [pr_3421#1][commit_0f71fe771cee][pr_3626].",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-010",
+      "query_type": "unanswerable",
+      "latency_ms": 29072.181417000138,
+      "answer": "The evidence provided does not contain a specific mention of an `inline_style` setting being added, nor does it provide context for when or why such a setting might have been introduced within the given date range [2025-07-30T06:29:07Z to 2026-07-25T06:29:07Z]. Therefore, based on the evidence, I cannot provide a reason for the addition of `inline_style`. The closest related change is in PR #3366 [pr_3366], which focuses on clarifying documentation and formatting boolean values as inline code but does not mention an `inline_style` setting.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-011",
+      "query_type": "unanswerable",
+      "latency_ms": 18210.3532910005,
+      "answer": "The evidence provided does not contain information about a `sandboxed` command being disabled. The closest related change is in [commit_b96c2601af4e], which documents and fixes command string sanitizing to remove the last use of `shell=True`, but this does not mention disabling any `sandboxed` command.\n\nGiven the evidence, there is no information about a `sandboxed` command being disabled within the indexed coverage window.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-012",
+      "query_type": "unanswerable",
+      "latency_ms": 21335.919832999934,
+      "answer": "The provided evidence does not contain any information about a `persistent_cache` flag being removed. Therefore, I cannot provide an answer based on the given data [pr_3605][commit_b551fe85714c][pr_3221][commit_cfa01eeb7894][commit_8dd4d60eb5ad].",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-013",
+      "query_type": "unanswerable",
+      "latency_ms": 26186.62141599998,
+      "answer": "The evidence provided does not contain any specific information about the introduction of a `multi_threaded` runner in Click. Therefore, based on the given evidence, I cannot provide an answer to why the `multi_threaded` runner was introduced [pr_3140][pr_3520][pr_3475#1][pr_3119][pr_3391][review_3090_0]. The evidence focuses on other features and fixes such as thread safety improvements, capture modes for `CliRunner`, and logging message fixes.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-014",
+      "query_type": "unanswerable",
+      "latency_ms": 20890.27199999964,
+      "answer": "The provided evidence does not contain information about a `strict_mode` behavior change. The closest related PR is [pr_3642], which addresses a warning under strict mode (`python -bb`), but it does not describe a broader change in `strict_mode` behavior.\n\nTherefore, based on the given evidence, there is no documented or explicit mention of a `strict_mode` behavior change.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-015",
+      "query_type": "unanswerable",
+      "latency_ms": 20504.62887499998,
+      "answer": "The evidence provided does not contain any information about a 'lazy_load' decorator being introduced, nor is there mention of why such a decorator might have been added. The closest related PR is [pr_3023], which discusses lazily importing `shutil`, but this is in the context of a specific module and not a general 'lazy_load' decorator.\n\nTherefore, based on the provided evidence, I cannot provide an answer to why a 'lazy_load' decorator was introduced. The coverage window does not include any relevant information for this question.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-016",
+      "query_type": "unanswerable",
+      "latency_ms": 25790.091000000757,
+      "answer": "The provided evidence does not contain information about a 'auto_dispatch' feature being removed. Therefore, I cannot provide an answer to why it was removed based on the given data [pr_3626][pr_3648#0][pr_3610][pr_3326][commit_4e4c7a69b795][pr_3488].",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-017",
+      "query_type": "unanswerable",
+      "latency_ms": 23487.665166000625,
+      "answer": "The provided evidence does not contain direct information about why the 'contextual_help' option was added. The closest related issue is [issue_375], which discusses adding a `help` keyword argument to arguments, but it does not mention anything specifically about an 'contextual_help' option.\n\nTherefore, based on the given evidence, I cannot provide a reason for why the 'contextual_help' option was added. The indexed coverage window ends in July 2026, and there is no explicit mention of such an option within this timeframe or earlier.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-018",
+      "query_type": "unanswerable",
+      "latency_ms": 19771.151583000574,
+      "answer": "The provided evidence does not contain information about a 'strict_mode' flag being removed. Therefore, I cannot provide an answer based on the given data [pr_3610][pr_3221][pr_3141][commit_8dd4d60eb5ad][commit_c9e94136b39b].",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-019",
+      "query_type": "unanswerable",
+      "latency_ms": 21861.31099999966,
+      "answer": "The evidence provided does not contain a specific mention of why the 'parallel_execution' switch was added to Click. The closest related item is [issue_2899], which discusses issues with running tests in parallel, but it does not explicitly reference any addition of a 'parallel_execution' switch. Therefore, based on the given evidence, I cannot provide an answer regarding the reason for adding this particular switch.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-020",
+      "query_type": "unanswerable",
+      "latency_ms": 29982.696625000244,
+      "answer": "The provided evidence does not contain any explicit mention of a 'caching' mechanism being introduced in the project [pr_3626][pr_3641][pr_3391][pr_3326][pr_3292][review_3460_0]. The pull requests and reviews focus on optimizing backend usage of slots, streamlining option flag management, improving `CliRunner` functionality, documenting internal help page generation, and type improvements. None of these changes are described as introducing a caching mechanism.\n\nTherefore, based on the evidence provided within the specified date range, there is no information to support that a 'caching' mechanism was introduced. If such a change occurred outside this window or was not documented in the pull requests and reviews, it would fall outside the indexed coverage [coverage_window].",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-021",
+      "query_type": "unanswerable",
+      "latency_ms": 19695.299208000506,
+      "answer": "The provided evidence does not contain any information about 'dynamic_schema' validation being removed. Therefore, I cannot provide a reason for its removal based on the given context [pr_3404#1][commit_a44e9f05edbf][commit_ec8226954e26][pr_3488][commit_0ab9d5d79bb8].",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-022",
+      "query_type": "unanswerable",
+      "latency_ms": 24613.980957999956,
+      "answer": "The 'async_callback' hook was added to support async command callbacks [pr_3419]. Specifically, this pull request introduced running awaitable results from command callbacks with `asyncio.run`, and included lazy-importing of `asyncio` to satisfy certain test requirements [pr_3419].",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "auto-unanswerable-023",
+      "query_type": "unanswerable",
+      "latency_ms": 17937.174959000004,
+      "answer": "The provided evidence does not contain any information about an 'auto_click' attribute being introduced in the Confirm command, nor does it mention changes related to the Confirm command specifically [pr_3653][pr_3269][issue_3156][commit_534761cde3b1][commit_18879025d61f]. Therefore, I cannot provide a reason for its introduction based on the given evidence.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-024",
+      "query_type": "unanswerable",
+      "latency_ms": 23990.21429200002,
+      "answer": "The provided evidence does not contain any information about the 'theme_palette' parameter being removed from the Style class. Therefore, I cannot provide a reason for its removal based on the given data.\n\nThe closest related PR is [pr_3677], which focuses on validating color arguments in `style()` but does not mention removing parameters or discuss changes to the Style class structure. \n\nGiven the coverage window and available evidence, there is no information about 'theme_palette' being removed from the Style class.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-025",
+      "query_type": "unanswerable",
+      "latency_ms": 30468.679542000245,
+      "answer": "The provided evidence does not contain any information about a 'clickable' flag being added to a Button component in the Click project. The evidence focuses on changes related to documentation updates, behavior fixes for flags, and improvements in handling parameter sources during type conversion and eager callbacks. Therefore, I cannot provide an answer based on the given evidence [pr_3269][issue_3111#0][pr_3484#0][pr_3068#1][issue_3156][commit_9b3fe6b8b43c]. The question appears to be outside the indexed coverage window or concerns a different project component.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-026",
+      "query_type": "unanswerable",
+      "latency_ms": 30728.78262500035,
+      "answer": "The provided evidence does not contain any information about a method named 'legacy_api' being renamed to 'deprecated_api'. Therefore, I cannot provide an answer based on the given context.\n\nThe closest related change is in PR #3520 where thread safety was improved for `CliRunner.isolated_filesystem()`, but this did not involve renaming methods. Another relevant change is seen in commit [commit_82f377c547e1] which fixed deprecated label formatting, but it does not mention any method renamings either.\n\nGiven the evidence provided, there is no information to support that 'legacy_api' was renamed to 'deprecated_api'. If this renaming occurred within the indexed coverage window (2025-07-30T06:29:07Z to 2026-07-25T06:29:07Z), it is not mentioned in the given evidence. [pr_3401][commit_82f377c547e1]",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-027",
+      "query_type": "unanswerable",
+      "latency_ms": 27667.421999999533,
+      "answer": "The evidence provided does not contain information about why the 'auto_format' option was removed from the Group command [issue_3044#1]. The issue mentions handling `TypedDict` in context settings but does not discuss removing any options like 'auto_format'. Therefore, based on the given evidence, I cannot provide a reason for the removal of the 'auto_format' option.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-028",
+      "query_type": "unanswerable",
+      "latency_ms": 21395.24979199996,
+      "answer": "The evidence provided does not contain any information about a 'theme_color' argument being added to the Style class. The closest related PR is [pr_3677], which validates color arguments for `style()`, but it does not mention adding a new theme_color argument.\n\nGiven that the question asks about an addition outside of the provided evidence, and considering the coverage window is from 2025-07-30 to 2026-07-25, I cannot determine if such a change occurred within this period based on the given information. Therefore, I must state that the specific change requested in the question falls outside the indexed coverage window and there is no evidence provided for it.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-029",
+      "query_type": "unanswerable",
+      "latency_ms": 27410.690415999852,
+      "answer": "The evidence provided does not mention a 'click_timeout' parameter for the `open_url` command, nor does it provide any context regarding its introduction. Therefore, based on the given information, I cannot provide an answer to why 'click_timeout' was introduced for the `open_url` command [issue_3489][pr_3610][commit_c5cced7b3096][pr_3297][pr_3459].",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    }
+  ],
+  "judge": {
+    "available": true
+  },
+  "created_at": "2026-08-04T14:18:08.344894+00:00",
+  "models": {
+    "generation": "llama-3.3-70b-versatile",
+    "embedding": "qwen3-embedding:0.6b",
+    "reranker": "BAAI/bge-reranker-v2-m3",
+    "nli": "cross-encoder/nli-deberta-v3-base",
+    "judge_provider": "groq",
+    "judge_model": "openai/gpt-oss-120b"
+  },
+  "evaluation_roles": {
+    "answerer": "llama-3.3-70b-versatile",
+    "judge": "groq:openai/gpt-oss-120b",
+    "question_gen": "nvidia:nvidia/nemotron-3-nano-30b-a3b"
+  },
+  "roles_distinct": {
+    "ok": true,
+    "detail": "all roles distinct"
+  }
+}

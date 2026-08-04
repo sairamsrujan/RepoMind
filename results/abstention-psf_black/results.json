@@ -1,0 +1,343 @@
+{
+  "repo": "psf/black",
+  "dataset": "eval/datasets/psf_black_abstention.jsonl",
+  "distribution": {
+    "causal": 0,
+    "cross_commit": 0,
+    "evolution": 0,
+    "factual": 0,
+    "unanswerable": 30
+  },
+  "by_query_type": {
+    "unanswerable": {
+      "n": 30,
+      "abstention_accuracy": 0.8333333333333334,
+      "hallucinated": 5,
+      "latency_ms_mean": 44501.995020800015,
+      "latency_ms_p95": 134011.8409170009
+    }
+  },
+  "rows": [
+    {
+      "id": "auto-unanswerable-000",
+      "query_type": "unanswerable",
+      "latency_ms": 48619.01691700041,
+      "answer": "The provided evidence does not contain a direct explanation for why the experimental dynamic line length heuristic was introduced [issue_497][pr_5275]. The issue #497 discusses the default line length but does not mention any experimental heuristics related to dynamic line lengths. Similarly, PR #5275 focuses on improving formatting performance and does not reference or explain an introduction of a new heuristic for dynamic line lengths.\n\nTherefore, based on the provided evidence, there is no information available about why the experimental dynamic line length heuristic was introduced.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-001",
+      "query_type": "unanswerable",
+      "latency_ms": 35838.121124999816,
+      "answer": "The colored output mode was added to the CLI as part of issue [issue_3721#1], which describes the `skip_magic_trailing_comma` parameter among others, including a description for handling color in the headers dictionary:\n\n- The `X-Skip-Magic-Trailing-Comma`, `X-Preview`, `X-Fast-Or-Safe`, and other parameters correspond to CLI options such as `--diff`. Similarly, the `X-Diff` header corresponds to the `--diff` option. However, there is no explicit mention of a color-related header in this evidence snippet [issue_3721#1]. \n\nThe question about why colored output mode was added specifically does not have direct evidence from the provided chunks. The evidence focuses on headers and options for the API usage rather than the reasoning behind adding colored output to the CLI. Therefore, based solely on the given evidence, it cannot be determined exactly why this feature was added.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "auto-unanswerable-002",
+      "query_type": "unanswerable",
+      "latency_ms": 21255.489416000273,
+      "answer": "The provided evidence does not contain any specific information about why inline diff preview in PR comments was implemented. The closest related issue is [issue_1], which discusses non-deterministic styling of imports following standalone comments, but it does not mention anything about inline diff previews or PR comments.\n\nTherefore, based on the given evidence, there is no direct answer to why inline diff preview in PR comments was implemented.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-003",
+      "query_type": "unanswerable",
+      "latency_ms": 29103.754457999457,
+      "answer": "The evidence provided does not contain any information about a customizable comment prefix feature being added. The closest related issue is [issue_1713], which discusses splitting long comments across multiple lines to fit within line length limits, but it does not mention customizing comment prefixes.\n\nTherefore, based on the given evidence, there is no record of why a customizable comment prefix feature was added. The provided information focuses more on formatting and documentation improvements rather than introducing new features like customizable prefixes. [issue_1713]",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-004",
+      "query_type": "unanswerable",
+      "latency_ms": 36232.427000000826,
+      "answer": "The evidence provided does not contain a direct explanation for why support for multi-line string literals with auto-dedent was added to Black. The closest related issue is [issue_4875#0], which discusses setting the 2026 stable style but does not provide details on the initial addition of this feature or its reasoning.\n\nThe discussion in [pr_4760#0] mentions fixing issues with `multiline_string_handling` and moving it from unstable to preview for v26, but it does not explain the original addition. Therefore, based solely on the provided evidence, there is insufficient information to answer why multi-line string literals with auto-dedent were initially added.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-005",
+      "query_type": "unanswerable",
+      "latency_ms": 5845.694457999343,
+      "answer": "The evidence does not provide a clear reason for the introduction of an experimental strict mode for syntax errors [issue_5249#1]. The issue #5249 mentions a `SyntaxError`, but it does not explain why an experimental strict mode was introduced [issue_5249#1]. \n\nAdditionally, there is no mention of an experimental strict mode in the other evidence chunks, such as [issue_2188], [issue_1272], [pr_5161#1], [commit_f5e2d0667dbe], or [issue_1]. \n\nTherefore, based on the provided evidence, it is not possible to determine why an experimental strict mode for syntax errors was introduced. The evidence is insufficient to answer this question.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-006",
+      "query_type": "unanswerable",
+      "latency_ms": 25836.40883299995,
+      "answer": "The evidence provided does not contain a specific mention of integration with type-guard annotations being added. The closest related PR is [pr_5271#0], which addresses handling `type: ignore` comments, but it does not explicitly state that this was to integrate with type-guard annotations.\n\nTherefore, based on the given evidence, there is insufficient information to provide a reason for adding integration with type-guard annotations.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-007",
+      "query_type": "unanswerable",
+      "latency_ms": 25126.90083400048,
+      "answer": "The evidence provided does not directly address why runtime configuration via TOML file was introduced. The closest related issue is [issue_2487], which discusses the need for specifying certain flags, like `--experimental-string-processing`, in a `pyproject.toml` file to avoid typing them out every time and improve documentation clarity. However, this does not explicitly state that these changes were part of introducing runtime configuration via TOML.\n\nThe evidence [commit_be62deabe177] adds support for the `required-version` \"major-version-only\" format when using pyproject.toml but does not provide context on why runtime configuration was introduced. Therefore, based solely on the provided evidence, it is not possible to determine the exact reason for introducing runtime configuration via TOML files.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "auto-unanswerable-008",
+      "query_type": "unanswerable",
+      "latency_ms": 28250.33537499985,
+      "answer": "The evidence provided does not contain a specific introduction of an 'inline formatting toggle' option. The closest related issue is [issue_3721#1], which discusses various CLI options including `--skip-magic-trailing-comma`, but it does not describe the introduction of such an inline toggle.\n\nTherefore, based on the provided evidence, there is no clear information about why an 'inline formatting toggle' option was introduced. The evidence focuses more on other features and issues rather than this specific feature request or implementation.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-009",
+      "query_type": "unanswerable",
+      "latency_ms": 33248.470624999754,
+      "answer": "The provided evidence does not contain a direct explanation for why 'whitespace preservation mode' was removed. The closest related PR is [pr_4918#0], which simplifies the power operator hugging implementation and mentions that it removes whitespace in certain cases, but this change is described as a minor side-effect rather than an intentional removal of a feature.\n\nTherefore, based on the evidence provided, there is no explicit information about why 'whitespace preservation mode' was removed. The changes discussed are focused on simplifying code and refactoring for future work, not on removing whitespace preservation functionality.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-010",
+      "query_type": "unanswerable",
+      "latency_ms": 31953.20087499931,
+      "answer": "The 'custom line length override' flag was added to address a specific use case where users want to format code with a different line length than the default, while still being able to reformat it later to adhere to a stricter line length policy [issue_4793]. This is particularly useful for scenarios like pre-commit hooks that enforce a longer line length, but individual developers might prefer a shorter one for readability purposes.",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-011",
+      "query_type": "unanswerable",
+      "latency_ms": 26676.153042000806,
+      "answer": "The evidence provided does not contain any information about why the 'comment-preserving formatting' feature was deprecated. The closest related issue is [issue_1713], which discusses splitting long comments to fit within line length limits, but it does not mention deprecation of a specific feature.\n\nTherefore, based on the given evidence, there is no information available to answer why the 'comment-preserving formatting' feature was deprecated.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-012",
+      "query_type": "unanswerable",
+      "latency_ms": 24120.541333999427,
+      "answer": "The evidence provided does not contain information about why 'experimental parser mode' was enabled by default. The closest related issue is [issue_4196], which discusses changes in how experimental features like string processing are handled, but it does not provide details on the initial enabling of an 'experimental parser mode'. Therefore, based on the given evidence, I cannot answer why 'experimental parser mode' was enabled by default.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-013",
+      "query_type": "unanswerable",
+      "latency_ms": 32008.32291700135,
+      "answer": "The evidence provided does not contain specific information about changes related to \"binary literal formatting.\" The closest relevant change mentioned is in PR [pr_5113], which addresses a standalone comment before binary operations but does not discuss binary literal formatting rules.\n\nGiven the coverage window and available evidence, there is insufficient information to determine why any 'binary literal formatting' rule was altered. Therefore, I cannot provide an answer based on the given evidence.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-014",
+      "query_type": "unanswerable",
+      "latency_ms": 28895.24587499909,
+      "answer": "The evidence provided does not contain a specific reason for disabling 'auto-import sorting' behavior in black. The closest related issue is [issue_4641], which discusses compatibility issues between black and isort, but it does not mention any disabling of auto-import sorting.\n\n[issue_4641] describes that formatting applied by black on imports is not compatible with isort, leading to conflicts when using both tools together in CI testing. However, this issue suggests potential solutions such as providing an option to not reformat imports rather than explicitly mentioning the disablement of any auto-import sorting feature.\n\nTherefore, based on the provided evidence, there is no clear indication that 'auto-import sorting' behavior was disabled; instead, it highlights a compatibility issue between black and isort.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-015",
+      "query_type": "unanswerable",
+      "latency_ms": 19038.450250000096,
+      "answer": "The provided evidence does not contain any information about why auto-format on save was introduced in the Black project. Therefore, I cannot provide a reason based on the given context [issue_1][commit_6b1392fa1f9c][review_4805_6][commit_6296607b02bb][review_5252_0][issue_5164].",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-016",
+      "query_type": "unanswerable",
+      "latency_ms": 29466.681624999183,
+      "answer": "The evidence provided does not contain any specific information about colorized diffs being added. Therefore, based on the given evidence, it is outside the indexed coverage window [review_5252_0][issue_4882#0][commit_95a1e75344b9][pr_4810#1][pr_4811#0][pr_4846], and there is no direct mention or discussion of colorized diffs.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-017",
+      "query_type": "unanswerable",
+      "latency_ms": 30412.385834000816,
+      "answer": "The removal of legacy Python 3.7 support was not directly addressed in the provided evidence. The closest related information is found in [issue_4972#1], where there is a mention of \"Linux/Python 3.7.4rc1,\" but no explicit statement about its removal or reasons for it.\n\nGiven the coverage window and the available evidence, I cannot cite any specific commit, PR, or issue that explicitly states why legacy Python 3.7 support was removed [issue_4972#1].",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "auto-unanswerable-018",
+      "query_type": "unanswerable",
+      "latency_ms": 34038.56983300102,
+      "answer": "The evidence provided does not directly explain why runtime dependency pinning was implemented in this project. The closest related information is found in a commit message that mentions adding cooldowns for dependency pins, but it does not provide historical context or reasoning behind the initial implementation.\n\nSpecifically:\n- [commit_bfdecb120632] adds cooldowns and removes template injections, which implies ongoing management of dependencies but does not explain the original reason for pinning.\n- [commit_a61e98a2f7d6] mentions adding dependency cooldowns without context.\n\nWithout more specific evidence regarding the initial implementation or rationale, it is not possible to provide a detailed answer based solely on the given information.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "auto-unanswerable-019",
+      "query_type": "unanswerable",
+      "latency_ms": 37604.51195799942,
+      "answer": "The evidence provided does not contain explicit information about why parallel test execution was enabled in the project. The closest related commit is [commit_9c47b6e20c93], which avoids using an extra process when running with only one worker, but it does not mention enabling parallel test execution.\n\nTherefore, based on the given evidence, there is no clear indication of why parallel test execution was enabled.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-020",
+      "query_type": "unanswerable",
+      "latency_ms": 56482.89120800109,
+      "answer": "The evidence provided does not contain any specific information about why config file auto-migration was added. The closest related item is a pull request that bumped an external dependency, which included some documentation fixes [pr_5224#0], but these changes do not mention or relate to auto-migration of configuration files.\n\nTherefore, based on the given evidence, there is no information available to explain why config file auto-migration was added.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-021",
+      "query_type": "unanswerable",
+      "latency_ms": 134011.8409170009,
+      "answer": "The release notes generator was introduced to support the `previous_tag` feature for generating release notes, as indicated in the pull request [pr_5060#1]. This change was contributed by @pocesar and is part of a larger set of improvements and bug fixes aimed at enhancing the functionality of the action-gh-release project.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "auto-unanswerable-022",
+      "query_type": "unanswerable",
+      "latency_ms": 157233.12033299953,
+      "answer": "The provided evidence does not contain a specific mention of why the typehint auto-generation feature was added. The closest related issue is [issue_3350], which discusses style changes for type hints but does not provide information on the addition or reasoning behind the typehint auto-generation feature.\n\n[issue_3350] describes an issue where Black's formatting behavior for type hints differs based on whether they are preceded by a comment, suggesting that there might be some form of auto-generation or handling involved in such cases. However, this does not directly address the addition of a typehint auto-generation feature.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-023",
+      "query_type": "unanswerable",
+      "latency_ms": 46218.754792000254,
+      "answer": "The evidence provided does not contain any information about a `QuantumStringFormatter` being added to the project. The discussion focuses on changes related to string processing features, such as enabling unstable features without requiring preview flags [issue_4196], and addressing formatting issues in doctests [pr_5017]. Therefore, based on the given evidence, there is no information about `QuantumStringFormatter` being added.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-024",
+      "query_type": "unanswerable",
+      "latency_ms": 55639.65899999857,
+      "answer": "The evidence provided does not contain any information about ZeroDivisionErrorSilencer being removed or its reasons for removal. The closest related commit is [commit_c014b22a2d5e], which mentions removing unused internal code but does not specify what that includes. Therefore, based on the given evidence, I cannot provide a reason for the removal of ZeroDivisionErrorSilencer.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-025",
+      "query_type": "unanswerable",
+      "latency_ms": 43659.30783300064,
+      "answer": "The provided evidence does not contain any information about LegacyFormatter support being dropped. Therefore, I cannot provide a reason for its removal based on the given data [issue_497][pr_4855#1][commit_6296607b02bb][review_4996_1][issue_2291][issue_5164].",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-026",
+      "query_type": "unanswerable",
+      "latency_ms": 82661.83170799923,
+      "answer": "The provided evidence does not contain any information about AsyncBlackFormatter integration. Therefore, I cannot provide a reason for its introduction based on the given data.\n\nThe closest related PR is [pr_4750#1], which updates links in the documentation but does not mention anything about AsyncBlackFormatter. The other PRs and issues focus on specific bug fixes, documentation improvements, or version warnings, none of which discuss AsyncBlackFormatter integration.\n\nGiven that the evidence does not include any information regarding AsyncBlackFormatter, I cannot answer why it was introduced based solely on this data. [pr_4750#1] [issue_3954#1] [issue_4746#0] [issue_5164] [pr_5061]",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-027",
+      "query_type": "unanswerable",
+      "latency_ms": 49979.79245800161,
+      "answer": "The evidence provided does not contain a specific mention of the EmojiStyleGuide rule being added. The closest related information is in [pr_4751#1], which adds an entry to the FAQ for handling windows emoji display issues, but it does not explicitly state that this was done as part of adding the EmojiStyleGuide rule.\n\nTherefore, based on the given evidence, there is insufficient information to determine why the EmojiStyleGuide rule was added. [issue_5260#1] discusses potential popularity due to Ruff's handling of `noqa` comments but does not mention the EmojiStyleGuide rule either.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-028",
+      "query_type": "unanswerable",
+      "latency_ms": 57706.41374999832,
+      "answer": "The provided evidence does not contain information about a StrictLintMode flag being removed or its reasons for removal. Therefore, I cannot provide an answer based on the given data [commit_01c29bd5fded][issue_4052#1][pr_4751#1][commit_f7354342e461][commit_0c3d2ace2db3][commit_2e641d174469].",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-029",
+      "query_type": "unanswerable",
+      "latency_ms": 67895.55604099951,
+      "answer": "The evidence provided does not contain a specific mention of the `PyOdideIntegration` component being added, nor does it provide context for its addition. Therefore, based on the given information, I cannot provide a reason for why this component was added [pr_4768#6][pr_5242][pr_4987][commit_a61e98a2f7d6][commit_6b5f6ab05c8b]. The evidence focuses on changes related to documentation, performance improvements, and dependency updates but does not include details about the `PyOdideIntegration` component.",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    }
+  ],
+  "judge": {
+    "available": true
+  },
+  "created_at": "2026-08-04T14:54:38.911708+00:00",
+  "models": {
+    "generation": "llama-3.3-70b-versatile",
+    "embedding": "qwen3-embedding:0.6b",
+    "reranker": "BAAI/bge-reranker-v2-m3",
+    "nli": "cross-encoder/nli-deberta-v3-base",
+    "judge_provider": "groq",
+    "judge_model": "openai/gpt-oss-120b"
+  },
+  "evaluation_roles": {
+    "answerer": "llama-3.3-70b-versatile",
+    "judge": "groq:openai/gpt-oss-120b",
+    "question_gen": "nvidia:nvidia/nemotron-3-nano-30b-a3b"
+  },
+  "roles_distinct": {
+    "ok": true,
+    "detail": "all roles distinct"
+  }
+}

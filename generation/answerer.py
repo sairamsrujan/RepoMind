@@ -199,6 +199,14 @@ class Answerer:
                 reason = str(exc)[:200]
                 _log.warning("Cloud generation failed, using local model: %s",
                              reason)
+                # Deliberately go straight to local rather than trying the rest
+                # of GENERATION_CHAIN. This is the INTERACTIVE path: each extra
+                # cloud attempt costs a full timeout before answering, and
+                # HANDOFF.md §3.4 records that stacking provider waits added
+                # ~120s to every query before falling back to a local model that
+                # answers in ~10s. Latency is the priority here; the chain's
+                # resilience belongs to the OFFLINE roles (judge, question-gen)
+                # where a slow answer beats no answer.
                 text = self._chat_ollama(messages)
                 return AnswerResult(
                     text=text, cited_chunk_ids=extract_citations(text),

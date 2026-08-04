@@ -1,0 +1,6 @@
+Evaluation — pydantic/pydantic   (30 questions)
+============================================================
+
+[unanswerable]  n=30
+  abstention_accuracy : 0.867 (4 hallucinated)
+  latency_ms mean/p95 : 55140 / 94209

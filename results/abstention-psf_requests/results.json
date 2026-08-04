@@ -1,0 +1,343 @@
+{
+  "repo": "psf/requests",
+  "dataset": "eval/datasets/psf_requests_abstention.jsonl",
+  "distribution": {
+    "causal": 0,
+    "cross_commit": 0,
+    "evolution": 0,
+    "factual": 0,
+    "unanswerable": 30
+  },
+  "by_query_type": {
+    "unanswerable": {
+      "n": 30,
+      "abstention_accuracy": 0.9333333333333333,
+      "hallucinated": 2,
+      "latency_ms_mean": 28367.929195766737,
+      "latency_ms_p95": 38754.03645799997
+    }
+  },
+  "rows": [
+    {
+      "id": "auto-unanswerable-000",
+      "query_type": "unanswerable",
+      "latency_ms": 44813.59633299962,
+      "answer": "The provided evidence does not contain any information about `requests-cache` middleware integration being removed. Therefore, based on the given context, I cannot provide a reason for its removal [pr_7230#1][issue_4934][release_v2.32.5][pr_7072#3][pr_7501].",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-001",
+      "query_type": "unanswerable",
+      "latency_ms": 24994.237707999673,
+      "answer": "The provided evidence does not contain any information about a `session.reuse_connections` flag being deprecated. Therefore, I cannot provide an answer based on the given context.\n\nThe closest related issue is [issue_7045], which discusses connection management in sessions but does not mention deprecation of any flags.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-002",
+      "query_type": "unanswerable",
+      "latency_ms": 29223.76745800011,
+      "answer": "The provided evidence does not contain any information about `http2` protocol support being removed from the core library [issue_7134][pr_7505][pr_7204][issue_7558][pr_7555]. The evidence focuses on other features and improvements such as documentation updates, timeout best practices, and handling of URLs with semicolons in the path for HTTPDigestAuth. Therefore, based on the given information, there is no evidence to support or refute a claim about `http2` protocol support being removed from the core library.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-003",
+      "query_type": "unanswerable",
+      "latency_ms": 34120.820917000856,
+      "answer": "The provided evidence does not contain any information about a change to the `redirect_limit` parameter being made constant, nor does it mention any specific changes related to this parameter. Therefore, based on the given evidence, I cannot provide an answer regarding why the `redirect_limit` parameter was changed to a constant.\n\nIf you have more recent or relevant evidence that covers the period after 2026-07-25T06:32:13Z, please provide it. Otherwise, the question falls outside the indexed coverage window. [issue_6221][pr_7379][pr_7338][pr_7090][pr_7404][pr_7395]",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-004",
+      "query_type": "unanswerable",
+      "latency_ms": 23232.432250000784,
+      "answer": "The `verify` flag default behavior was not inverted in this evidence. The PR [pr_7495] addresses a specific issue where the environment variable precedence overrode explicit `verify=False`, but it does not change the default behavior of `verify`. The default value for the `verify` parameter remains `True` unless explicitly set to `False` or `None`. This change ensures that when `verify=False` is explicitly provided, the environment variables do not override this setting.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "auto-unanswerable-005",
+      "query_type": "unanswerable",
+      "latency_ms": 27776.733000000604,
+      "answer": "The provided evidence does not mention any removal of `stream` mode from the `post` method. The closest related PR is [pr_7093], which documents that streaming responses (`stream=True`) don't automatically decompress gzipped content, but it does not indicate a removal of `stream` functionality for the `post` method.\n\nTherefore, based on the evidence provided, there is no information to support or refute any claim about the `stream` mode being removed from the `post` method.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-006",
+      "query_type": "unanswerable",
+      "latency_ms": 29710.626874999434,
+      "answer": "The provided evidence does not contain any information about renaming the `timeout` parameter to `max_wait`. Therefore, based on the given context, there is no evidence to support or refute a claim that such a change occurred within the indexed coverage window.\n\nThe closest related evidence pertains to clarifying how the `timeout` parameter works in terms of its application and values [pr_7389][issue_7350]. However, this does not mention any renaming of the parameter. \n\nIf you have more recent or relevant information that was outside the indexed coverage window, please provide it for a comprehensive answer.",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-007",
+      "query_type": "unanswerable",
+      "latency_ms": 25757.62224999926,
+      "answer": "The provided evidence does not contain any information about a removal of the `auth_backend` plugin system. Therefore, I cannot provide an answer based on the given context [pr_7538][pr_7486#1][pr_7251][issue_7247][pr_7282].",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-008",
+      "query_type": "unanswerable",
+      "latency_ms": 29065.66308299989,
+      "answer": "The provided evidence does not contain information about an experimental `requests-async-http2` module or its removal. Therefore, I cannot provide a reason for its removal based on the given data.\n\nThe closest related issue is [issue_7171], which mentions \"Sub-task 1: Implement basic async/await patterns,\" but it does not discuss any specific module named `requests-async-http2` or its removal. \n\nGiven the evidence, I cannot answer why an experimental `requests-async-http2` module was removed as there is no relevant information provided within the indexed coverage window.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-009",
+      "query_type": "unanswerable",
+      "latency_ms": 29604.67037499984,
+      "answer": "The provided evidence does not contain information about deprecating the `ssl_certificate_validation` flag in the Requests library. Therefore, I cannot provide an answer based on the given evidence [pr_7075#1][release_v2.32.5][pr_7579][issue_6896#0][pr_7355][pr_7091#2].",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-010",
+      "query_type": "unanswerable",
+      "latency_ms": 21981.601082999987,
+      "answer": "The evidence provided does not contain information about a custom `py-typed` stub generation script being removed. Therefore, I cannot provide an answer to why such a script was removed based on the given evidence [issue_6211][pr_7190][review_7460_0][commit_0c2bbe73982a][issue_7001][pr_7461].",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-011",
+      "query_type": "unanswerable",
+      "latency_ms": 30115.023917000144,
+      "answer": "The provided evidence does not contain a specific mention of why the `requests.utils.decode_unicode_escape_sequences` function was replaced. The closest related PR is [pr_7282], which focused on removing an ISO-8859-1 charset fallback, but this change did not involve `decode_unicode_escape_sequences`. Therefore, based solely on the given evidence, it cannot be determined why that particular function was replaced.\n\n[pr_7282]",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-012",
+      "query_type": "unanswerable",
+      "latency_ms": 30708.447541999703,
+      "answer": "The evidence provided does not contain a specific mention of changing the default `User-Agent` string to include a version suffix. The closest related PR is [pr_7473], which adds a test for the default user agent but does not discuss any changes in its format or inclusion of a version suffix.\n\nTherefore, based on the provided evidence, there is no information available to explain why the default `User-Agent` string was changed to include a version suffix. The question appears to be outside the coverage window of the given evidence.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-013",
+      "query_type": "unanswerable",
+      "latency_ms": 20966.506832999585,
+      "answer": "The provided evidence does not contain any information about making the synchronous `Session` API optional. Therefore, I cannot provide an answer based on the given context.\n\nThe closest related issue is [issue_6835#1], which discusses why a session doesn't send stored cookies at a second request and mentions that the domain in cookies might be `.localhost` even if set as `Domain=localhost`. However, this does not address the question about the synchronous `Session` API.\n\nIf you have more context or evidence regarding the synchronous `Session` API being made optional, please provide it.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-014",
+      "query_type": "unanswerable",
+      "latency_ms": 33264.4229159996,
+      "answer": "The provided evidence does not contain any information about a built-in retry decorator being removed from `Session`. Therefore, I cannot provide an answer to why such a change occurred based on the given data.\n\nThe evidence includes discussions and issues related to session handling, cookie persistence, and response hooks but does not mention any changes regarding a retry mechanism or its removal. [issue_4664][issue_4747] discuss retries in the context of sessions and response hooks, but they do not indicate that a built-in retry decorator was removed.\n\nGiven the coverage window from 2025-07-30 to 2026-07-25, this question might be outside the indexed range. If you have more recent evidence or context, please provide it for an accurate answer.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-015",
+      "query_type": "unanswerable",
+      "latency_ms": 29724.837916999604,
+      "answer": "The provided evidence does not contain any information about an `auto_retry_on_503` flag being added. The issue [issue_6809#0] discusses a problem with retrying for 503 status codes but does not mention adding such a flag. Therefore, based on the given evidence, there is no information to address why an `auto_retry_on_503` flag was added.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-016",
+      "query_type": "unanswerable",
+      "latency_ms": 25547.763874999873,
+      "answer": "The provided evidence does not contain any information about the deprecation of the `response_body_monitor` endpoint. Therefore, I cannot provide a reason for its deprecation based on the given data [issue_5436][pr_7524][pr_7530][pr_7101#2][pr_7355].",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-017",
+      "query_type": "unanswerable",
+      "latency_ms": 26358.266082999762,
+      "answer": "The provided evidence does not contain information about an `grpc_http_client` integration or its removal. Therefore, it is outside the indexed coverage window and there is insufficient evidence to address the question [pr_7125][pr_7354][pr_7501][pr_7392][pr_7065#1].",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-018",
+      "query_type": "unanswerable",
+      "latency_ms": 27014.49062500069,
+      "answer": "The provided evidence does not contain information about an `ssl_strict_verify` option being removed. Therefore, I cannot provide a reason for its removal based on the given context [pr_7075#1][issue_7247][pr_7555][issue_7248#1].",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-019",
+      "query_type": "unanswerable",
+      "latency_ms": 27581.807041999127,
+      "answer": "The provided evidence does not contain information about a `streaming_chunk_encoder` module being removed or any related changes [pr_7086#1][issue_6775#1][pr_7093][review_7217_0][pr_7030]. Therefore, I cannot provide an answer to why this module was removed based on the given evidence.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-020",
+      "query_type": "unanswerable",
+      "latency_ms": 33964.36583300056,
+      "answer": "The evidence provided does not contain any information about a `request_id` header injection feature being discontinued. Therefore, based on the given evidence, I cannot provide an answer to why such a feature was discontinued [issue_4934][pr_7184][release_v2.32.5][pr_7319][issue_5498]. The closest related information is found in the release notes for v2.32.5, which mentions deprecating support for Python 3.8 and adding support for Python 3.14 [release_v2.32.5], but this does not pertain to a `request_id` header injection feature.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-021",
+      "query_type": "unanswerable",
+      "latency_ms": 23111.568291000367,
+      "answer": "The provided evidence does not contain any information regarding the removal of the `http2_priority` configuration option. Therefore, based on the given context, I cannot provide a reason for its removal [pr_7080][pr_7263]. The evidence focuses on other issues and pull requests related to timeouts, proxy handling, and HTTP/2 compliance but does not address this specific question.",
+      "guard_pass": false,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-022",
+      "query_type": "unanswerable",
+      "latency_ms": 38754.03645799997,
+      "answer": "The provided evidence does not contain any information about an `custom_redirect_resolver` experimental flag being removed, nor is there a mention of such a feature in any of the PRs or issues listed [pr_7070#0][issue_6221][pr_7422][pr_7282][pr_7270#8]. Therefore, based on the given evidence, I cannot provide an answer to why this flag was removed. The coverage window for this evidence is from 2025-10-25T23:54:37Z to 2026-07-25T06:32:13Z, and the question appears to be outside of that range as well.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-023",
+      "query_type": "unanswerable",
+      "latency_ms": 28314.816792000784,
+      "answer": "The evidence provided does not directly mention HeaderCasePreservation being added. However, it discusses changes related to headers in PR #7431 [commit_e511bc72777a] and PR #7441 [commit_84d10f0be83e]. These commits address mutability issues with headers input types and move `Request.headers` back to a Mapping, which could be part of ensuring case preservation in header handling. The exact reason for HeaderCasePreservation is not explicitly stated but seems related to improving the robustness and consistency of header management within the project.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "auto-unanswerable-024",
+      "query_type": "unanswerable",
+      "latency_ms": 23299.25629200079,
+      "answer": "The provided evidence does not contain any information about the removal of AsyncStreamingParser. Therefore, I cannot provide a reason for its removal based on the given data.\n\nThe closest related PR is [pr_7093], which documents changes regarding streaming responses but does not mention anything about AsyncStreamingParser. The other PRs and issues do not address this component either.\n\nGiven the evidence's coverage window from 2025-07-30 to 2026-07-25, there is no specific information available within this timeframe regarding the removal of AsyncStreamingParser.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-025",
+      "query_type": "unanswerable",
+      "latency_ms": 34473.42458300045,
+      "answer": "The evidence provided does not contain a specific mention of \"LegacyCookieJarSwap\" or provide clear information on why such an entity was introduced. Therefore, based solely on the given evidence, I cannot provide a reason for its introduction [pr_7130][issue_6344#6][release_v2.32.5][pr_7030][review_7513_0][issue_7247]. The closest related change is in Pull Request #7130, which discusses persisting the CookiePolicy at the session level [pr_7130], but this does not directly address \"LegacyCookieJarSwap\".",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-026",
+      "query_type": "unanswerable",
+      "latency_ms": 24674.68029200063,
+      "answer": "The evidence provided does not contain any information about ZeroCopyRedirect being implemented or discussed. Therefore, I cannot provide a reason for its implementation based on the given data.\n\nIf you have more relevant evidence that was not included in this snippet, please share it so I can provide an accurate answer. [issue_4934] discusses memory leaks and mentions sessions but does not mention ZeroCopyRedirect.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-027",
+      "query_type": "unanswerable",
+      "latency_ms": 33345.96000000056,
+      "answer": "The evidence provided does not contain any information about BinaryResponseCache being enabled or related discussions, commits, PRs, or issues. Therefore, I cannot provide a reason for why BinaryResponseCache was enabled based on the given evidence [issue_7231][pr_7030][pr_7086#1][pr_7104][pr_7304].",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-028",
+      "query_type": "unanswerable",
+      "latency_ms": 20589.04312499908,
+      "answer": "The evidence provided does not contain any information about DynamicUserAgent being disabled. Therefore, I cannot provide a reason for its disablement based on the given data [issue_6344#8][pr_7092#7][pr_7497][pr_7473][pr_7104][review_7272_21].",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "auto-unanswerable-029",
+      "query_type": "unanswerable",
+      "latency_ms": 18947.386125000776,
+      "answer": "The evidence provided does not contain any information about a \"StreamingMultipartSupport\" feature being added. The closest related PR is [pr_7093], which documents handling of streaming responses but does not mention anything about adding or changing support for multipart streams.\n\nTherefore, based on the given evidence, there is no information to answer why \"StreamingMultipartSupport\" was added.",
+      "guard_pass": true,
+      "refusal": false,
+      "abstained": true,
+      "correct_abstention": true
+    }
+  ],
+  "judge": {
+    "available": true
+  },
+  "created_at": "2026-08-04T14:32:21.260625+00:00",
+  "models": {
+    "generation": "llama-3.3-70b-versatile",
+    "embedding": "qwen3-embedding:0.6b",
+    "reranker": "BAAI/bge-reranker-v2-m3",
+    "nli": "cross-encoder/nli-deberta-v3-base",
+    "judge_provider": "groq",
+    "judge_model": "openai/gpt-oss-120b"
+  },
+  "evaluation_roles": {
+    "answerer": "llama-3.3-70b-versatile",
+    "judge": "groq:openai/gpt-oss-120b",
+    "question_gen": "nvidia:nvidia/nemotron-3-nano-30b-a3b"
+  },
+  "roles_distinct": {
+    "ok": true,
+    "detail": "all roles distinct"
+  }
+}

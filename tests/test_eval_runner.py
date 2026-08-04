@@ -168,3 +168,9 @@ def test_eval_run_end_to_end(tmp_path, monkeypatch):
     assert "abstention_accuracy" in un
     # Provenance must record which models produced the run.
     assert results.get("models", {}).get("generation")
+    # ...and, separately, which model ACTUALLY answered. The two differ whenever
+    # a provider's daily quota runs out mid-run, so a report that records only
+    # the configured model misdescribes most of its own rows.
+    answered = results.get("answered_by")
+    assert answered, "run must record which model actually answered"
+    assert sum(answered.values()) == len(results["rows"])
