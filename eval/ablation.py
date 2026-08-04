@@ -169,19 +169,24 @@ def format_table(results: list[ConfigResult], title: str = "") -> str:
 # dense and sparse channels so the BM25 channel's contribution is *measured*.
 ABLATION_CONFIGS = [
     {"name": "1.retrieval-only", "mmr": False, "reranker": False,
-     "dense": True, "sparse": True, "retry": False},
+     "dense": True, "sparse": True, "retry": False, "graph": False},
     {"name": "2.+MMR", "mmr": True, "reranker": False,
-     "dense": True, "sparse": True, "retry": False},
+     "dense": True, "sparse": True, "retry": False, "graph": False},
     {"name": "3.+MMR+reranker", "mmr": True, "reranker": True,
-     "dense": True, "sparse": True, "retry": False},
+     "dense": True, "sparse": True, "retry": False, "graph": False},
     {"name": "4.full+guard", "mmr": True, "reranker": True,
-     "dense": True, "sparse": True, "retry": False},
+     "dense": True, "sparse": True, "retry": False, "graph": False},
     {"name": "5.full+guard+retry", "mmr": True, "reranker": True,
-     "dense": True, "sparse": True, "retry": True},
+     "dense": True, "sparse": True, "retry": True, "graph": False},
+    # Graph expansion is measured, not assumed: a retrieval-only A/B showed it
+    # raises recall but costs latency and slightly lowers nDCG, so whether it
+    # earns its place is exactly the kind of question an ablation should answer.
+    {"name": "6.full+graph", "mmr": True, "reranker": True,
+     "dense": True, "sparse": True, "retry": False, "graph": True},
     {"name": "dense-only", "mmr": True, "reranker": True,
-     "dense": True, "sparse": False, "retry": False},
+     "dense": True, "sparse": False, "retry": False, "graph": False},
     {"name": "sparse-only", "mmr": True, "reranker": True,
-     "dense": False, "sparse": True, "retry": False},
+     "dense": False, "sparse": True, "retry": False, "graph": False},
 ]
 
 _CSV_METRICS = ["recall_at_k", "mrr", "ndcg", "citation_precision",
@@ -203,7 +208,8 @@ def _result_for(query_pipeline, retriever, answerer, nli, question, since, until
     return query_pipeline.run_attempt(
         retriever, answerer, nli, question, since, until,
         use_mmr=cfg["mmr"], use_reranker=cfg["reranker"],
-        use_dense=cfg["dense"], use_sparse=cfg["sparse"])
+        use_dense=cfg["dense"], use_sparse=cfg["sparse"],
+        use_graph=cfg.get("graph", False))
 
 
 def run_golden_ablation(ctx, entries, metrics_list, judge, judge_state,
@@ -218,7 +224,19 @@ def run_golden_ablation(ctx, entries, metrics_list, judge, judge_state,
     m = manifest_mod.read_manifest(ctx.manifest_path)
     since = m["coverage"].get("since", "")
     until = m["coverage"].get("until", "")
-    retriever, answerer, nli = Retriever(ctx), Answerer(), NLIVerifier()
+
+    # The retriever only builds its neighbour map when graph expansion is
+    # enabled at construction time. Force it on if ANY config needs it, and let
+    # the per-call ``use_graph`` flag decide config by config — otherwise the
+    # graph configuration would silently measure the non-graph pipeline.
+    _flag = config.ENABLE_GRAPH_EXPANSION
+    if any(c.get("graph") for c in configs):
+        config.ENABLE_GRAPH_EXPANSION = True
+    try:
+        retriever = Retriever(ctx)
+    finally:
+        config.ENABLE_GRAPH_EXPANSION = _flag
+    answerer, nli = Answerer(), NLIVerifier()
 
     out: dict = {}
     for cfg in configs:

@@ -226,6 +226,28 @@ RETRY_POOL_MULTIPLIER: int = 2          # widen dense+BM25 pools by this on retr
 # against several indexed repositories at once (each retrieved independently).
 ENABLE_CROSS_REPO: bool = False
 
+# Phase G: graph-aware candidate expansion. When on, a retrieved candidate also
+# pulls in the records it is linked to in links.json (issue <-> PR <-> commit
+# <-> release), so multi-hop "how did this evolve" questions see the whole chain
+# instead of the single best-matching link. Purely additive: neighbours are
+# appended to the candidate pool and the reranker still decides the final order.
+ENABLE_GRAPH_EXPANSION: bool = (
+    os.getenv("ENABLE_GRAPH_EXPANSION", "false").strip().lower()
+    not in ("0", "false", "no", ""))
+# Bounds — each expanded candidate costs one cross-encoder pass at rerank time,
+# and reranking is already the dominant query latency (HANDOFF.md §3.2).
+GRAPH_EXPANSION_MAX_SEEDS: int = 6
+GRAPH_EXPANSION_MAX_PER_SEED: int = 2
+GRAPH_EXPANSION_MAX_TOTAL: int = 6
+# How many of the FINAL_TOP_K slots a graph neighbour may occupy.
+#
+# Measured: without this cap, expansion raised recall (0.510 -> 0.564) but LOWERED
+# nDCG (0.531 -> 0.509) — the cross-encoder scored plausible-looking neighbours
+# above the actual gold evidence and pushed it down the list. Capping the slots
+# keeps the multi-hop recall win without letting neighbours crowd out the
+# similarity hits that were already correct.
+GRAPH_EXPANSION_MAX_IN_TOPK: int = 2
+
 
 def flag_state() -> dict:
     """The current Phase-2 feature-flag state, recorded with each metrics line."""
@@ -233,6 +255,7 @@ def flag_state() -> dict:
         "ENABLE_METRICS_LOGGING": ENABLE_METRICS_LOGGING,
         "ENABLE_ADAPTIVE_RETRY": ENABLE_ADAPTIVE_RETRY,
         "ENABLE_CROSS_REPO": ENABLE_CROSS_REPO,
+        "ENABLE_GRAPH_EXPANSION": ENABLE_GRAPH_EXPANSION,
         "GENERATION_PROVIDER": GENERATION_PROVIDER,
     }
 

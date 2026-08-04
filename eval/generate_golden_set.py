@@ -246,43 +246,92 @@ def synthesize_entry(cluster: list[dict], qtype: str, repo: str, model: str,
     )
 
 
+# Ask for questions in small batches. A single call asking for N questions is
+# capped by GENERATION_MAX_TOKENS, so large targets silently come back short (or
+# as truncated, unparseable JSON). Batching also varies the evidence sample per
+# round, which yields more varied fictional premises than one big request.
+_UNANSWERABLE_BATCH = 8
+_UNANSWERABLE_MAX_ROUNDS = 12
+
+
 def generate_unanswerable(repo: str, chunks: list[dict], target: int, model: str,
-                          seed: int) -> list[GoldEntry]:
-    from generation.answerer import Answerer
+                          seed: int, log=lambda msg: None) -> list[GoldEntry]:
+    """Invent fictional premises and keep only those retrieval confirms absent.
+
+    Each candidate is searched for in the real index; anything that matches
+    real content is discarded, so every surviving entry is a genuine abstention
+    test rather than an untested guess.
+    """
     from retrieval.retriever import Retriever
 
     sample_pool = [c for c in chunks if _is_substantive(c)]
-    rnd = random.Random(seed)
-    sample = "\n".join(f"- {c['title']}" for c in rnd.sample(
-        sample_pool, min(15, len(sample_pool)))) if sample_pool else "(no data)"
-
-    raw = _ollama_chat(
-        _UNANSWERABLE_PROMPT.format(repo=repo, sample=sample, n=target * 2), model)
-    candidates = _extract_json(raw) or []
-    candidates = [q for q in candidates if isinstance(q, str) and q.strip()]
-
     ctx = RepositoryContext.for_ref(parse_repo_url(repo))
     retriever = Retriever(ctx)
-    entries = []
-    for i, q in enumerate(candidates):
+
+    entries: list[GoldEntry] = []
+    seen: set[str] = set()
+    rejected = 0
+
+    for round_no in range(_UNANSWERABLE_MAX_ROUNDS):
         if len(entries) >= target:
             break
-        hits = retriever.retrieve(q, top_k=3)
-        top_score = max((h.get("rerank_score", 0.0) for h in hits), default=0.0)
-        if top_score >= 0.5:  # something suspiciously relevant matched -> reject
-            continue
-        entries.append(GoldEntry(
-            id=f"auto-unanswerable-{i:03d}", question=q.strip(),
-            query_type="unanswerable", ground_truth=None, evidence=[],
-            notes=f"LLM-invented fictional premise, verified absent via "
-                  f"retrieval (top rerank score {top_score:.2f})",
-        ))
+        # Re-sample the evidence each round so the model sees a different slice.
+        rnd = random.Random(seed + round_no)
+        sample = "\n".join(f"- {c['title']}" for c in rnd.sample(
+            sample_pool, min(15, len(sample_pool)))) if sample_pool else "(no data)"
+
+        raw = _ollama_chat(
+            _UNANSWERABLE_PROMPT.format(repo=repo, sample=sample,
+                                        n=_UNANSWERABLE_BATCH), model,
+            temperature=0.8)   # higher temp -> more varied inventions
+        candidates = _extract_json(raw) or []
+        candidates = [q for q in candidates if isinstance(q, str) and q.strip()]
+
+        for q in candidates:
+            if len(entries) >= target:
+                break
+            key = q.strip().lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            hits = retriever.retrieve(q, top_k=3)
+            top_score = max((h.get("rerank_score", 0.0) for h in hits), default=0.0)
+            if top_score >= 0.5:   # suspiciously relevant -> not truly absent
+                rejected += 1
+                continue
+            entries.append(GoldEntry(
+                id=f"auto-unanswerable-{len(entries):03d}", question=q.strip(),
+                query_type="unanswerable", ground_truth=None, evidence=[],
+                notes=f"LLM-invented fictional premise, verified absent via "
+                      f"retrieval (top rerank score {top_score:.2f})",
+            ))
+        log(f"  unanswerable round {round_no + 1}: {len(entries)}/{target} kept, "
+            f"{rejected} rejected as too-relevant")
     return entries
 
 
 # --------------------------------------------------------------------------- #
 # Orchestration
 # --------------------------------------------------------------------------- #
+def generate_abstention_set(repo: str, n: int, seed: int = 42,
+                            model: str | None = None,
+                            log=lambda msg: None) -> list[GoldEntry]:
+    """Build a dedicated, larger set of verified-unanswerable questions.
+
+    Abstention accuracy is the headline claim, and a handful of questions per
+    repository is a thin basis for it. Unanswerable entries skip the LLM judge
+    entirely (see ``eval/run.metrics_for_entry``), so a large abstention set
+    costs local pipeline time but **no API quota** — which makes it the cheapest
+    way to put the headline number on a defensible sample size.
+    """
+    model = model or config.GENERATION_MODEL
+    ctx = RepositoryContext.for_ref(parse_repo_url(repo))
+    chunks = chunker.load_chunks(ctx)
+    if not chunks:
+        raise RuntimeError(f"{repo} has no indexed chunks — index it first.")
+    return generate_unanswerable(repo, chunks, n, model, seed, log=log)
+
+
 def generate_golden_set(repo: str, n: int, seed: int = 42,
                         model: str | None = None,
                         log=lambda msg: None) -> list[GoldEntry]:
@@ -303,7 +352,7 @@ def generate_golden_set(repo: str, n: int, seed: int = 42,
         if target == 0:
             continue
         if qtype == "unanswerable":
-            got = generate_unanswerable(repo, chunks, target, model, seed)
+            got = generate_unanswerable(repo, chunks, target, model, seed, log=log)
             results += got
             log(f"[{qtype}] {len(got)}/{target}")
             continue
@@ -349,17 +398,25 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--n", type=int, default=50)
     p.add_argument("--out", default="")
     p.add_argument("--seed", type=int, default=42)
+    p.add_argument("--only-unanswerable", action="store_true",
+                   help="generate ONLY verified-unanswerable questions, for a "
+                        "dedicated abstention benchmark (costs no judge quota)")
     args = p.parse_args(argv)
 
     ref = parse_repo_url(args.repo)
-    out_path = Path(args.out) if args.out else \
-        Path("eval") / "datasets" / f"{ref.slug}.jsonl"
+    if args.out:
+        out_path = Path(args.out)
+    elif args.only_unanswerable:
+        out_path = Path("eval") / "datasets" / f"{ref.slug}_abstention.jsonl"
+    else:
+        out_path = Path("eval") / "datasets" / f"{ref.slug}.jsonl"
 
-    print(f"Generating {args.n} questions for {ref.full_name} -> {out_path}",
-          file=sys.stderr)
-    entries = generate_golden_set(
-        args.repo, args.n, seed=args.seed,
-        log=lambda msg: print(f"  {msg}", file=sys.stderr))
+    kind = "unanswerable" if args.only_unanswerable else "mixed"
+    print(f"Generating {args.n} {kind} questions for {ref.full_name} "
+          f"-> {out_path}", file=sys.stderr)
+    gen = generate_abstention_set if args.only_unanswerable else generate_golden_set
+    entries = gen(args.repo, args.n, seed=args.seed,
+                  log=lambda msg: print(f"  {msg}", file=sys.stderr))
     save_golden_set(entries, out_path)
     print(f"Wrote {len(entries)}/{args.n} entries to {out_path}", file=sys.stderr)
     return 0 if len(entries) == args.n else 1

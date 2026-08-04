@@ -81,7 +81,7 @@ def guard_reason(ref_report, nli_report) -> str:
 def run_attempt(
     retriever, answerer, nli_verifier, question: str, since: str, until: str,
     *, use_mmr: bool = True, use_reranker: bool = True, use_dense: bool = True,
-    use_sparse: bool = True, dense_k: int | None = None,
+    use_sparse: bool = True, use_graph: bool = True, dense_k: int | None = None,
     sparse_k: int | None = None, trace: dict | None = None,
 ) -> Attempt:
     """One full retrieve → generate → guard pass. No retry logic here.
@@ -92,7 +92,8 @@ def run_attempt(
     """
     chunks = retriever.retrieve(
         question, use_mmr=use_mmr, use_reranker=use_reranker, use_dense=use_dense,
-        use_sparse=use_sparse, dense_k=dense_k, sparse_k=sparse_k, trace=trace,
+        use_sparse=use_sparse, use_graph=use_graph, dense_k=dense_k,
+        sparse_k=sparse_k, trace=trace,
     )
     if not chunks:
         return Attempt(chunks=[], text="", ref_report=None, nli_report=None,
