@@ -1,5 +1,7 @@
-# Secrets
+# Secrets — never commit real keys. Use .env.example as the template.
 .env
+.env.*
+!.env.example
 
 # Python
 __pycache__/
@@ -21,8 +23,17 @@ repositories/*/
 # Phase A per-query metrics logs (runtime data, not source)
 data/metrics/
 
-# Phase C/D evaluation outputs (regenerable)
-results/
+# Evaluation outputs: the reports ARE the project's evidence, so they are
+# committed. Only the regenerable/noisy parts are ignored.
+# (note: .gitignore has no trailing comments — each pattern needs its own line)
+# cached judge responses: large, regenerable, no value to a reader
+results/**/judge_cache.json
+# resume checkpoint written while a run is in progress
+results/**/rows_partial.jsonl
+# subprocess log from the in-app evaluation panel
+results/**/run.log
+# ad-hoc runs launched from the Streamlit UI
+results/webrun-*/
 
 # Phase G offline wheelhouse (large; keep on external storage)
 wheelhouse/

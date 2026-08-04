@@ -4,20 +4,56 @@
 
 ### Ask a GitHub repository *why* it evolved the way it did
 
-**Git tells you what changed and who changed it. RepoMind tells you why.**
+**Git tells you _what_ changed and _who_ changed it. RepoMind tells you _why_.**
 
 Answers are grounded in real commits, pull requests, issues, reviews and releases —
 with clickable citations, and a hallucination guard that **refuses to answer rather than guess**.
 
-[![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![Streamlit](https://img.shields.io/badge/UI-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
-[![Ollama](https://img.shields.io/badge/Local%20LLM-Ollama-000000)](https://ollama.com/)
-[![ChromaDB](https://img.shields.io/badge/Vectors-ChromaDB-FF6F00)](https://www.trychroma.com/)
-[![Tests](https://img.shields.io/badge/tests-187%20passing-brightgreen)](#testing)
-[![Abstention](https://img.shields.io/badge/abstention%20accuracy-1.00-success)](#results)
-[![Runs Offline](https://img.shields.io/badge/runs-100%25%20offline-blue)](#privacy--offline-operation)
+<br/>
+
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![Streamlit](https://img.shields.io/badge/UI-Streamlit-FF4B4B?style=flat-square&logo=streamlit&logoColor=white)](https://streamlit.io/)
+[![Ollama](https://img.shields.io/badge/Local%20LLM-Ollama-000000?style=flat-square&logo=ollama&logoColor=white)](https://ollama.com/)
+[![ChromaDB](https://img.shields.io/badge/Vectors-ChromaDB-FF6F00?style=flat-square)](https://www.trychroma.com/)
+[![PyTorch](https://img.shields.io/badge/Cross--encoders-PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)](https://pytorch.org/)
+
+[![Tests](https://img.shields.io/badge/tests-187-brightgreen?style=flat-square&logo=pytest&logoColor=white)](#testing)
+[![Abstention accuracy](https://img.shields.io/badge/abstention%20accuracy-1.00-success?style=flat-square)](#results)
+[![Benchmark](https://img.shields.io/badge/benchmark-175%20questions%20%C2%B7%204%20repos-blueviolet?style=flat-square)](#how-the-benchmark-is-built)
+[![Offline](https://img.shields.io/badge/runs-100%25%20offline-0f766e?style=flat-square)](#privacy-and-offline-operation)
+[![License](https://img.shields.io/badge/license-MIT-yellow?style=flat-square)](LICENSE)
+
+<br/>
+
+**[Quick Start](#quick-start)** ·
+**[Architecture](#architecture)** ·
+**[Results](#results)** ·
+**[Limitations](#honest-limitations)** ·
+**[Docs](#documentation)**
 
 </div>
+
+---
+
+## Contents
+
+- [The problem](#the-problem)
+- [What makes it different](#what-makes-it-different)
+- [See it work](#see-it-work)
+- [Architecture](#architecture)
+  - [Retrieval: why two search engines](#retrieval-why-two-search-engines)
+  - [The hallucination guard](#the-hallucination-guard)
+- [Results](#results)
+- [Honest limitations](#honest-limitations)
+- [Tech stack](#tech-stack)
+- [Privacy and offline operation](#privacy-and-offline-operation)
+- [Quick start](#quick-start)
+- [Verification and testing](#verification-and-testing)
+- [Project structure](#project-structure)
+- [How the benchmark is built](#how-the-benchmark-is-built)
+- [Documentation](#documentation)
+- [Academic context](#academic-context)
+- [License](#license)
 
 ---
 
@@ -46,15 +82,15 @@ manually takes hours.
 Most "chat with your repo" tools retrieve some text and let an LLM talk. The
 failure mode is confident nonsense. RepoMind is built around the opposite goal:
 
-> **An answer you cannot verify is worse than no answer.**
+> ### An answer you cannot verify is worse than no answer.
 
 Three things enforce that:
 
 | | Guarantee | How |
-|---|---|---|
+|:---:|---|---|
 | 🔗 | **Every claim is cited** | Inline `[chunk_id]` markers link to the real GitHub page |
 | 🛡️ | **Every citation is verified** | A two-stage guard checks the citation exists *and* actually supports the claim |
-| 🚫 | **It says "I don't know"** | Measured **abstention accuracy of 1.00** on questions with no answer in the repo |
+| 🚫 | **It says "I don't know"** | Measured **abstention accuracy of 1.00** on questions with no answer in the repository |
 
 ---
 
@@ -72,11 +108,9 @@ Ask about something **real**:
 > **You:** *Why was `isolated_filesystem` deprecated?*
 >
 > **RepoMind:** *It was deprecated because of its limitations, in favour of
-> `pytest`'s `tmp_path` fixture* [`issue_3700`](#) [`pr_2938`](#)
+> `pytest`'s `tmp_path` fixture* [`issue_3700`] [`pr_2938`]
 >
 > ✅ 4 citations verified · ✅ Grounded (NLI) · 🕸️ 376 evidence links available
-
-> 📸 *Add a screenshot or GIF here — `docs/demo.gif`*
 
 ---
 
@@ -121,7 +155,15 @@ flowchart TB
     style QUERY fill:#0f172a,color:#e2e8f0
 ```
 
-### Retrieval pipeline — why two search engines
+**Indexing happens once per repository.** A `manifest.json` fingerprint
+(schema version + embedding model + chunker version) decides whether an existing
+index can be reused or must be rebuilt — so re-opening a repository is instant,
+but changing the embedding model correctly forces a rebuild.
+
+Ingestion runs as a **background process**, so the UI never blocks, and it is
+**checkpointed** — kill it mid-download and it resumes where it stopped.
+
+### Retrieval: why two search engines
 
 ```mermaid
 flowchart LR
@@ -150,9 +192,9 @@ Each search method fails where the other succeeds:
   commit SHAs. But it misses paraphrases.
 
 **Reciprocal Rank Fusion** merges them by *rank* rather than score, so the two
-systems' incompatible scoring scales don't matter. Then **MMR** removes
-near-duplicates, and a **cross-encoder** re-reads each candidate *together with*
-the question for a far more accurate final ordering.
+systems' incompatible scoring scales don't matter and no per-repository tuning is
+needed. Then **MMR** removes near-duplicates, and a **cross-encoder** re-reads
+each candidate *together with* the question for a far more accurate final ordering.
 
 ### The hallucination guard
 
@@ -182,7 +224,7 @@ flowchart TB
 Two **independent** checks catch two different failure modes:
 
 1. **Reference validator** — catches *invented* citations (`[pr_99999]` that was
-   never retrieved). Pure deterministic set-membership, no LLM involved.
+   never retrieved). Pure deterministic set-membership, **no LLM involved**.
 2. **NLI verifier** — catches a *real* citation attached to a *wrong* claim, by
    running natural-language inference between the claim and its cited evidence.
 
@@ -194,8 +236,8 @@ unverified answer as verified.
 
 ## Results
 
-Evaluated on **175 questions across 4 repositories**, in five categories
-(factual, causal, cross-commit, evolution, unanswerable).
+Evaluated on **175 auto-generated questions across 4 repositories**, in five
+categories (factual, causal, cross-commit, evolution, unanswerable).
 
 ### The headline metric
 
@@ -223,33 +265,59 @@ hallucination. This measures it.
 | `fastapi/fastapi` | 0.59 | 0.80 | 0.66 | 0.42 |
 | `acme/widgets` | 0.94 | 0.84 | 0.96 | 0.53 |
 
+Per-category breakdowns are in [`results/`](results/) — one `report.txt` and
+`results.json` per repository, including per-question rows and full model
+provenance.
+
+### Indexed corpora
+
+| Repository | Commits | PRs | Issues | Releases | Chunks | Index |
+|---|---:|---:|---:|---:|---:|---:|
+| `pallets/click` | 286 | 570 | 158 | 8 | 1,059 | 18.6 MB |
+| `psf/requests` | 119 | 658 | 412 | 7 | 1,260 | 22.5 MB |
+| `fastapi/fastapi` | 1,609 | 0 | 148 | 128 | 1,885 | 16.4 MB |
+| `acme/widgets` | 3 | 2 | 3 | 1 | 11 | 0.7 MB |
+
 ### Performance
 
 | Stage | Cloud | Local |
 |---|:---:|:---:|
-| Retrieval (dense + sparse + rerank) | ~2s | ~2s |
-| Generation | **0.7s** | ~10s |
-| Guard verification | 0.1–5s | 0.1–5s |
-| **Total per question** | **~4s** | **~25s** |
+| Retrieval (dense + sparse + rerank) | ~2 s | ~2 s |
+| Generation | **0.7 s** | ~10 s |
+| Guard verification | 0.1–5 s | 0.1–5 s |
+| **Total per question** | **~4 s** | **~25 s** |
 
-> Cold start adds ~40s while the embedding model loads. Ask one warm-up question
-> before a live demo.
+> **Cold start adds ~40 s** while the embedding model loads. Ask one warm-up
+> question before a live demo.
+
+> [!NOTE]
+> **Provenance caveat.** The evaluation answers were generated by Groq
+> Llama-3.3-70B **with automatic local fallback on quota exhaustion** — a free
+> tier allows roughly 25 questions/day, and a 175-question run exceeds that. The
+> reported latencies in `results/` therefore reflect a mix of cloud and local
+> generation, not the ~4 s cloud figure above.
 
 ---
 
 ## Honest limitations
 
 Documented rather than hidden — see [`results/failure_gallery.md`](results/failure_gallery.md)
-for 15 real failure cases.
+for 15 real failure cases, categorised by which stage broke.
 
 - **Multi-hop "evolution" questions are weakest** (recall 0.30–0.38). Tracing a
-  feature across many commits over time is genuinely the hard case.
-- **Citation precision ~0.5** — the model often cites *more* evidence than the
-  strict ground-truth list. Extra correct-but-unlisted citations count against it.
-- **Free-tier API limits are real.** Groq allows ~25 questions/day; bulk
-  evaluation falls back to local models automatically.
+  feature across many commits over time is genuinely the hard case in RAG.
+- **Citation precision ~0.5** — partly an artefact: the model often cites *more*
+  correct evidence than the strict ground-truth list, and the extras count against it.
+- **`fastapi/fastapi` has 0 PRs indexed** — it was indexed before a working
+  `GITHUB_TOKEN` existed (GitHub's GraphQL API requires auth). Re-indexing fixes it.
+  It is consequently the only repository scoring below 1.00 on abstention.
+- **Free-tier API limits are real.** Bulk evaluation falls back to local models
+  automatically; this is expected behaviour, not a bug.
 - **Coverage is a date window**, not full history — scoped deliberately so any
   repository indexes in minutes.
+- **The multi-repository ablation table is not complete.** `eval/ablation.py`
+  exists, is tested, and supports 7 configurations (including dense-only /
+  sparse-only channel isolation), but a full 7 × 175 run was never executed.
 
 ---
 
@@ -266,7 +334,7 @@ for 15 real failure cases.
 | **Reranker** | `BAAI/bge-reranker-v2-m3` | Cross-encoder — reads query + chunk *together* |
 | **Generation** | Groq Llama-3.3-70B ↔ Ollama Qwen-2.5-7B | Cloud quality, local guarantee |
 | **Guard** | `cross-encoder/nli-deberta-v3-base` | Entailment checking |
-| **Questions** | NVIDIA Nemotron 3 Nano | Reasoning model authors the benchmark |
+| **Question generation** | NVIDIA Nemotron 3 Nano | Reasoning model authors the benchmark |
 | **Testing** | pytest | 187 tests |
 
 ### Five models, each doing one job
@@ -280,7 +348,7 @@ flowchart LR
     end
     subgraph SWAP["☁️ Cloud, with local fallback"]
         G["Generation<br/><i>Llama-3.3-70B</i>"]
-        J["Judge (offline)<br/><i>Llama-3.3-70B</i>"]
+        J["Judge — offline only<br/><i>Llama-3.3-70B</i>"]
     end
     style LOCAL fill:#0f766e,color:#fff
     style SWAP fill:#1e40af,color:#fff
@@ -291,14 +359,15 @@ are **classifiers, not chatbots** — the right tool per job, not an LLM everywh
 
 ---
 
-## Privacy & offline operation
+## Privacy and offline operation
 
 **The app runs with zero internet access** (after indexing). Embeddings,
 reranking, generation and verification all work locally.
 
 Cloud models are an *optional upgrade*. If a provider is rate-limited, has an
 invalid key, or the network is down, the system **automatically falls back to
-local** and shows a badge — verified against 7 distinct failure modes.
+local** and shows a badge — verified against 7 distinct failure modes in
+[`tests/test_api_generation.py`](tests/test_api_generation.py).
 
 > A demo cannot fail because a third party did.
 
@@ -306,28 +375,40 @@ local** and shows a badge — verified against 7 distinct failure modes.
 
 ## Quick start
 
-**Prerequisites:** Python 3.11+, [Ollama](https://ollama.com)
+**Prerequisites:** Python 3.11+ · [Ollama](https://ollama.com) · a GitHub token
+with `public_repo` scope
 
 ```bash
-# 1 · Install
+# 1 · Clone
+git clone https://github.com/sairamsrujan/RepoMind.git
+cd RepoMind
+
+# 2 · Install
 python3.11 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-# 2 · Pull the local models
+# 3 · Pull the local models
 ollama pull qwen3-embedding:0.6b
 ollama pull qwen2.5:7b-instruct
 
-# 3 · Configure (GITHUB_TOKEN needs only public_repo scope)
-cp .env.example .env      # then add your token
+# 4 · Configure
+cp .env.example .env      # then add your GITHUB_TOKEN
 
-# 4 · Run
+# 5 · Run
 streamlit run app.py
 ```
 
 Open **http://localhost:8501**, paste a repository URL, and ask a question.
 
+> [!IMPORTANT]
+> Without a `GITHUB_TOKEN`, pull requests cannot be ingested at all — GitHub's
+> GraphQL API requires authentication. REST endpoints (commits, issues,
+> releases) still work unauthenticated at 60 requests/hour.
+
 <details>
 <summary><b>Optional — cloud generation for faster, higher-quality answers</b></summary>
+
+<br/>
 
 Add to `.env`:
 
@@ -338,13 +419,37 @@ GENERATION_API_MODEL=llama-3.3-70b-versatile
 GENERATION_API_KEY=your_key_here
 ```
 
-Supported providers: **Groq · Google Gemini · NVIDIA NIM · OpenRouter · Ollama**.
-Any failure falls back to local automatically.
+Supported providers, all OpenAI-compatible: **Groq · Google Gemini · NVIDIA NIM ·
+OpenRouter · Ollama**. Adding another is one entry in
+[`providers.py`](providers.py), not new code. Any failure falls back to local
+automatically.
+
+</details>
+
+<details>
+<summary><b>Optional — run the evaluation yourself</b></summary>
+
+<br/>
+
+```bash
+# Evaluate one repository against its golden set
+# (resumes from checkpoint if interrupted — just re-run the same command)
+python -m eval.run --repo pallets/click \
+  --dataset eval/datasets/pallets_click.jsonl --out results/my-run
+
+# Regenerate a golden set from a repository's real history
+python -m eval.generate_golden_set --repo pallets/click --n 50
+```
+
+A 50-question evaluation takes roughly 30–60 minutes: each question runs the
+full retrieve → generate → guard pipeline, then a judge call. Judge responses
+are cached on disk, so a re-run costs zero API calls.
+
 </details>
 
 ---
 
-## Verification
+## Verification and testing
 
 Two commands keep the project trustworthy over time:
 
@@ -355,14 +460,17 @@ python scripts/smoke_test.py    # monthly — catches environment drift
 
 `demo_check.py` verifies the things a viewer actually sees: a grounded answer
 with clickable citations, the guard catching a fabricated citation, refusal on a
-made-up premise, a non-empty evolution graph, and that cloud generation degrades
-to local.
+made-up premise, a non-empty evolution graph, and — by deliberately sabotaging
+the API key — that cloud generation really does degrade to local.
 
 ### Testing
 
 ```bash
-pytest -q      # 187 tests
+pytest -q
 ```
+
+**187 tests · 178 passing · 0 failures.** The 9 remaining tests are integration
+tests that skip automatically when Ollama isn't running; they pass with it up.
 
 ---
 
@@ -371,37 +479,31 @@ pytest -q      # 187 tests
 ```
 RepoMind/
 ├── app.py                  # Streamlit UI
-├── config.py               # all tunables and model names
-├── providers.py            # LLM provider registry (Groq/Gemini/NVIDIA/…)
+├── config.py               # all tunables and model names — nothing hardcoded elsewhere
+├── providers.py            # LLM provider registry (Groq/Gemini/NVIDIA/OpenRouter/Ollama)
 ├── query_pipeline.py       # retrieve → generate → guard → retry → refuse
-├── telemetry.py            # per-query metrics
+├── telemetry.py            # per-query metrics (fail-silent)
 │
-├── ingest/                 # GitHub REST + GraphQL, checkpointed
+├── core/                   # repo URL parsing · manifest · registry · paths
+├── ingest/                 # GitHub REST + GraphQL fetchers, checkpointed
 ├── process/                # chunker · linker (evolution graph)
 ├── index/                  # embedder · Chroma + BM25 builders
 ├── retrieval/              # RRF retriever · MMR · reranker · filters
-├── generation/             # prompt builder · answerer (cloud + fallback)
+├── generation/             # prompt builder · answerer (cloud + local fallback)
 ├── guard/                  # reference validator · NLI verifier
-├── jobs/                   # background ingestion runner
+├── jobs/                   # background ingestion runner + status file
 │
-├── eval/                   # golden sets · metrics · runner  (offline only)
+├── eval/                   # golden sets · metrics · runner · ablation  (offline only)
+├── results/                # evaluation reports + failure gallery
 ├── scripts/                # demo_check · smoke_test · freeze_environment
 └── tests/                  # 187 tests
 ```
 
-> **Architectural rule:** nothing in the live query path may import from `eval/`.
+> [!WARNING]
+> **Architectural rule:** nothing in `retrieval/`, `generation/`, `guard/`,
+> `jobs/`, or `app.py` may import from `eval/`. The in-app evaluation panel
+> launches `eval/run.py` as a **subprocess** specifically to preserve this.
 > Delete the entire `eval/` directory and the app still runs.
-
----
-
-## Documentation
-
-| Document | Purpose |
-|---|---|
-| [`HOW_TO_RUN.md`](HOW_TO_RUN.md) | Setup, troubleshooting, demo checklist |
-| [`DECISIONS.md`](DECISIONS.md) | Every design decision — what, over what, why, at what cost |
-| [`HANDOFF.md`](HANDOFF.md) | Contributor guide + settings that must not change |
-| [`ENVIRONMENT.md`](ENVIRONMENT.md) | Offline restore procedure |
 
 ---
 
@@ -410,20 +512,73 @@ RepoMind/
 The 175 evaluation questions are **auto-generated from each repository's real
 history**, not hand-written or generic:
 
-1. **Pure Python selects real evidence** — commits with rationale language,
-   genuine issue↔PR↔commit clusters from the link graph, keywords recurring
-   across dates.
+```mermaid
+flowchart LR
+    A[("indexed chunks<br/>+ link graph")] --> B["1 · Pure Python<br/>selects real evidence"]
+    B --> C["2 · Reasoning model<br/>writes the question"]
+    C --> D{"3 · Unanswerable?"}
+    D -->|yes| E["search for it —<br/>reject if anything matches"]
+    D -->|no| F([golden entry])
+    E --> F
+
+    style B fill:#0891b2,color:#fff
+    style C fill:#7c3aed,color:#fff
+    style E fill:#d97706,color:#fff
+    style F fill:#16a34a,color:#fff
+```
+
+1. **Pure Python selects the evidence** — commits carrying rationale language
+   (`fix` / `because` / `deprecate` / `since`), genuine issue↔PR↔commit clusters
+   pulled from the link graph, and keywords recurring across ≥ 2 distinct dates
+   (i.e. a feature genuinely touched more than once over time).
 2. **A reasoning model writes the question** from that evidence only.
-3. **Unanswerable questions are verified absent** by actually searching for them.
+3. **Unanswerable questions are verified absent** by actually searching for them —
+   a fictional premise is rejected if anything scores above threshold. So it is a
+   genuine abstention test, not an untested guess.
 
 Question generation and grading deliberately use **different providers** —
-a model that both writes and marks its own exam exhibits self-preference bias.
+a model that both writes and marks its own exam exhibits *self-preference bias*,
+which inflates the reported scores.
+
+Categories follow a fixed 25/15/25/20/15 % split across
+`factual` · `causal` · `cross_commit` · `evolution` · `unanswerable`.
 
 ---
 
-<div align="center">
+## Documentation
 
-**Final-year B.Tech major project** · Built to run locally, verifiably, and offline
+| Document | Purpose |
+|---|---|
+| [`HOW_TO_RUN.md`](HOW_TO_RUN.md) | Setup, troubleshooting, demo checklist |
+| [`DECISIONS.md`](DECISIONS.md) | Every design decision — chose / over / because / cost / evidence |
+| [`HANDOFF.md`](HANDOFF.md) | Contributor guide + settings that must not change |
+| [`ENVIRONMENT.md`](ENVIRONMENT.md) | Offline restore procedure |
+
+---
+
+## Academic context
+
+Final-year B.Tech major project, built by a team of three.
+
+Deliberately scoped: **no deployment, no Docker, no cloud database, no multi-user
+auth, no agent framework.** All were considered and rejected — they add failure
+modes without adding value to the research question, which is:
+
+> *Can a retrieval system be made to reliably admit when it doesn't know?*
+
+The answer this project offers is a measured abstention accuracy of **1.00** on
+three of four benchmark repositories, backed by a two-stage verification guard,
+a self-generated 175-question benchmark, and a documented gallery of the cases
+where it still fails.
+
+---
+
+## License
+
+[MIT](LICENSE) © 2026
+
+<div align="center">
+<br/>
 
 *Git shows you what changed. RepoMind shows you why.*
 

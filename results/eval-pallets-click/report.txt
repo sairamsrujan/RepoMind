@@ -1,0 +1,46 @@
+Evaluation — pallets/click   (50 questions)
+============================================================
+
+[causal]  n=8
+  recall_at_k         : 0.750
+  mrr                 : 0.750
+  ndcg                : 0.750
+  citation_precision  : 0.583
+  citation_recall     : 0.750
+  faithfulness        : 0.812
+  answer_relevancy    : 0.938
+  latency_ms mean/p95 : 50183 / 126845
+
+[cross_commit]  n=12
+  recall_at_k         : 0.444
+  mrr                 : 0.750
+  ndcg                : 0.498
+  citation_precision  : 0.486
+  citation_recall     : 0.361
+  faithfulness        : 0.692
+  answer_relevancy    : 0.817
+  latency_ms mean/p95 : 56250 / 76397
+
+[evolution]  n=10
+  recall_at_k         : 0.360
+  mrr                 : 0.800
+  ndcg                : 0.461
+  citation_precision  : 0.650
+  citation_recall     : 0.223
+  faithfulness        : 0.670
+  answer_relevancy    : 0.850
+  latency_ms mean/p95 : 50907 / 69300
+
+[factual]  n=13
+  recall_at_k         : 0.538
+  mrr                 : 0.462
+  ndcg                : 0.482
+  citation_precision  : 0.423
+  citation_recall     : 0.538
+  faithfulness        : 0.831
+  answer_relevancy    : 0.831
+  latency_ms mean/p95 : 14565 / 29183
+
+[unanswerable]  n=7
+  abstention_accuracy : 1.000 (0 hallucinated)
+  latency_ms mean/p95 : 58895 / 72642

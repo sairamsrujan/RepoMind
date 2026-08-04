@@ -87,6 +87,17 @@ REGISTRY: dict[str, Provider] = {
         default_model="meta-llama/llama-3.3-70b-instruct:free",
         label="OpenRouter · Llama 3.3 70B (free)",
     ),
+    # Cerebras runs a free inference tier on an OpenAI-compatible endpoint.
+    # Its value here is capacity, not novelty: every extra provider is another
+    # independent daily quota, and quota — not model quality — is what limits a
+    # bulk evaluation run (see HANDOFF.md §6).
+    "cerebras": Provider(
+        name="cerebras",
+        base_url="https://api.cerebras.ai/v1",
+        key_env="CEREBRAS_API_KEY",
+        default_model="llama-3.3-70b",
+        label="Cerebras · Llama 3.3 70B (free tier)",
+    ),
     "ollama": Provider(
         name="ollama",
         base_url="",
@@ -182,12 +193,60 @@ def chat(provider_name: str, prompt: str, *, model: str | None = None,
     return text, f"ollama:{used_model}"
 
 
-def describe(provider_name: str) -> str:
-    """Short label for reports, e.g. 'groq:llama-3.3-70b-versatile'."""
+def describe(provider_name: str, model: str | None = None) -> str:
+    """Short label for reports, e.g. 'groq:llama-3.3-70b-versatile'.
+
+    ``model`` names the model the caller intends to use. It is only honoured if
+    the requested provider is actually available — when :func:`resolve` falls
+    back to local, the label reports the local model, so a report never claims a
+    cloud model that never ran.
+    """
     p = resolve(provider_name)
+    requested = get(provider_name)
+    if model and p.name == requested.name:
+        return f"{p.name}:{model}"
     return f"{p.name}:{p.default_model}"
 
 
 def available_providers() -> list[str]:
     """Names of every provider that is actually configured right now."""
     return [n for n, p in REGISTRY.items() if p.available]
+
+
+def list_models(provider_name: str, timeout: int = 20) -> list[str]:
+    """Ask a provider which model ids it will actually accept.
+
+    Free tiers retire models without notice, and a guessed id fails as a 404
+    that looks exactly like an outage. Query this instead of assuming — see
+    HANDOFF.md: ``gemini-2.5-flash`` and ``nvidia/nemotron-nano-3-30b-a3b``
+    were both wrong in ways that cost real debugging time.
+
+    Returns an empty list for the local provider (Ollama is queried separately)
+    and raises :class:`ProviderError` if the endpoint refuses the key.
+    """
+    p = get(provider_name)
+    if p.is_local:
+        resp = requests.get(f"{config.OLLAMA_HOST}/api/tags", timeout=timeout)
+        resp.raise_for_status()
+        return sorted(m["name"] for m in resp.json().get("models", []))
+    if not p.api_key:
+        raise ProviderError(f"{p.name}: no key in ${p.key_env}")
+    resp = requests.get(f"{p.base_url.rstrip('/')}/models",
+                        headers={"Authorization": f"Bearer {p.api_key}"},
+                        timeout=timeout)
+    if resp.status_code >= 400:
+        raise ProviderError(
+            f"{p.name} /models returned {resp.status_code}: {resp.text[:160]}")
+    return sorted(m.get("id", "") for m in resp.json().get("data", []))
+
+
+def validate_model(provider_name: str, model: str) -> tuple[bool, str]:
+    """Whether ``model`` is currently offered by ``provider_name``."""
+    try:
+        ids = list_models(provider_name)
+    except Exception as exc:  # noqa: BLE001 - report, never crash a run
+        return False, f"could not verify: {str(exc)[:120]}"
+    if not ids:
+        return True, "provider does not expose a model list"
+    return (model in ids), ("ok" if model in ids
+                            else f"{model!r} not offered; {len(ids)} available")

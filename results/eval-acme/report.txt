@@ -1,0 +1,46 @@
+Evaluation — acme/widgets   (25 questions)
+============================================================
+
+[causal]  n=4
+  recall_at_k         : 1.000
+  mrr                 : 0.875
+  ndcg                : 0.908
+  citation_precision  : 0.292
+  citation_recall     : 1.000
+  faithfulness        : 0.900
+  answer_relevancy    : 0.950
+  latency_ms mean/p95 : 4836 / 5409
+
+[cross_commit]  n=2
+  recall_at_k         : 0.833
+  mrr                 : 1.000
+  ndcg                : 0.836
+  citation_precision  : 0.875
+  citation_recall     : 0.833
+  faithfulness        : 0.900
+  answer_relevancy    : 0.950
+  latency_ms mean/p95 : 4409 / 4423
+
+[evolution]  n=2
+  recall_at_k         : 1.000
+  mrr                 : 1.000
+  ndcg                : 0.877
+  citation_precision  : 0.583
+  citation_recall     : 1.000
+  faithfulness        : 1.000
+  answer_relevancy    : 0.500
+  latency_ms mean/p95 : 4932 / 5724
+
+[factual]  n=10
+  recall_at_k         : 1.000
+  mrr                 : 0.883
+  ndcg                : 0.913
+  citation_precision  : 0.358
+  citation_recall     : 0.800
+  faithfulness        : 0.980
+  answer_relevancy    : 0.970
+  latency_ms mean/p95 : 7254 / 31768
+
+[unanswerable]  n=7
+  abstention_accuracy : 1.000 (0 hallucinated)
+  latency_ms mean/p95 : 5092 / 8086

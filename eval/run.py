@@ -311,6 +311,11 @@ def run(repo: str, dataset: str, metrics_list: list[str], subset: str,
             "judge_provider": config.JUDGE_PROVIDER,
             "judge_model": config.judge_model_name(),
         },
+        # Self-preference audit: the answerer, judge and question author must be
+        # three different models, or faithfulness scores are inflated by a model
+        # grading its own output / its own phrasing.
+        "evaluation_roles": config.evaluation_roles(),
+        "roles_distinct": dict(zip(("ok", "detail"), config.roles_are_distinct())),
     }, indent=2), encoding="utf-8")
     (out_dir / "report.txt").write_text(report, encoding="utf-8")
     partial_path.unlink(missing_ok=True)   # run completed; drop the checkpoint

@@ -220,7 +220,11 @@ def _ollama_chat(prompt: str, model: str, temperature: float = 0.3) -> str:
     """
     import providers
 
+    # Pin the exact model: question-gen and the judge may share a provider, and
+    # letting both fall through to that provider's default would silently make
+    # the question author and the grader the same model again.
     text, _used = providers.chat(config.QUESTIONGEN_PROVIDER, prompt,
+                                 model=config.questiongen_model_name() or None,
                                  temperature=temperature)
     return text
 

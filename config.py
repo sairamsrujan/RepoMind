@@ -61,18 +61,43 @@ TORCH_DEVICE: str = os.getenv("TORCH_DEVICE", "cpu")
 NLI_MODEL: str = os.getenv("NLI_MODEL", "cross-encoder/nli-deberta-v3-base")
 
 # --------------------------------------------------------------------------- #
-# RAGAS judge — swappable. One flag chooses the provider; never hardcoded.
-#   JUDGE_PROVIDER in {"groq", "gemini", "ollama"}
+# Evaluation model roles — three DISTINCT model families, on purpose.
+#
+# There are three LLM roles in the evaluation loop and they must not collapse
+# onto one model:
+#
+#   1. ANSWERER      generates the answer          (GENERATION_API_MODEL)
+#   2. JUDGE         grades faithfulness/relevancy (JUDGE_PROVIDER + JUDGE_MODEL)
+#   3. QUESTION-GEN  writes the golden questions   (QUESTIONGEN_* )
+#
+# If the judge is the same model as the answerer it grades its own output and
+# scores itself generously; if it is the same model as the question author it
+# rewards its own phrasing. Both are forms of self-preference bias and both
+# inflate the reported numbers. Keeping all three on different model families
+# is what makes the scores defensible.
+#
+# JUDGE_PROVIDER / QUESTIONGEN_PROVIDER accept any name in providers.REGISTRY:
+#   groq | gemini | nvidia | openrouter | ollama
 # --------------------------------------------------------------------------- #
-# Which provider grades answers (RAGAS-style faithfulness / relevancy).
-JUDGE_PROVIDER: str = os.getenv("JUDGE_PROVIDER", "groq")
-# Which provider WRITES the golden-set questions. Deliberately a different
-# provider from the judge: one model both authoring and grading favours its own
-# phrasing (self-preference bias), which inflates the scores.
-QUESTIONGEN_PROVIDER: str = os.getenv("QUESTIONGEN_PROVIDER", "gemini")
-JUDGE_MODEL_GROQ: str = os.getenv("JUDGE_MODEL_GROQ", "llama-3.3-70b-versatile")
-JUDGE_MODEL_GEMINI: str = os.getenv("JUDGE_MODEL_GEMINI", "gemini-1.5-flash")
+JUDGE_PROVIDER: str = os.getenv("JUDGE_PROVIDER", "nvidia")
+QUESTIONGEN_PROVIDER: str = os.getenv("QUESTIONGEN_PROVIDER", "nvidia")
+
+# Per-provider judge models (used when JUDGE_MODEL is not set explicitly).
+JUDGE_MODEL_GROQ: str = os.getenv("JUDGE_MODEL_GROQ", "openai/gpt-oss-120b")
+JUDGE_MODEL_GEMINI: str = os.getenv("JUDGE_MODEL_GEMINI", "gemini-2.0-flash")
+JUDGE_MODEL_NVIDIA: str = os.getenv("JUDGE_MODEL_NVIDIA",
+                                    "deepseek-ai/deepseek-v4-pro")
+JUDGE_MODEL_OPENROUTER: str = os.getenv(
+    "JUDGE_MODEL_OPENROUTER", "meta-llama/llama-3.3-70b-instruct:free")
 JUDGE_MODEL_OLLAMA: str = os.getenv("JUDGE_MODEL_OLLAMA", "qwen2.5:7b-instruct")
+
+# Explicit overrides. Set these to pin a role to one exact model regardless of
+# provider defaults — needed when two roles share a provider (e.g. judge and
+# question-gen both on NVIDIA) and must still use different models.
+JUDGE_MODEL: str = os.getenv("JUDGE_MODEL", "")
+QUESTIONGEN_MODEL: str = os.getenv("QUESTIONGEN_MODEL",
+                                   "nvidia/nemotron-3-nano-30b-a3b")
+
 GROQ_BASE_URL: str = "https://api.groq.com/openai/v1"
 
 # --------------------------------------------------------------------------- #
@@ -213,12 +238,55 @@ def flag_state() -> dict:
 
 
 def judge_model_name() -> str:
-    """Return the judge model name for the currently selected provider."""
+    """The model that grades answers, for the currently selected provider.
+
+    An explicit ``JUDGE_MODEL`` wins, so a role can be pinned to one exact model
+    even when it shares a provider with another role.
+    """
+    if JUDGE_MODEL:
+        return JUDGE_MODEL
     return {
         "groq": JUDGE_MODEL_GROQ,
         "gemini": JUDGE_MODEL_GEMINI,
+        "nvidia": JUDGE_MODEL_NVIDIA,
+        "openrouter": JUDGE_MODEL_OPENROUTER,
         "ollama": JUDGE_MODEL_OLLAMA,
     }.get(JUDGE_PROVIDER, JUDGE_MODEL_OLLAMA)
+
+
+def questiongen_model_name() -> str:
+    """The model that writes golden-set questions.
+
+    Empty means "use the provider's default", which is only safe while
+    question-gen and the judge sit on different providers.
+    """
+    return QUESTIONGEN_MODEL
+
+
+def evaluation_roles() -> dict[str, str]:
+    """Who fills each evaluation role right now — recorded with every run.
+
+    Reviewers should be able to confirm at a glance that the answerer, judge and
+    question author are three different models (see the note above).
+    """
+    return {
+        "answerer": effective_generation_model(),
+        "judge": f"{JUDGE_PROVIDER}:{judge_model_name()}",
+        "question_gen": f"{QUESTIONGEN_PROVIDER}:{questiongen_model_name()}",
+    }
+
+
+def roles_are_distinct() -> tuple[bool, str]:
+    """True when no two evaluation roles share a model (self-preference check)."""
+    roles = evaluation_roles()
+    # Compare on the bare model id, ignoring the provider prefix.
+    bare = {k: v.split(":", 1)[-1] for k, v in roles.items()}
+    clashes = [
+        f"{a} and {b} both use {bare[a]!r}"
+        for i, a in enumerate(bare) for b in list(bare)[i + 1:]
+        if bare[a] == bare[b]
+    ]
+    return (not clashes), "; ".join(clashes) if clashes else "all roles distinct"
 
 
 def pipeline_fingerprint() -> dict:

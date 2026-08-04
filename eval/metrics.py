@@ -167,7 +167,8 @@ def make_judge() -> Callable[[str], str]:
     import providers
 
     return lambda prompt: providers.chat(
-        config.JUDGE_PROVIDER, prompt, temperature=0.0)[0]
+        config.JUDGE_PROVIDER, prompt, model=config.judge_model_name(),
+        temperature=0.0)[0]
 
 
 def build_judge_prompt(question: str, answer: str, contexts: list[str]) -> str:
@@ -196,7 +197,10 @@ def judge_faithfulness_relevancy(
     # that was merely requested.
     import providers
 
-    label = providers.describe(config.JUDGE_PROVIDER)
+    # Report the model that will ACTUALLY grade (resolve() drops back to local
+    # when a key is missing), so results never claim a judge that was only asked for.
+    label = providers.describe(config.JUDGE_PROVIDER,
+                               model=config.judge_model_name())
 
     judge = judge_fn or make_judge()
     prompt = _JUDGE_PROMPT.format(
