@@ -255,3 +255,94 @@ def test_wait_is_capped_by_max_wait(api_on, monkeypatch):
     monkeypatch.setattr(requests, "post", lambda *a, **k: seq.pop(0))
     Answerer()._chat_api([{"role": "user", "content": "x"}])
     assert all(s <= 3.0 for s in slept), slept
+
+
+# --------------------------------------------------------------------------- #
+# use_chain: offline evaluation walks the provider chain; interactive does not
+#
+# The two paths have opposite priorities. Interactive must stay responsive, so
+# it drops straight to local (each extra cloud attempt costs a full timeout —
+# HANDOFF.md 3.4). Offline evaluation must preserve provenance, so it tries the
+# remaining cloud providers before settling for a much smaller local model.
+# --------------------------------------------------------------------------- #
+def test_interactive_does_not_walk_the_chain(api_on, monkeypatch):
+    """The default path must never make extra cloud calls — that costs latency."""
+    import providers
+
+    called = []
+    monkeypatch.setattr(providers, "chat_chain",
+                        lambda *a, **k: called.append(1) or ("x", "nvidia:m"))
+    monkeypatch.setattr(Answerer, "_chat_api",
+                        lambda self, m: (_ for _ in ()).throw(GenerationError("429")))
+    _local(monkeypatch)
+
+    r = Answerer().answer("q?", CHUNKS)          # use_chain defaults to False
+    assert not called, "interactive path must not try more cloud providers"
+    assert r.model == config.GENERATION_MODEL
+    assert r.fell_back is True
+
+
+def test_evaluation_path_falls_through_to_the_next_cloud_provider(
+        api_on, monkeypatch):
+    import providers
+
+    monkeypatch.setattr(config, "GENERATION_CHAIN",
+                        ["groq:llama-3.3-70b-versatile", "nvidia:backup-model"])
+    monkeypatch.setattr(Answerer, "_chat_api",
+                        lambda self, m: (_ for _ in ()).throw(
+                            GenerationError("429 daily quota")))
+    monkeypatch.setattr(providers, "chat_chain",
+                        lambda chain, prompt, **k: ("Cloud backup [pr_1].",
+                                                    "nvidia:backup-model"))
+    _local(monkeypatch)
+
+    r = Answerer(use_chain=True).answer("q?", CHUNKS)
+    assert r.text == "Cloud backup [pr_1]."
+    assert r.model == "nvidia:backup-model", "provenance must name the real model"
+    assert r.fell_back is True
+    assert "429" in r.fallback_reason
+
+
+def test_evaluation_path_still_ends_at_local_when_all_cloud_fails(
+        api_on, monkeypatch):
+    import providers
+
+    monkeypatch.setattr(config, "GENERATION_CHAIN", ["groq:a", "nvidia:b"])
+    monkeypatch.setattr(Answerer, "_chat_api",
+                        lambda self, m: (_ for _ in ()).throw(GenerationError("boom")))
+    monkeypatch.setattr(providers, "chat_chain",
+                        lambda *a, **k: (_ for _ in ()).throw(RuntimeError("down")))
+    _local(monkeypatch)
+
+    r = Answerer(use_chain=True).answer("q?", CHUNKS)
+    assert r.text == "Local answer [pr_1]."
+    assert r.model == config.GENERATION_MODEL
+
+
+def test_chain_result_that_resolved_locally_is_not_reported_as_cloud(
+        api_on, monkeypatch):
+    """chat_chain appends ollama itself; that must not be mistaken for cloud."""
+    import providers
+
+    monkeypatch.setattr(config, "GENERATION_CHAIN", ["groq:a", "nvidia:b"])
+    monkeypatch.setattr(Answerer, "_chat_api",
+                        lambda self, m: (_ for _ in ()).throw(GenerationError("boom")))
+    monkeypatch.setattr(providers, "chat_chain",
+                        lambda *a, **k: ("local text", "ollama:qwen2.5:7b-instruct"))
+    _local(monkeypatch)
+
+    r = Answerer(use_chain=True).answer("q?", CHUNKS)
+    assert r.model == config.GENERATION_MODEL, \
+        "an ollama result from the chain must fall through to the explicit local path"
+
+
+def test_system_prompt_survives_flattening_for_the_chain():
+    """The system message carries the citation rules and injection defence."""
+    from generation.answerer import _messages_to_prompt
+
+    flat = _messages_to_prompt([
+        {"role": "system", "content": "RULE: cite every claim"},
+        {"role": "user", "content": "Question: why?"},
+    ])
+    assert "RULE: cite every claim" in flat
+    assert "Question: why?" in flat

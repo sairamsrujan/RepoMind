@@ -135,13 +135,28 @@ GENERATION_CHAIN: list[str] = _chain("GENERATION_CHAIN", [
 ])
 
 # JUDGE — emits two calibrated floats as JSON. Wants consistency, not
-# creativity, and runs offline so latency is irrelevant. DeepSeek family, kept
-# deliberately different from the answerer it grades. "flash" first: a grading
-# task does not need "pro", and flash costs far less of the daily quota.
+# creativity. GPT-OSS family, kept deliberately different from the Llama
+# answerer it grades and the Nemotron author below.
+#
+# Latency matters here after all, contrary to first assumptions: the judge is
+# called once per question, so a slow one dominates a whole evaluation run.
+# Measured on the identical scoring prompt:
+#
+#   groq:openai/gpt-oss-120b               0.6s
+#   openrouter:ling-3.0-flash:free         1.8s
+#   ollama:qwen2.5:7b-instruct             5.3s
+#   nvidia:deepseek-ai/deepseek-v4-flash  88.0s   <- previous default
+#
+# DeepSeek is a *reasoning* model: it thinks at length before emitting two
+# numbers, which turned a ~20s-per-question pipeline into ~165s and would have
+# made a full run take about twelve hours.
+#
+# Groq first (fastest) but it shares a token-per-minute budget with generation;
+# when that saturates, the chain moves to OpenRouter's separate quota on its
+# own, which load-balances the run without any extra logic.
 JUDGE_CHAIN: list[str] = _chain("JUDGE_CHAIN", [
-    "nvidia:deepseek-ai/deepseek-v4-flash",   # cheap, sufficient for scoring
-    "nvidia:deepseek-ai/deepseek-v4-pro",     # if flash is overloaded (529)
-    "groq:openai/gpt-oss-120b",               # last cloud resort
+    "groq:openai/gpt-oss-120b",                    # 0.6s
+    "openrouter:inclusionai/ling-3.0-flash:free",  # 1.8s, separate quota
 ])
 
 # QUESTION AUTHOR — must infer *why* a change happened from scattered evidence,

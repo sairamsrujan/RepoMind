@@ -59,6 +59,16 @@ class AnswerResult:
     fallback_reason: str = ""
 
 
+def _messages_to_prompt(messages: list[dict[str, str]]) -> str:
+    """Flatten chat messages into the single prompt ``chat_chain`` accepts.
+
+    The system message must survive the flattening — it carries the citation
+    format, the coverage-window rule and the prompt-injection defence — so it is
+    prepended rather than dropped.
+    """
+    return "\n\n".join(m.get("content", "") for m in messages if m.get("content"))
+
+
 def extract_citations(text: str) -> list[str]:
     """Return the ordered, deduped chunk_ids cited inline in ``text``."""
     seen: set[str] = set()
@@ -76,11 +86,28 @@ class GenerationError(RuntimeError):
 
 
 class Answerer:
-    """Grounded answering via local Ollama, or a hosted model with fallback."""
+    """Grounded answering via local Ollama, or a hosted model with fallback.
 
-    def __init__(self, model: str | None = None, host: str | None = None):
+    ``use_chain`` selects between the two very different failure priorities:
+
+    * **Interactive (default, False)** — when cloud generation fails, drop
+      straight to the local model. Each additional cloud attempt costs a full
+      timeout, and HANDOFF.md §3.4 records that stacking provider waits added
+      ~120s to every query before falling back to a model that answers in ~10s.
+      A demo must stay responsive.
+
+    * **Offline evaluation (True)** — latency does not matter, but *provenance*
+      does. A free tier's daily token cap is exhausted after a few dozen
+      questions, and dropping straight to local means most of a long run is
+      answered by a 7B model while the report claims a 70B one. Walking the rest
+      of ``GENERATION_CHAIN`` first keeps the run on comparable cloud models.
+    """
+
+    def __init__(self, model: str | None = None, host: str | None = None,
+                 use_chain: bool = False):
         self.model = model or config.GENERATION_MODEL
         self.host = (host or config.OLLAMA_HOST).rstrip("/")
+        self.use_chain = use_chain
 
     # ------------------------------------------------------------------ #
     # Cloud (OpenAI-compatible) path
@@ -197,16 +224,34 @@ class Answerer:
                 if not config.GENERATION_API_FALLBACK:
                     raise
                 reason = str(exc)[:200]
-                _log.warning("Cloud generation failed, using local model: %s",
-                             reason)
-                # Deliberately go straight to local rather than trying the rest
-                # of GENERATION_CHAIN. This is the INTERACTIVE path: each extra
-                # cloud attempt costs a full timeout before answering, and
-                # HANDOFF.md §3.4 records that stacking provider waits added
-                # ~120s to every query before falling back to a local model that
-                # answers in ~10s. Latency is the priority here; the chain's
-                # resilience belongs to the OFFLINE roles (judge, question-gen)
-                # where a slow answer beats no answer.
+                _log.warning("Cloud generation failed: %s", reason)
+
+                # Offline evaluation only — see the class docstring. The
+                # interactive path skips this entirely and goes straight to
+                # local, because each attempt here costs a full timeout.
+                if self.use_chain:
+                    import providers
+
+                    prompt = _messages_to_prompt(messages)
+                    for spec in config.GENERATION_CHAIN[1:]:
+                        try:
+                            text, used = providers.chat_chain(
+                                [spec], prompt,
+                                temperature=config.GENERATION_TEMPERATURE)
+                        except Exception:  # noqa: BLE001 - try the next link
+                            continue
+                        # chat_chain appends ollama itself; only accept a real
+                        # cloud answer here so the local path stays the single
+                        # explicit fallback below.
+                        if text.strip() and not used.startswith("ollama"):
+                            _log.info("Generation fell through to %s", used)
+                            return AnswerResult(
+                                text=text,
+                                cited_chunk_ids=extract_citations(text),
+                                model=used, fell_back=True,
+                                fallback_reason=reason)
+
+                _log.warning("Using local model")
                 text = self._chat_ollama(messages)
                 return AnswerResult(
                     text=text, cited_chunk_ids=extract_citations(text),

@@ -286,7 +286,12 @@ def run(repo: str, dataset: str, metrics_list: list[str], subset: str,
     from guard.nli_verifier import NLIVerifier
     from retrieval.retriever import Retriever
 
-    retriever, answerer, nli = Retriever(ctx), Answerer(), NLIVerifier()
+    # use_chain=True: an evaluation run outlives a free tier's daily token cap,
+    # and dropping straight to local would answer most of the run with a 7B
+    # model while the report cites a 70B one. Latency is irrelevant here.
+    retriever = Retriever(ctx)
+    answerer = Answerer(use_chain=True)
+    nli = NLIVerifier()
     judge = CachedJudge(out_dir / "judge_cache.json", sleep)
     judge_state: dict = {"available": True}
 
