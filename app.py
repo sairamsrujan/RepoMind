@@ -51,41 +51,272 @@ st.set_page_config(page_title="RepoMind", page_icon="🧠", layout="wide")
 # --------------------------------------------------------------------------- #
 _CSS = """
 <style>
-.block-container {padding-top: 2.2rem; max-width: 1080px;}
-/* hero */
-.rm-hero {display:flex; align-items:center; gap:.7rem; margin-bottom:.1rem;}
-.rm-hero .emoji {font-size:2.3rem;}
-.rm-hero h1 {margin:0; font-size:2.3rem; font-weight:800; letter-spacing:-.02em;
-  background:linear-gradient(90deg,#8b7ff5,#c4b5fd); -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent; background-clip:text;}
-.rm-sub {color:#9aa4b2; margin:.15rem 0 1.1rem; font-size:1.02rem;}
-/* coverage chip */
-.rm-cov {display:inline-block; background:#161b26; border:1px solid #262d3d;
-  border-radius:8px; padding:.32rem .8rem; color:#c7cdd6; font-size:.9rem;}
-/* stat cards */
-.rm-stats {display:flex; gap:.7rem; flex-wrap:wrap; margin:.9rem 0 .2rem;}
-.rm-card {flex:1 1 130px; background:#161b26; border:1px solid #242c3c;
-  border-radius:12px; padding:.8rem .95rem;}
-.rm-card .v {font-size:1.55rem; font-weight:750; color:#f2f4f7; line-height:1.05;}
-.rm-card .l {font-size:.74rem; color:#93a0b4; margin-top:.2rem;
-  text-transform:uppercase; letter-spacing:.05em;}
-/* guard pills */
-.rm-pills {display:flex; gap:.5rem; flex-wrap:wrap; margin:.2rem 0 .3rem;}
-.rm-pill {display:inline-flex; align-items:center; gap:.4rem; padding:.34rem .75rem;
-  border-radius:999px; font-size:.84rem; font-weight:600; border:1px solid transparent;}
-.rm-ok {background:rgba(34,197,94,.12); color:#4ade80; border-color:rgba(34,197,94,.3);}
-.rm-warn {background:rgba(245,158,11,.13); color:#fbbf24; border-color:rgba(245,158,11,.32);}
-.rm-bad {background:rgba(239,68,68,.13); color:#f87171; border-color:rgba(239,68,68,.32);}
-.rm-neu {background:#1b2230; color:#c2cad6; border-color:#2a3242;}
-/* source-type badges */
-.rm-src {display:inline-block; padding:.06rem .5rem; border-radius:6px; font-size:.7rem;
-  font-weight:700; text-transform:uppercase; letter-spacing:.03em; margin-right:.45rem;
-  vertical-align:middle;}
-.rm-src-commit {background:#12331f; color:#6ee7b7;}
-.rm-src-pr {background:#241f4d; color:#c4b5fd;}
-.rm-src-issue {background:#3a201d; color:#fca5a5;}
-.rm-src-review {background:#132b38; color:#7dd3fc;}
-.rm-src-release {background:#332a16; color:#fcd34d;}
+/* ========================================================================== *
+ * RepoMind — glass design system
+ *
+ * Surfaces are translucent and blurred (backdrop-filter) over an ambient
+ * gradient field, so panels read as layers of glass rather than flat boxes.
+ * Streamlit's own class names churn between releases, so structural selectors
+ * use data-testid where possible; anything that stops matching after an
+ * upgrade degrades to Streamlit's default styling rather than breaking.
+ * ========================================================================== */
+
+:root {
+  --rm-accent:      #7c6ff0;
+  --rm-accent-2:    #c4b5fd;
+  --rm-text:        #e8eaf0;
+  --rm-muted:       #93a0b4;
+  --rm-glass:       rgba(255,255,255,.045);
+  --rm-glass-hi:    rgba(255,255,255,.075);
+  --rm-stroke:      rgba(255,255,255,.09);
+  --rm-stroke-hi:   rgba(255,255,255,.16);
+  --rm-blur:        saturate(150%) blur(18px);
+  --rm-shadow:      0 8px 32px rgba(0,0,0,.38);
+  --rm-shadow-lift: 0 14px 42px rgba(0,0,0,.5);
+  --rm-ease:        cubic-bezier(.22,1,.36,1);
+}
+
+/* --- ambient background: two soft colour fields behind everything -------- */
+.stApp {
+  background:
+    radial-gradient(900px 520px at 12% -8%,  rgba(124,111,240,.16), transparent 60%),
+    radial-gradient(780px 460px at 92% 4%,   rgba(56,189,248,.10),  transparent 62%),
+    radial-gradient(700px 700px at 50% 115%, rgba(167,139,250,.10), transparent 60%),
+    #0a0d14;
+  background-attachment: fixed;
+}
+
+.block-container {padding-top: 2.1rem; max-width: 1120px;}
+
+/* Respect users who prefer reduced motion — disable transitions wholesale. */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* --- hero ---------------------------------------------------------------- */
+.rm-hero {display:flex; align-items:center; gap:.75rem; margin-bottom:.1rem;}
+.rm-hero .emoji {
+  font-size:2.5rem; line-height:1;
+  filter: drop-shadow(0 4px 16px rgba(124,111,240,.55));
+}
+.rm-hero h1 {
+  margin:0; font-size:2.5rem; font-weight:800; letter-spacing:-.03em;
+  background:linear-gradient(100deg,#a99bff 0%,#e9e3ff 42%,#7dd3fc 78%,#a99bff 100%);
+  background-size:220% auto;
+  -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent;
+  animation: rm-sheen 9s linear infinite;
+}
+@keyframes rm-sheen {to {background-position:220% center;}}
+.rm-sub {color:var(--rm-muted); margin:.2rem 0 1.15rem; font-size:1.03rem;}
+
+/* --- coverage chip ------------------------------------------------------- */
+.rm-cov {
+  display:inline-block; padding:.4rem .9rem; border-radius:999px;
+  background:var(--rm-glass); border:1px solid var(--rm-stroke);
+  -webkit-backdrop-filter:var(--rm-blur); backdrop-filter:var(--rm-blur);
+  color:#cdd4de; font-size:.88rem; box-shadow:var(--rm-shadow);
+}
+
+/* --- stat cards ---------------------------------------------------------- */
+/* Grid, not flex: with flex the final card on a wrapped row stretches to the
+   full width (6 cards on a 3-wide layout looked broken). auto-fill keeps the
+   empty tracks so every card stays the same size however many there are. */
+.rm-stats {
+  display:grid; gap:.8rem; margin:1rem 0 .3rem;
+  grid-template-columns:repeat(auto-fill, minmax(158px, 1fr));
+}
+.rm-card {
+  position:relative; overflow:hidden;
+  padding:.95rem 1.05rem; border-radius:16px;
+  background:linear-gradient(160deg, var(--rm-glass-hi), var(--rm-glass));
+  border:1px solid var(--rm-stroke);
+  -webkit-backdrop-filter:var(--rm-blur); backdrop-filter:var(--rm-blur);
+  box-shadow:var(--rm-shadow);
+  transition:transform .35s var(--rm-ease), box-shadow .35s var(--rm-ease),
+             border-color .35s var(--rm-ease);
+}
+/* specular highlight along the top edge — the "glass" tell */
+.rm-card::before {
+  content:""; position:absolute; inset:0 0 auto 0; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);
+}
+.rm-card:hover {
+  transform:translateY(-3px);
+  box-shadow:var(--rm-shadow-lift);
+  border-color:var(--rm-stroke-hi);
+}
+.rm-card .v {
+  font-size:1.7rem; font-weight:760; line-height:1.05;
+  background:linear-gradient(180deg,#ffffff,#b9c2d4);
+  -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.rm-card .l {
+  font-size:.7rem; color:var(--rm-muted); margin-top:.3rem;
+  text-transform:uppercase; letter-spacing:.08em; font-weight:600;
+}
+
+/* --- guard pills --------------------------------------------------------- */
+.rm-pills {display:flex; gap:.55rem; flex-wrap:wrap; margin:.55rem 0 .35rem;}
+.rm-pill {
+  display:inline-flex; align-items:center; gap:.4rem;
+  padding:.38rem .85rem; border-radius:999px;
+  font-size:.83rem; font-weight:650; letter-spacing:.01em;
+  border:1px solid transparent;
+  -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+  animation: rm-rise .45s var(--rm-ease) both;
+}
+@keyframes rm-rise {from {opacity:0; transform:translateY(6px);} to {opacity:1;}}
+.rm-ok {
+  background:linear-gradient(180deg,rgba(34,197,94,.20),rgba(34,197,94,.10));
+  color:#6ee7a4; border-color:rgba(34,197,94,.38);
+  box-shadow:0 0 18px rgba(34,197,94,.14);
+}
+.rm-warn {
+  background:linear-gradient(180deg,rgba(245,158,11,.20),rgba(245,158,11,.10));
+  color:#fcd34d; border-color:rgba(245,158,11,.38);
+  box-shadow:0 0 18px rgba(245,158,11,.14);
+}
+.rm-bad {
+  background:linear-gradient(180deg,rgba(239,68,68,.20),rgba(239,68,68,.10));
+  color:#fca5a5; border-color:rgba(239,68,68,.40);
+  box-shadow:0 0 18px rgba(239,68,68,.16);
+}
+.rm-neu {
+  background:var(--rm-glass); color:#c2cad6; border-color:var(--rm-stroke);
+}
+
+/* --- source-type badges -------------------------------------------------- */
+.rm-src {
+  display:inline-block; padding:.1rem .55rem; border-radius:7px;
+  font-size:.68rem; font-weight:750; text-transform:uppercase;
+  letter-spacing:.05em; margin-right:.5rem; vertical-align:middle;
+  border:1px solid transparent;
+}
+.rm-src-commit  {background:rgba(16,185,129,.16); color:#6ee7b7; border-color:rgba(16,185,129,.3);}
+.rm-src-pr      {background:rgba(139,124,246,.18); color:#c4b5fd; border-color:rgba(139,124,246,.34);}
+.rm-src-issue   {background:rgba(248,113,113,.15); color:#fca5a5; border-color:rgba(248,113,113,.3);}
+.rm-src-review  {background:rgba(56,189,248,.15);  color:#7dd3fc; border-color:rgba(56,189,248,.3);}
+.rm-src-release {background:rgba(251,191,36,.15);  color:#fcd34d; border-color:rgba(251,191,36,.3);}
+
+/* ========================================================================== *
+ * Streamlit widget restyling
+ * ========================================================================== */
+
+/* bordered containers (the answer panel) */
+[data-testid="stVerticalBlockBorderWrapper"]:has(> div > div > [data-testid="stMarkdownContainer"]) {
+  border-radius:18px;
+}
+div[data-testid="stVerticalBlockBorderWrapper"] {
+  background:linear-gradient(160deg, var(--rm-glass-hi), var(--rm-glass));
+  border:1px solid var(--rm-stroke) !important;
+  border-radius:18px !important;
+  -webkit-backdrop-filter:var(--rm-blur); backdrop-filter:var(--rm-blur);
+  box-shadow:var(--rm-shadow);
+}
+
+/* buttons */
+.stButton > button, .stDownloadButton > button, .stFormSubmitButton > button {
+  border-radius:11px; font-weight:620; letter-spacing:.01em;
+  background:var(--rm-glass); border:1px solid var(--rm-stroke);
+  color:var(--rm-text);
+  -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+  transition:transform .2s var(--rm-ease), box-shadow .25s var(--rm-ease),
+             border-color .25s var(--rm-ease), background .25s var(--rm-ease);
+}
+.stButton > button:hover, .stDownloadButton > button:hover,
+.stFormSubmitButton > button:hover {
+  transform:translateY(-2px); border-color:var(--rm-stroke-hi);
+  background:var(--rm-glass-hi);
+  box-shadow:0 10px 26px rgba(0,0,0,.4);
+}
+.stButton > button:active {transform:translateY(0);}
+/* primary action gets the accent gradient */
+.stButton > button[kind="primary"], .stFormSubmitButton > button[kind="primary"] {
+  background:linear-gradient(135deg,#7c6ff0,#9d7bf5);
+  border-color:rgba(196,181,253,.45); color:#fff;
+  box-shadow:0 8px 24px rgba(124,111,240,.36);
+}
+.stButton > button[kind="primary"]:hover,
+.stFormSubmitButton > button[kind="primary"]:hover {
+  box-shadow:0 12px 32px rgba(124,111,240,.5);
+}
+
+/* text inputs */
+.stTextInput input, .stNumberInput input, .stTextArea textarea {
+  background:rgba(255,255,255,.04) !important;
+  border:1px solid var(--rm-stroke) !important;
+  border-radius:11px !important; color:var(--rm-text) !important;
+  transition:border-color .25s var(--rm-ease), box-shadow .25s var(--rm-ease);
+}
+.stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus {
+  border-color:rgba(124,111,240,.6) !important;
+  box-shadow:0 0 0 3px rgba(124,111,240,.16) !important;
+}
+
+/* expanders */
+[data-testid="stExpander"] details {
+  background:var(--rm-glass); border:1px solid var(--rm-stroke) !important;
+  border-radius:14px !important; overflow:hidden;
+  -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+  transition:border-color .25s var(--rm-ease), box-shadow .25s var(--rm-ease);
+}
+[data-testid="stExpander"] details:hover {
+  border-color:var(--rm-stroke-hi); box-shadow:0 8px 26px rgba(0,0,0,.32);
+}
+[data-testid="stExpander"] summary {font-weight:620;}
+
+/* sidebar as a frosted rail */
+[data-testid="stSidebar"] {
+  background:rgba(12,16,25,.72);
+  -webkit-backdrop-filter:var(--rm-blur); backdrop-filter:var(--rm-blur);
+  border-right:1px solid var(--rm-stroke);
+}
+
+/* the top header is opaque by default and hides the ambient gradient */
+[data-testid="stHeader"] {
+  background:transparent !important;
+  -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+}
+
+/* progress bar */
+.stProgress > div > div > div > div {
+  background:linear-gradient(90deg,#7c6ff0,#a99bff,#7dd3fc);
+  background-size:200% auto; animation:rm-sheen 2.2s linear infinite;
+}
+
+/* metrics */
+[data-testid="stMetric"] {
+  background:var(--rm-glass); border:1px solid var(--rm-stroke);
+  border-radius:14px; padding:.7rem .9rem;
+  -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+}
+
+/* tables + alerts */
+[data-testid="stTable"], .stDataFrame {border-radius:14px; overflow:hidden;}
+[data-testid="stAlert"] {
+  border-radius:13px; border:1px solid var(--rm-stroke);
+  -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+}
+
+/* code + citation links */
+code {
+  background:rgba(124,111,240,.13) !important;
+  border:1px solid rgba(124,111,240,.22);
+  border-radius:6px; padding:.08rem .35rem !important;
+  color:#cfc6ff !important;
+}
+a {transition:opacity .2s var(--rm-ease);} a:hover {opacity:.78;}
+
+/* thin, unobtrusive scrollbar */
+::-webkit-scrollbar {width:10px; height:10px;}
+::-webkit-scrollbar-track {background:transparent;}
+::-webkit-scrollbar-thumb {
+  background:rgba(255,255,255,.12); border-radius:99px;
+  border:2px solid transparent; background-clip:content-box;
+}
+::-webkit-scrollbar-thumb:hover {background:rgba(255,255,255,.2); background-clip:content-box;}
 </style>
 """
 

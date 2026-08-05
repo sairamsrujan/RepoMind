@@ -1,10 +1,14 @@
-# RepoMind UI theme. A cohesive dark palette with an indigo accent.
+# RepoMind UI theme — a deep indigo-tinted dark palette.
+#
+# backgroundColor must match the base colour of the ambient gradient painted on
+# .stApp in app.py, or a visible seam appears while the page is loading and
+# behind any element the gradient does not cover.
 [theme]
 base = "dark"
 primaryColor = "#7c6ff0"
-backgroundColor = "#0e1117"
-secondaryBackgroundColor = "#161b26"
-textColor = "#e6e8eb"
+backgroundColor = "#0a0d14"
+secondaryBackgroundColor = "#141926"
+textColor = "#e8eaf0"
 font = "sans serif"
 
 [server]
