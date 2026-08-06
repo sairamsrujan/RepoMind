@@ -273,20 +273,39 @@ repository**.
 
 ### Full metrics
 
-> [!WARNING]
-> The mixed-category metrics below were produced by an **earlier
-> configuration** — before `fastapi` was re-indexed with its pull requests, and
-> while the judge was still the same model as the answerer (see
-> [self-preference](#how-the-benchmark-is-built)). They are retained for
-> reference only and are being regenerated; treat the abstention table above as
-> the current result.
+275 mixed-category questions across all six corpora, judged by a model from a
+different family than the one that answered.
 
-| Repository | Faithfulness | Answer relevancy | Recall@6 | Citation precision |
-|---|:---:|:---:|:---:|:---:|
-| `pallets/click` | 0.75 | 0.86 | 0.52 | 0.54 |
-| `psf/requests` | 0.71 | 0.80 | 0.52 | 0.51 |
-| `fastapi/fastapi` | 0.59 | 0.80 | 0.66 | 0.42 |
-| `acme/widgets` | 0.94 | 0.84 | 0.96 | 0.53 |
+| Repository | Faithfulness | Answer relevancy | Recall@6 | MRR | nDCG | Citation precision |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| `psf/requests` | **0.856** | 0.902 | 0.516 | 0.688 | 0.543 | 0.534 |
+| `psf/black` | 0.844 | **0.932** | 0.571 | 0.663 | 0.581 | 0.524 |
+| `pallets/click` | 0.770 | 0.918 | 0.523 | 0.690 | 0.548 | 0.502 |
+| `fastapi/fastapi` | 0.670 | 0.842 | **0.651** | 0.541 | 0.564 | 0.333 |
+| `pydantic/pydantic` | 0.649 | 0.811 | 0.506 | **0.734** | 0.562 | 0.574 |
+| **Mean (5 real repos)** | **0.758** | **0.881** | **0.553** | 0.663 | 0.559 | 0.494 |
+| `acme/widgets` *(fixture)* | 0.827 | 0.983 | 0.958 | 0.940 | 0.883 | 0.532 |
+
+**An independent cross-check on abstention.** The mixed sets carry their own
+unanswerable questions (7 per repo), scored separately from the dedicated
+30-per-repo abstention sets. The two samples agree closely — **0.886** here
+versus **0.900** there — which is meaningful corroboration that the abstention
+result is not an artifact of one particular question set.
+
+> [!NOTE]
+> **Three models answered these 275 questions**, so this is not a clean
+> single-model measurement. Groq's daily token cap is exhausted after a few
+> dozen questions, after which the generation chain falls through:
+>
+> ```
+> pallets/click   30 × Groq-70B ·  8 × NVIDIA-49B · 12 × local-7B
+> psf/requests     2 × Groq-70B · 27 × NVIDIA-49B · 21 × local-7B
+> psf/black        2 × Groq-70B · 34 × NVIDIA-49B · 14 × local-7B
+> ```
+>
+> The honest phrasing is *"predominantly cloud-generated, with recorded local
+> fallback on quota exhaustion."* Every run stores an `answered_by` count in its
+> `results.json`, so this is verifiable rather than remembered.
 
 ### Does graph expansion help? (measured, not assumed)
 
