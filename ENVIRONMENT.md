@@ -1,8 +1,58 @@
-# Environment & Restore Procedure
+# Environment, Durability & Restore Procedure
 
-RepoMind must still run after a ~10-month gap with no network beyond Ollama on
-localhost. This document is the insurance: how to freeze the environment now and
-rebuild it on a clean machine later.
+RepoMind must still run after a ~9-month gap with no network beyond Ollama on
+localhost. This document is the insurance: what can rot, how to detect it, and
+how to rebuild on a clean machine.
+
+## What can break in nine months
+
+Ranked by how likely it is to actually happen. Everything marked **observed**
+already happened during development — these are not hypotheticals.
+
+| # | Risk | Likelihood | Impact | Mitigation |
+|---|---|---|---|---|
+| 1 | **A cloud model id is retired** — *observed*: `gemini-2.5-flash` began returning *"no longer available"*, and several NVIDIA ids 404 despite being listed | **High** | Judge/question-gen fall back to local; scores shift | Chains try the next entry; `check_providers.py` validates every role's model |
+| 2 | **A free tier changes or closes** — *observed*: Cerebras returned `402 Payment required` on all models | **High** | That provider drops out | Five providers configured; chain ends at local |
+| 3 | **Daily quota exhausted mid-run** — *observed* repeatedly | **Certain** | Evaluation silently changes model | `answered_by` records it; ablation pins one model |
+| 4 | **HuggingFace cache cleared** (disk cleanup, new machine) | Medium | Reranker + NLI guard cannot load → **app broken** | `wheelhouse/hf_cache/` (2.9 GB); smoke test loads them in forced-offline mode |
+| 5 | **Ollama app auto-updates** and changes model behaviour | Medium | Answers shift subtly | Model **tags** are pinned (never `:latest`); re-run the smoke test after any update |
+| 6 | **macOS/Homebrew moves Python** out from under `.venv` | Medium | Nothing runs | Recreate the venv from `wheelhouse/` — no network needed |
+| 7 | **A cloud API key is rotated or revoked** | Medium | That provider drops out | Chain + local fallback; `check_providers.py` reports it |
+| 8 | **A pinned version is yanked from PyPI** | Low | Clean rebuild fails | 118 wheels in `wheelhouse/` |
+| 9 | **GitHub token expires** | **None currently** — this token has no expiry | Would silently drop PRs (GraphQL needs auth) | Smoke test fails at 60 days' notice if one is ever set |
+| 10 | **Chroma on-disk format changes** | Low | Indexes unreadable | `chromadb` is pinned; smoke test loads every index |
+| 11 | **Disk fills** (indexes + caches ≈ 10 GB) | Low | Obscure failures | Smoke test fails below 5 GB free |
+
+### The single point of failure
+
+**Cloud is optional; local is not.** Every cloud risk above degrades to a local
+model. But if Ollama's models or the HuggingFace cache are lost, the app cannot
+answer at all — the reranker and NLI guard have no fallback. Those two caches
+are the thing to protect:
+
+```
+~/.cache/huggingface        6.1 GB   reranker + NLI cross-encoders
+ollama models               ~5.4 GB   qwen3-embedding:0.6b, qwen2.5:7b-instruct
+wheelhouse/hf_cache         2.9 GB   the backup copy of the above HF models
+```
+
+Keep `wheelhouse/` on external storage. It is the difference between a
+twenty-minute restore and a broken demo.
+
+### Monthly, and before any demo
+
+```bash
+python scripts/smoke_test.py       # 11 checks: environment, models, token, indexes, end-to-end
+python scripts/check_providers.py  # cloud providers + evaluation role models
+python scripts/demo_check.py       # the things a viewer actually sees
+```
+
+`smoke_test.py` is the durability check: it verifies the Python version, free
+disk, that every installed package still matches `requirements.txt` exactly,
+that Ollama and both pinned tags are present, that the HuggingFace models load
+with **networking forced off**, that the GitHub token is valid (warning 60 days
+before any expiry), and that all six indexes still load. Run it monthly — the
+failures above are all silent until you look.
 
 ## Freeze (run now, and again before any risky change)
 
@@ -45,7 +95,7 @@ This:
    ```bash
    python scripts/smoke_test.py
    ```
-   All five checks must print `PASS`. Check 3 forces HuggingFace *offline* mode,
+   Every check must print `PASS`. The HuggingFace check forces *offline* mode,
    so it fails loudly if a model would need to download — proving the cache
    restore worked.
 
