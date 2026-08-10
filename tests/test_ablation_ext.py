@@ -34,12 +34,17 @@ def _fake_results():
 
 
 def test_write_ablation_outputs(tmp_path):
-    ablation.write_ablation_outputs(_fake_results(), tmp_path)
+    ablation.write_ablation_outputs(_fake_results(), tmp_path,
+                                    generation_model="qwen2.5:7b-instruct")
     assert (tmp_path / "ablation.json").exists()
     assert (tmp_path / "ablation.csv").exists()
 
     data = json.loads((tmp_path / "ablation.json").read_text())
-    assert "acme/widgets" in data
+    assert "acme/widgets" in data["results"]
+    # The table must carry the model that produced it: a table whose configs
+    # were answered by different models compares models, not configurations.
+    assert data["generation_model"] == "qwen2.5:7b-instruct"
+    assert "acme/widgets" in data["answered_by_per_config"]
 
     rows = list(csv.DictReader((tmp_path / "ablation.csv").open()))
     header = rows[0].keys()

@@ -136,6 +136,47 @@ by hardcoded counts (`len(entries) == 5`, `unanswerable n == 1`). Assert
 *structure* — category present, `n >= 1`, required fields exist — never a fixed
 count.
 
+### 3.9 The ablation must pin ONE generation model
+
+An ablation isolates one variable: the configuration. If generation is left on
+the normal cloud-with-fallback path, the answering model degrades **in the same
+order the configurations run**, because both proceed top to bottom while the
+daily quota drains:
+
+```
+1.retrieval-only    19/20 answers from Groq-70B
+2.+MMR              14/20
+3.+MMR+reranker      0/20   (13 × NVIDIA-49B, 7 × local-7B)
+5.full+guard+retry   4/20   (10 × local-7B)
+```
+
+The table then shows "faithfulness falls as you add pipeline stages" — which is
+the answerer getting weaker, not the stages hurting. Every cross-config number
+is confounded, and it looks completely plausible.
+
+`eval/ablation.py` now pins generation (`GENERATION_PROVIDER=ollama`) unless
+`--allow-cloud-generation` is passed, and records `generation_model` plus
+per-config `answered_by` counts in `ablation.json`. **Check those before quoting
+any ablation number.** The confounded run is kept as
+`results/ablation-multi-CONFOUNDED-superseded/` as the evidence for this rule.
+
+For an ablation, a consistent weaker model beats an inconsistent stronger one.
+
+### 3.10 Model choice is a latency decision, not just a quality one
+
+Two reasoning models were chosen for jobs that emit a few tokens, and each cost
+hours before being caught:
+
+| Role | Reasoning model | Replacement | Speed-up |
+|---|---|---|---|
+| Judge | `deepseek-v4-flash` 88s | `groq:gpt-oss-120b` 0.6s | **147×** |
+| Generation fallback | `nemotron-super-49b` ~99s | pinned local ~20s | ~5× |
+
+A reasoning model thinks at length before answering. That is invisible per call
+and decisive across a 300-question run. **Time a candidate on the real prompt
+before putting it in a chain** — `scripts/check_providers.py` lists them, but it
+does not time them.
+
 ---
 
 ## 4. Architecture — what talks to what

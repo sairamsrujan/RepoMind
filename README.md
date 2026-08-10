@@ -307,7 +307,54 @@ result is not an artifact of one particular question set.
 > fallback on quota exhaustion."* Every run stores an `answered_by` count in its
 > `results.json`, so this is verifiable rather than remembered.
 
-### Does graph expansion help? (measured, not assumed)
+### Ablation — what each pipeline stage actually contributes
+
+Eight configurations × 20 questions × 2 repositories. **Generation is pinned to
+a single model** (`qwen2.5:7b-instruct`) for every configuration, because an
+ablation must isolate the configuration — see the note below. Mean of both repos:
+
+| Configuration | Recall@6 | Citation precision | Faithfulness |
+|---|:---:|:---:|:---:|
+| 1. retrieval-only | **0.816** | 0.358 | 0.760 |
+| 2. + MMR | 0.536 | 0.365 | 0.573 |
+| 3. + MMR + reranker | 0.607 | 0.369 | 0.672 |
+| 4. full + guard *(production)* | 0.607 | 0.373 | 0.637 |
+| 5. + adaptive retry | 0.684 | 0.361 | 0.630 |
+| 6. + graph expansion | 0.665 | 0.321 | 0.680 |
+| dense-only | 0.701 | 0.397 | 0.764 |
+| **sparse-only (BM25)** | 0.794 | **0.503** | **0.792** |
+
+Three findings, each replicated on both repositories:
+
+**MMR is the single most harmful stage.** Isolating it (config 1 → 2) costs
+**−0.280 recall** and **−0.188 faithfulness**. `DECISIONS.md` predicted this
+failure mode — *"diversification can push a relevant near-duplicate out of the
+top-k"* — but it had never been measured. Gold evidence for these questions is
+typically a *cluster* of linked records, which is exactly what MMR discards.
+
+**BM25 alone outperforms the full hybrid pipeline** on every metric shown. That
+is the opposite of the assumption behind hybrid retrieval, and it is the
+strongest argument in the table for keeping the sparse channel.
+
+**Graph expansion helps end-to-end** but trades precision for recall:
+recall +0.058, faithfulness +0.044, citation precision −0.052 versus production.
+
+> [!WARNING]
+> **Do not over-read this table.** n=20 per configuration, 2 repositories, and a
+> deliberately weak pinned model — so the *absolute* numbers sit well below the
+> [full-metrics](#full-metrics) results above and should not be quoted as system
+> performance. What it supports is the *relative ordering* of configurations.
+> Acting on it (e.g. disabling MMR) warrants a larger run first.
+
+> **Why the model is pinned.** An earlier run left generation on the normal
+> cloud-with-fallback path. Configurations execute in order and the daily quota
+> depletes in order, so config 1 got 19/20 answers from a 70B model and config 3
+> got none — the table appeared to show pipeline stages hurting when it was
+> really the answerer getting weaker. `eval/ablation.py` now pins the model and
+> records `answered_by` per configuration so comparability is verifiable. The
+> confounded run is kept in `results/ablation-multi-CONFOUNDED-superseded/`.
+
+### Does graph expansion help retrieval? (measured, not assumed)
 
 Multi-hop questions need evidence spread across linked records, so retrieval can
 follow the issue↔PR↔commit graph instead of stopping at the best text match.

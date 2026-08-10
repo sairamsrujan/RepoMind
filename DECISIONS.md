@@ -14,6 +14,20 @@ line is left blank to fill in by hand.
   are lexical, not semantic — dense embeddings miss exact tokens BM25 nails.
 - **Cost:** a second index (BM25 pickle) built and held in memory per repo.
 - **Evidence:** ablation `dense-only` vs `sparse-only` vs hybrid, by `query_type`.
+- **✅ CONFIRMED, AND STRONGER THAN EXPECTED (2026-08-10).** Mean of both repos,
+  n=20 each, generation pinned:
+
+  | channel | recall@6 | citation precision | faithfulness |
+  |---|---|---|---|
+  | dense-only | 0.701 | 0.397 | 0.764 |
+  | **sparse-only (BM25)** | **0.794** | **0.503** | **0.792** |
+  | full hybrid (config 4) | 0.607 | 0.373 | 0.637 |
+
+  The sparse channel does not merely complement the dense one — on this
+  benchmark it *outperforms both* dense-only and the full hybrid pipeline. The
+  decision to keep BM25 is vindicated; the assumption that fusing the two always
+  beats either alone is not. Note the hybrid's deficit here is largely MMR (see
+  below), not the fusion itself. See `results/ablation-multi/`.
 - **Tried and rejected:**
 
 ## RRF over weighted score fusion
@@ -42,6 +56,15 @@ line is left blank to fill in by hand.
 - **Cost:** on tiny corpora, diversification can push a relevant near-duplicate
   out of the top-k (visible on the 11-chunk demo repo).
 - **Evidence:** ablation config 1 vs 2; `tests/test_retrieval.py`.
+- **⚠️ CONTRADICTED BY MEASUREMENT (2026-08-10).** The ablation finally ran, and
+  the predicted cost is not an edge case on tiny corpora — it is the dominant
+  effect. Isolating MMR (config 1 → 2, mean of `pallets/click` + `psf/requests`,
+  n=20 each, generation pinned) costs **−0.280 recall@6** and **−0.188
+  faithfulness**. The reranker recovers only part of it (config 3: 0.607 vs
+  0.816 for retrieval-only). Gold evidence for these questions is typically a
+  *cluster* of linked records, which is precisely what diversification discards.
+  Caveat: n=20 on a weak pinned model; a larger run should confirm before MMR is
+  removed or its lambda retuned. See `results/ablation-multi/`.
 - **Tried and rejected:**
 
 ## FINAL_TOP_K = 6

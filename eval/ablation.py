@@ -12,6 +12,7 @@ repositories — never inside the live Streamlit query path.
 from __future__ import annotations
 
 import statistics
+import sys
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -127,7 +128,7 @@ def run_ablation(
     coverage = (m["coverage"].get("since", ""), m["coverage"].get("until", ""))
 
     retriever = Retriever(ctx)
-    answerer = Answerer()
+    answerer = Answerer(use_chain=True)   # offline: prefer cloud over speed
     nli = NLIVerifier()
 
     results = []
@@ -213,8 +214,16 @@ def _result_for(query_pipeline, retriever, answerer, nli, question, since, until
 
 
 def run_golden_ablation(ctx, entries, metrics_list, judge, judge_state,
-                        configs=None) -> dict:
-    """Run every configuration over ``entries``; return per-config breakdowns."""
+                        configs=None, checkpoint_dir=None) -> dict:
+    """Run every configuration over ``entries``; return per-config breakdowns.
+
+    Cost is configurations x questions, so this runs for hours. It is
+    checkpointed per configuration: each completed config is written to
+    ``checkpoint_dir`` immediately and skipped on a re-run. Without this an
+    interruption near the end — a dropped Ollama, a closed laptop, an OOM kill —
+    discarded the entire run, which is exactly what happened before it was added.
+    """
+    import json as _json
     import query_pipeline
 
     from core import manifest as manifest_mod
@@ -236,10 +245,45 @@ def run_golden_ablation(ctx, entries, metrics_list, judge, judge_state,
         retriever = Retriever(ctx)
     finally:
         config.ENABLE_GRAPH_EXPANSION = _flag
-    answerer, nli = Answerer(), NLIVerifier()
+    # An ablation isolates ONE variable: the configuration. The generation model
+    # must therefore be identical for every configuration.
+    #
+    # This is not hypothetical. A previous run left generation on the normal
+    # cloud-with-fallback path, and because configurations execute in order
+    # while the daily quota depletes in order, the answering model degraded
+    # monotonically down the table:
+    #
+    #   1.retrieval-only   19/20 answers from Groq-70B
+    #   3.+MMR+reranker     0/20 answers from Groq-70B (13 × 49B, 7 × local 7B)
+    #
+    # The resulting "faithfulness falls as you add pipeline stages" was mostly
+    # the answerer getting weaker, not the stages hurting. Consistency matters
+    # more here than raw model quality, so generation is pinned to a single
+    # model — local by default, since that is the one model always available and
+    # immune to quota depletion mid-run.
+    answerer, nli = Answerer(use_chain=False), NLIVerifier()
+
+    # Resume: reload any configurations already completed for this repository.
+    from pathlib import Path as _Path
+    ckpt = None
+    if checkpoint_dir:
+        ckpt = _Path(checkpoint_dir) / f"partial-{ctx.slug}.json"
+        ckpt.parent.mkdir(parents=True, exist_ok=True)
 
     out: dict = {}
+    if ckpt and ckpt.exists():
+        try:
+            out = _json.loads(ckpt.read_text(encoding="utf-8"))
+            if out:
+                print(f"  resuming: {len(out)} config(s) already done "
+                      f"({', '.join(out)})", file=sys.stderr)
+        except (OSError, ValueError):
+            out = {}
+
     for cfg in configs:
+        if cfg["name"] in out:
+            continue
+        print(f"  [{cfg['name']}] {len(entries)} questions", file=sys.stderr)
         rows = []
         for e in entries:
             t0 = time.perf_counter()
@@ -249,10 +293,17 @@ def run_golden_ablation(ctx, entries, metrics_list, judge, judge_state,
             rows.append(eval_run.metrics_for_entry(
                 pr, e, metrics_list, judge, judge_state, latency_ms))
         out[cfg["name"]] = {"by_type": eval_run.aggregate(rows), "rows": rows}
+        # Persist after EVERY configuration, not at the end of the run.
+        if ckpt:
+            try:
+                ckpt.write_text(_json.dumps(out), encoding="utf-8")
+            except OSError:
+                pass          # a failed checkpoint must not abort the run
     return out
 
 
-def write_ablation_outputs(all_results: dict, out_dir) -> None:
+def write_ablation_outputs(all_results: dict, out_dir,
+                           generation_model: str = "") -> None:
     """Write ablation.csv (per repo/config/query_type) and ablation.json."""
     import csv
     import json
@@ -260,7 +311,21 @@ def write_ablation_outputs(all_results: dict, out_dir) -> None:
 
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / "ablation.json").write_text(json.dumps(all_results, indent=2),
+
+    # Count what actually answered, per config. A table whose configurations
+    # were answered by different models is comparing models, not configurations,
+    # so this must travel with the numbers rather than be reconstructed later.
+    answered = {
+        repo: {cname: _answered_by(data.get("rows", []))
+               for cname, data in configs.items()}
+        for repo, configs in all_results.items()
+    }
+    payload = {
+        "generation_model": generation_model,
+        "answered_by_per_config": answered,
+        "results": all_results,
+    }
+    (out_dir / "ablation.json").write_text(json.dumps(payload, indent=2),
                                            encoding="utf-8")
     with (out_dir / "ablation.csv").open("w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
@@ -270,6 +335,15 @@ def write_ablation_outputs(all_results: dict, out_dir) -> None:
                 for qt, s in data["by_type"].items():
                     w.writerow([repo, cname, qt, s.get("n", 0)]
                                + [_fmt(s.get(k)) for k in _CSV_METRICS])
+
+
+def _answered_by(rows: list) -> dict:
+    """Count how many answers each model produced within one configuration."""
+    counts: dict = {}
+    for r in rows:
+        m = r.get("model") or "(unrecorded)"
+        counts[m] = counts.get(m, 0) + 1
+    return counts
 
 
 def _fmt(v) -> str:
@@ -326,13 +400,28 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--out", default="")
     p.add_argument("--sleep", type=float, default=0.0)
     p.add_argument("--limit", type=int, default=None)
+    p.add_argument("--allow-cloud-generation", action="store_true",
+                   help="DO NOT USE for a real ablation. Leaves generation on "
+                        "the cloud chain, which makes the answering model "
+                        "degrade as the quota depletes and confounds every "
+                        "configuration comparison in the table.")
     args = p.parse_args(argv)
+
+    # Pin generation to one model unless explicitly overridden. See the comment
+    # in run_golden_ablation for the run this guard exists because of.
+    if not args.allow_cloud_generation:
+        config.GENERATION_PROVIDER = "ollama"
+        print(f"generation pinned to {config.GENERATION_MODEL} for every "
+              f"configuration (comparability); pass --allow-cloud-generation "
+              f"to disable this guard", file=sys.stderr)
 
     repos = [r.strip() for r in args.repos.split(",") if r.strip()]
     datasets = [d.strip() for d in args.datasets.split(",") if d.strip()]
     metrics_list = [x.strip() for x in args.metrics.split(",") if x.strip()]
     out_dir = Path(args.out) if args.out else (
         Path("results") / datetime.now().strftime("ablation-%Y%m%d-%H%M%S"))
+    generation_model = (config.effective_generation_model()
+                        if args.allow_cloud_generation else config.GENERATION_MODEL)
     judge = eval_run.CachedJudge(out_dir / "judge_cache.json", args.sleep)
     judge_state: dict = {"available": True}
 
@@ -352,12 +441,13 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Running ablation for {ref.full_name} ({len(entries)} questions)…",
               file=__import__("sys").stderr)
         all_results[ref.full_name] = run_golden_ablation(
-            ctx, entries, metrics_list, judge, judge_state)
+            ctx, entries, metrics_list, judge, judge_state,
+            checkpoint_dir=out_dir)
 
     if not all_results:
         print("No indexed repositories to ablate.", file=__import__("sys").stderr)
         return 1
-    write_ablation_outputs(all_results, out_dir)
+    write_ablation_outputs(all_results, out_dir, generation_model)
     print(format_golden_ablation(all_results))
     if not judge_state.get("available", True):
         print(f"\nevaluation unavailable (judge): {judge_state.get('reason')}")

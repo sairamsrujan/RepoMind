@@ -28,8 +28,10 @@ data/metrics/
 # (note: .gitignore has no trailing comments — each pattern needs its own line)
 # cached judge responses: large, regenerable, no value to a reader
 results/**/judge_cache.json
-# resume checkpoint written while a run is in progress
+# resume checkpoints written while a run is in progress (regenerable state, and
+# the finished ablation.json/csv supersede them)
 results/**/rows_partial.jsonl
+results/**/partial-*.json
 # subprocess log from the in-app evaluation panel
 results/**/run.log
 # ad-hoc runs launched from the Streamlit UI
