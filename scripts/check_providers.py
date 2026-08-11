@@ -76,18 +76,28 @@ def audit_roles() -> bool:
         print("     output or its own phrasing, which inflates faithfulness.")
         print("     Fix: set JUDGE_MODEL / QUESTIONGEN_MODEL to different models.")
 
-    # Verify the judge + question-gen models actually exist at their providers.
+    # Validate every entry of every chain — not just the head, and not the
+    # legacy single-model settings. A dead entry deep in a chain is invisible
+    # until the entries above it are exhausted, which is precisely when a long
+    # run is already in progress.
     ok = distinct
-    for role, provider_name, model in (
-        ("judge", config.JUDGE_PROVIDER, config.judge_model_name()),
-        ("question-gen", config.QUESTIONGEN_PROVIDER,
-         config.questiongen_model_name()),
-    ):
-        if not model:
-            continue
-        valid, why = providers.validate_model(provider_name, model)
-        print(f"  {OK if valid else BAD} {role} model {model!r} @ {provider_name}: {why}")
-        ok = ok and valid
+    chains = (
+        ("answerer", config.GENERATION_CHAIN),
+        ("judge", config.JUDGE_CHAIN),
+        ("question-gen", config.QUESTIONGEN_CHAIN),
+    )
+    print()
+    for role, chain in chains:
+        for i, spec in enumerate(chain):
+            provider_name, model = providers.parse_spec(spec)
+            if not model:
+                continue
+            valid, why = providers.validate_model(provider_name, model)
+            tier = "primary " if i == 0 else f"fallback{i}"
+            print(f"  {OK if valid else BAD} {role:<13} {tier} {spec}: {why}")
+            # Only the primary failing is fatal; a dead fallback is a warning,
+            # since the chain still has the local model beneath it.
+            ok = ok and (valid or i > 0)
     return ok
 
 

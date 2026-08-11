@@ -1,13 +1,28 @@
-"""Ablation study: compare four retrieval/answer configurations.
+"""Ablation study: what each pipeline stage actually contributes.
 
-  (1) retrieval only        (RRF hybrid, no MMR, no reranker)
-  (2) + MMR
-  (3) + MMR + reranker
-  (4) full system           (+ hallucination guard)
+Eight configurations (``ABLATION_CONFIGS``), building up the pipeline stage by
+stage and then isolating each retrieval channel:
 
-For each configuration we report mean faithfulness (swappable judge), citation
-precision, recall@k, and average latency. Runs offline against already-indexed
-repositories — never inside the live Streamlit query path.
+  1. retrieval-only      RRF hybrid, no MMR, no reranker
+  2. + MMR
+  3. + MMR + reranker
+  4. full + guard        the production configuration
+  5. + adaptive retry
+  6. + graph expansion
+  dense-only / sparse-only   which retrieval channel is carrying the result
+
+Reports recall@k, MRR, nDCG, citation precision/recall, faithfulness and
+latency per configuration and per query_type, to ``ablation.csv``/``.json``.
+
+Two things make the output trustworthy, both learned the hard way:
+
+* **Generation is pinned to one model.** Configurations run in order and a cloud
+  quota depletes in order, so leaving generation on the fallback chain makes the
+  answering model degrade down the table and confounds every comparison.
+* **Progress is checkpointed per configuration**, so an interruption costs one
+  configuration rather than the whole multi-hour run.
+
+Runs offline against already-indexed repositories — never in the live query path.
 """
 from __future__ import annotations
 

@@ -4,9 +4,14 @@ Retrieval:   recall@k, MRR, nDCG@k (binary relevance vs gold evidence).
 Citations:   precision / recall of an answer's citations vs gold evidence.
 Generation:  faithfulness + answer relevancy via a *swappable* judge.
 
-The judge is chosen by a single config variable (``JUDGE_PROVIDER``): Groq or
-Gemini (free-tier APIs) or a fully-local Ollama model — never hardcoded to one
-provider. It is one config-driven function, not two code paths.
+The judge walks ``config.JUDGE_CHAIN`` — an ordered list of ``provider:model``
+entries, tried until one answers, always ending at a local Ollama model. It is
+never hardcoded to one provider, because free tiers retire models and exhaust
+quotas mid-run; the chain is what keeps a long evaluation alive.
+
+The judge is also deliberately a different model family from the answerer it
+grades and from the model that wrote the questions — see
+``config.roles_are_distinct``.
 """
 from __future__ import annotations
 
@@ -157,12 +162,11 @@ def _judge_via_gemini(prompt: str, model: str) -> str:
 
 
 def make_judge() -> Callable[[str], str]:
-    """Return a text->text judge callable for the configured provider.
+    """Return a text->text judge callable that walks ``config.JUDGE_CHAIN``.
 
-    Config-driven via ``JUDGE_PROVIDER``, which may name any provider in
-    :mod:`providers` (groq, gemini, nvidia, openrouter, ollama). Falls back to
-    the local model when the chosen provider has no key or fails, so a run
-    never dies because a free tier ran out.
+    Each entry is tried in order and the local model is always appended last, so
+    a run never dies because a free tier ran out — it degrades to a weaker judge
+    and records that it did.
     """
     import providers
 

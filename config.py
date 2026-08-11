@@ -37,13 +37,12 @@ OLLAMA_HOST: str = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 # --------------------------------------------------------------------------- #
 # Models — pinned tags. NEVER use ":latest" for reproducibility (see CLAUDE.md).
 # --------------------------------------------------------------------------- #
-# Embedding model (Ollama). Default per spec; fallback via EMBEDDING_MODEL env.
+# Embedding model (Ollama). Changing this invalidates every index on disk — the
+# manifest reuse fingerprint includes it (core/manifest.py::is_reusable).
 EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "qwen3-embedding:0.6b")
-EMBEDDING_MODEL_FALLBACK: str = "nomic-embed-text:v1.5"
 
-# Generation chat model (Ollama).
+# Local generation model. Cloud alternatives live in GENERATION_CHAIN below.
 GENERATION_MODEL: str = os.getenv("GENERATION_MODEL", "qwen2.5:7b-instruct")
-GENERATION_MODEL_FALLBACK: str = "llama3.1:8b-instruct"
 
 # Reranker cross-encoder (sentence-transformers / HuggingFace).
 RERANKER_MODEL: str = os.getenv("RERANKER_MODEL", "BAAI/bge-reranker-v2-m3")
@@ -168,7 +167,6 @@ QUESTIONGEN_CHAIN: list[str] = _chain("QUESTIONGEN_CHAIN", [
     "openrouter:nvidia/nemotron-nano-9b-v2:free",      # 9B free backup
 ])
 
-GROQ_BASE_URL: str = "https://api.groq.com/openai/v1"
 
 # --------------------------------------------------------------------------- #
 # Pipeline versions — bump to invalidate cached indexes (see manifest reuse rule)

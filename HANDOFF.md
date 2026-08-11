@@ -37,7 +37,7 @@ where they disagree, **this file and the code are current**.
 
 | Thing | State |
 |---|---|
-| Test suite | **216 passing, 0 failures** (`pytest -q`, Ollama up) |
+| Test suite | **221 passing, 0 failures** (`pytest -q`, Ollama up) |
 | Demo readiness | `python scripts/demo_check.py` |
 | Provider health | `python scripts/check_providers.py` |
 | Golden sets | 330 questions across 5 real repos + 1 fixture |
@@ -157,8 +157,9 @@ is confounded, and it looks completely plausible.
 `eval/ablation.py` now pins generation (`GENERATION_PROVIDER=ollama`) unless
 `--allow-cloud-generation` is passed, and records `generation_model` plus
 per-config `answered_by` counts in `ablation.json`. **Check those before quoting
-any ablation number.** The confounded run is kept as
-`results/ablation-multi-CONFOUNDED-superseded/` as the evidence for this rule.
+any ablation number.** The confounded run itself was deleted rather than
+shipped — two contradictory tables in one repository is worse than one plus the
+numbers above.
 
 For an ablation, a consistent weaker model beats an inconsistent stronger one.
 
@@ -425,14 +426,28 @@ flag on must never be required for the app to work.
 
 ## 11. What is NOT done (honest list)
 
-- **3-repo ablation table** — `eval/ablation.py` exists and is tested, but the
-  full multi-repo run was never completed (it is expensive: 7 configs × 175 q).
-- **`fastapi/fastapi` has 0 PRs** — re-index with the working token to fix.
-- **README lacks architecture diagrams** — planned as Mermaid (GitHub renders
-  natively, no image files to maintain).
-- **Not yet pushed to GitHub.**
-- **Cross-repo panel** (`ENABLE_CROSS_REPO`) built and unit-tested but never
-  demoed live.
+Everything the earlier version of this list named — the ablation table, the
+fastapi PR re-index, README diagrams, pushing to GitHub — is now done. What
+genuinely remains:
+
+- **Screenshots and the demo GIF.** `docs/` holds only the capture recipe. The
+  README's image slot is commented out, so nothing renders broken; uncomment it
+  once `docs/ui-refusal.png` exists. The GIF should end on the refusal — that is
+  the one thing that *shows* rather than asserts the guard works.
+- **`DECISIONS.md` has 11 blank `Tried and rejected:` lines.** Deliberately left
+  for the team to fill by hand — they record what was attempted and abandoned,
+  which nobody else can reconstruct.
+- **Graph expansion is off by default and stays off** pending a larger run. The
+  ablation gave genuinely mixed evidence (recall +0.058, faithfulness +0.044,
+  citation precision −0.052 at n=20), which is not enough to flip a default.
+- **The ablation's MMR finding has not been acted on.** It shows MMR costing
+  −0.280 recall, which contradicts a core design choice. Before removing or
+  retuning MMR, re-run with more questions and a stronger pinned model — n=20 on
+  a local 7B is suggestive, not conclusive.
+- **Cross-repo panel** (`ENABLE_CROSS_REPO`) is built and unit-tested but has
+  never been demonstrated live.
+- **No CI.** Deliberate: the pinned wheels are macOS/arm64-tested, and a red
+  badge from an untested Linux runner is worse than no badge.
 
 ---
 
