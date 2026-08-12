@@ -122,20 +122,39 @@ def count_closes_links(graph: dict[str, Any]) -> int:
     return total
 
 
-def to_dot(graph: dict[str, Any], max_issues: int = 12,
-           max_commits_per_pr: int = 3) -> str:
+def to_dot(graph: dict[str, Any], max_issues: int = 6,
+           max_commits_per_pr: int = 2, max_prs_per_issue: int = 2,
+           max_nodes: int = 40) -> str:
     """Render the issue↔PR↔commit↔release graph as Graphviz DOT.
 
-    Only issues that were actually resolved (by a PR or a commit) are shown, so
-    the diagram stays readable. Streamlit renders the DOT client-side, so no
-    system Graphviz binary is required.
+    Only issues that were actually resolved (by a PR or a commit) are shown.
+    Streamlit renders the DOT client-side, so no system Graphviz binary is
+    needed.
+
+    **Every branch is bounded, not just the issue count.** Capping issues alone
+    is not enough: one issue can be closed by many PRs and each PR drags in
+    commits, so 12 issues rendered 104 nodes for fastapi/fastapi and 208 for
+    pallets/click — far too wide to read, let alone screenshot. The defaults
+    here target roughly ``max_nodes`` so the diagram is legible at a glance;
+    callers wanting the full picture can raise them.
+
+    Issues are ordered by how much structure they carry (most closing PRs and
+    commits first), so the few that are shown are the interesting ones rather
+    than whichever happened to be first in the file.
     """
     issues = graph.get("issues", {})
     prs = graph.get("prs", {})
-    linked_issues = [
-        (num, info) for num, info in issues.items()
-        if info.get("closed_by_prs") or info.get("closed_by_commits")
-    ][:max_issues]
+
+    def _weight(item):
+        _num, info = item
+        return (len(info.get("closed_by_prs", []) or [])
+                + len(info.get("closed_by_commits", []) or []))
+
+    linked_issues = sorted(
+        ((num, info) for num, info in issues.items()
+         if info.get("closed_by_prs") or info.get("closed_by_commits")),
+        key=_weight, reverse=True,
+    )[:max_issues]
 
     lines = [
         "digraph G {",
@@ -156,8 +175,12 @@ def to_dot(graph: dict[str, Any], max_issues: int = 12,
                      f'fillcolor="{fill}"];')
 
     for num, info in linked_issues:
+        if len(seen) >= max_nodes:
+            break
         node(f"issue_{num}", f"Issue #{num}", "box", "#3a201d")
-        for p in info.get("closed_by_prs", []):
+        for p in (info.get("closed_by_prs", []) or [])[:max_prs_per_issue]:
+            if len(seen) >= max_nodes:
+                break
             node(f"pr_{p}", f"PR #{p}", "ellipse", "#241f4d")
             lines.append(f'  "pr_{p}" -> "issue_{num}" [label="closes"];')
             # prs may be keyed by int (in-memory) or str (loaded from JSON).
@@ -169,7 +192,8 @@ def to_dot(graph: dict[str, Any], max_issues: int = 12,
             if rel:
                 node(f"release_{rel}", f"🏷 {rel}", "diamond", "#332a16")
                 lines.append(f'  "pr_{p}" -> "release_{rel}" [label="shipped"];')
-        for sha in info.get("closed_by_commits", []):
+        # Commits that closed the issue directly, with no PR in between.
+        for sha in (info.get("closed_by_commits", []) or [])[:max_commits_per_pr]:
             node(f"commit_{sha[:12]}", sha[:7], "note", "#12331f")
             lines.append(f'  "commit_{sha[:12]}" -> "issue_{num}" [label="fixes"];')
 

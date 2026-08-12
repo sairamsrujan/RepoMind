@@ -11,7 +11,6 @@ written and just need uncommenting.
 |---|---|
 | `ui-answer.png` | An answered question: citations + green guard badges |
 | `ui-refusal.png` | **The important one** — the guard refusing a fabricated premise |
-| `ui-graph.png` | The evolution graph (issue ↔ PR ↔ commit ↔ release) |
 | `demo.gif` | ~20s recording ending on the refusal |
 
 ## Setup
@@ -65,13 +64,8 @@ rejects the first answer, one widened retry also fails, and you get:
 
 Frame it with the question visible so a viewer can see the premise was fabricated.
 
-### 3. `ui-graph.png` — the evolution graph
-
-Expand **Evolution graph** and capture the diagram.
-
-> Note: `fastapi/fastapi` has 127 issue↔PR↔commit links. If the graph looks
-> sparse, switch to `pallets/click` (376 links) for this one shot only — a
-> denser graph reads better, and nothing else about the shot depends on the repo.
+> The evolution graph is deliberately **not** in this list. Two stills and the
+> GIF carry the argument; a third adds length without adding evidence.
 
 ## The GIF
 

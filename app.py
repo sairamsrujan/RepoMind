@@ -672,6 +672,13 @@ def relationship_graph_section(ctx: RepositoryContext) -> None:
     with st.expander(f"🕸️ Evolution graph — {n_links} issue↔PR↔commit links"):
         st.caption("How issues were resolved: which PR closed them, which "
                    "commits implemented the fix, and which release shipped it.")
+        # Render a bounded sample, not the whole graph. Unbounded, a large repo
+        # produced 100-200 nodes laid out left-to-right, which is unreadable on
+        # screen. Say so plainly rather than letting it look like the full picture.
+        n_shown = min(6, sum(1 for i in graph.get("issues", {}).values()
+                             if i.get("closed_by_prs") or i.get("closed_by_commits")))
+        st.caption(f"Showing the {n_shown} most-connected issues of {n_links} "
+                   f"links — enough to read at a glance.")
         st.graphviz_chart(linker.to_dot(graph), width="stretch")
 
 
