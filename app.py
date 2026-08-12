@@ -28,11 +28,93 @@ from jobs import status as status_mod
 PROJECT_ROOT = Path(__file__).resolve().parent
 ACTIVE_STATES = {"pending", "fetching", "chunking", "linking", "embedding", "indexing"}
 
-EXAMPLE_QUESTIONS = [
-    "What fixed the startup crash?",
-    "Why was the caching layer added?",
-    "What changed in the latest release?",
-]
+# --------------------------------------------------------------------------- #
+# Example questions, per repository
+#
+# Three chips, and each one proves a different thing:
+#   1. a grounded "why"  — real citations, guard passes
+#   2. a multi-hop question — needs the issue -> PR -> commit graph, which is
+#      the part a general-purpose model with a repo URL cannot do
+#   3. one the system should DECLINE — a plausible feature the project never
+#      had. Refusing that is the product, so it gets a permanent slot.
+#
+# These are not invented. The two answerable ones are questions this repo's own
+# evaluation recorded as faithful with clean citations (see
+# results/eval-<slug>/results.json); the third comes from
+# eval/datasets/<slug>_abstention.jsonl, where it is annotated "verified absent
+# via retrieval".
+#
+# They are therefore tied to the CURRENTLY INDEXED SNAPSHOT. Re-index a repo
+# over a different date window and an answerable one may stop being answerable
+# — re-pick from those same two files rather than guessing a replacement.
+EXAMPLE_QUESTIONS: dict[str, tuple[str, str, str]] = {
+    "acme_widgets": (
+        "What fixed the startup crash?",
+        "Why was the caching layer added?",
+        "Why was the DynamicThemeSwitcher feature removed?",
+    ),
+    "fastapi_fastapi": (
+        "Why were benchmark tests excluded from the coverage check in PR #14965?",
+        "Why does computed fields support break when using mixed route types "
+        "in FastAPI?",
+        "Why was the `starlette_extras` plugin bundled with FastAPI by default?",
+    ),
+    "pallets_click": (
+        "Why is Click considering dropping support for Colorama?",
+        "Why does `python foo.py` return True in Click 8.3.0 instead of False?",
+        "Why was the click Echo class renamed to Print?",
+    ),
+    "psf_black": (
+        "Why was conditional stripping added for Linux executables?",
+        "Why did Black incorrectly parse multi-line code that uses backslash "
+        "(`\\`) line continuations without indentation?",
+        "Why was colored output mode added to the CLI?",
+    ),
+    "psf_requests": (
+        "Why was the chardet upper limit increased to 7?",
+        "Why was the `OSError` changed to `FileNotFoundError` in the code "
+        "related to missing TLS material?",
+        "Why was the `http2` protocol support removed from the core library?",
+    ),
+    "pydantic_pydantic": (
+        "Why was the `ascii_only` option added to `StringConstraints` and what "
+        "problem was it intended to solve?",
+        "Why was `require-runtime-dependencies = true` added to the "
+        "`[tool.hatch.build.targets.wheel]` section in PR #13037?",
+        "Why was `field_validator_v3` added?",
+    ),
+}
+
+
+def _generic_questions(manifest: dict) -> tuple[str, str, str]:
+    """Chips for a repository nobody has curated questions for.
+
+    Any pasted repo has to work without a code change, so these are built from
+    the manifest instead of a lookup. The third asks about the year *before*
+    coverage begins, which makes it unanswerable by construction — no model
+    call and no guesswork needed to keep the decline slot honest.
+    """
+    coverage = manifest.get("coverage", {}) or {}
+    since, until = (coverage.get("since") or "")[:10], (coverage.get("until") or "")[:10]
+    first = (
+        f"What was the most significant change between {since} and {until}, "
+        f"and why was it made?" if since and until else
+        "What was the most significant recent change, and why was it made?"
+    )
+    second = ("Which issue prompted the most recent merged pull request, and "
+              "what did that pull request change?")
+    try:
+        before = int(since[:4]) - 1
+    except ValueError:
+        # No usable coverage date: fall back to a topic the guard must decline
+        # on evidence rather than on dates.
+        return first, second, "Why was the experimental plugin loader removed?"
+    return first, second, f"What changed in this project during {before}?"
+
+
+def example_questions(slug: str, manifest: dict) -> tuple[str, str, str]:
+    """The three chips for `slug`, falling back to manifest-derived ones."""
+    return EXAMPLE_QUESTIONS.get(slug) or _generic_questions(manifest)
 
 # Evaluation panel (reads/writes eval/run.py output; never imports eval/ code —
 # a separate process is launched via subprocess, keeping the live app's import
@@ -241,6 +323,39 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 .stButton > button[kind="primary"]:hover,
 .stFormSubmitButton > button[kind="primary"]:hover {
   box-shadow:0 12px 32px rgba(124,111,240,.5);
+}
+
+/* example-question chips
+ *
+ * Three real questions side by side. Streamlit buttons are single-line and
+ * centred by default, which truncates them and leaves three ragged heights;
+ * these wrap, read left-to-right like text, and stretch to a shared height so
+ * the row stays a row. */
+.st-key-example_chips [data-testid="stHorizontalBlock"] {align-items:stretch;}
+/* Carry the row's stretch all the way down to the button. `height:100%` does
+ * not work here — the row's height is set by its tallest child, so the
+ * percentage is indefinite and resolves to auto. Each wrapper has to grow
+ * instead. */
+.st-key-example_chips [data-testid="stColumn"] > div,
+.st-key-example_chips [data-testid="stColumn"] [data-testid="stVerticalBlock"],
+.st-key-example_chips [data-testid="stElementContainer"],
+.st-key-example_chips .stButton {
+  display:flex; flex-direction:column; flex:1 1 auto;
+}
+.st-key-example_chips .stButton > button {
+  flex:1 1 auto; width:100%;
+  white-space:normal; text-align:left;
+  align-items:flex-start; justify-content:flex-start;
+  min-height:5.4rem; padding:.85rem 1rem;
+  font-size:.85rem; font-weight:560; line-height:1.5;
+}
+.st-key-example_chips .stButton > button p {
+  text-align:left; margin:0; line-height:1.5;
+}
+/* inline `code` inside a chip must not blow the line width open */
+.st-key-example_chips .stButton > button code {
+  font-size:.8em; padding:.05rem .28rem; white-space:normal;
+  overflow-wrap:anywhere;
 }
 
 /* text inputs */
@@ -680,11 +795,17 @@ def answer_panel(ctx: RepositoryContext, manifest: dict) -> None:
     since, until = coverage.get("since", ""), coverage.get("until", "")
 
     st.markdown("#### Ask about how this repository evolved")
-    st.caption("Try an example:")
-    chip_cols = st.columns(len(EXAMPLE_QUESTIONS))
-    for col, ex in zip(chip_cols, EXAMPLE_QUESTIONS):
-        col.button(ex, key=f"ex_{ex}", on_click=_set_example, args=(ex,),
-                   width="stretch")
+    examples = example_questions(ctx.slug, manifest)
+    st.caption("Try an example — the last one has no answer in the indexed "
+               "evidence, and RepoMind should decline it rather than guess.")
+    # Side by side. Real questions are long, so the chips are styled to wrap
+    # and share one height rather than truncate — see `.st-key-example_chips`.
+    with st.container(key="example_chips"):
+        chip_cols = st.columns(len(examples), gap="small",
+                               vertical_alignment="top")
+        for col, ex in zip(chip_cols, examples):
+            col.button(ex, key=f"ex_{ex}", on_click=_set_example, args=(ex,),
+                       width="stretch")
 
     question = st.text_input(
         "Your question", key="question_input", label_visibility="collapsed",

@@ -100,3 +100,75 @@ def test_declined_field_access_survives_a_stale_pipeline_result():
     class OldResult:            # no `declined` attribute, as before the change
         refusal = False
     assert getattr(OldResult(), "declined", False) is False
+
+
+# --------------------------------------------------------------------------- #
+# Example questions must belong to the repository on screen
+#
+# All three chips were once hardcoded to the acme_widgets fixture, so on every
+# real repository they asked about a startup crash and a caching layer that do
+# not exist there — three buttons that made a working system look broken.
+# --------------------------------------------------------------------------- #
+import json
+from pathlib import Path
+
+_ROOT = Path(__file__).resolve().parent.parent
+
+
+def test_every_indexed_repository_has_its_own_questions():
+    import app
+
+    indexed = {p.name for p in (_ROOT / "repositories").iterdir()
+               if (p / "manifest.json").exists()}
+    missing = indexed - set(app.EXAMPLE_QUESTIONS)
+    assert not missing, f"indexed but using generic chips: {sorted(missing)}"
+
+
+def test_question_sets_are_three_and_distinct_across_repositories():
+    import app
+
+    seen: dict[str, str] = {}
+    for slug, questions in app.EXAMPLE_QUESTIONS.items():
+        assert len(questions) == 3, slug
+        assert len(set(questions)) == 3, f"{slug} repeats a question"
+        for q in questions:
+            assert q.strip(), slug
+            # Streamlit keys are f"ex_{question}"; a duplicate across repos is
+            # harmless today but would collide if two were ever rendered at once.
+            assert q not in seen, f"{slug} reuses {seen[q]}'s question: {q}"
+            seen[q] = slug
+
+
+def test_third_question_is_a_verified_unanswerable_one():
+    """The decline slot is drawn from the abstention set, not invented."""
+    import app
+
+    for slug, questions in app.EXAMPLE_QUESTIONS.items():
+        dataset = _ROOT / "eval" / "datasets" / f"{slug}_abstention.jsonl"
+        if not dataset.exists():
+            continue
+        known = {json.loads(line)["question"] for line in
+                 dataset.read_text().splitlines() if line.strip()}
+        assert questions[2] in known, (
+            f"{slug}: chip 3 is not in {dataset.name}, so nothing shows it is "
+            f"actually unanswerable")
+
+
+def test_unknown_repository_falls_back_to_manifest_derived_questions():
+    """Any pasted repo must get sensible chips without a code change."""
+    import app
+
+    manifest = {"coverage": {"since": "2024-01-01", "until": "2024-12-31"}}
+    first, second, third = app.example_questions("nobody_knows", manifest)
+    assert "2024-01-01" in first and "2024-12-31" in first
+    assert second
+    # Unanswerable by construction: before coverage starts.
+    assert "2023" in third
+
+
+def test_fallback_survives_a_manifest_with_no_coverage_dates():
+    import app
+
+    for manifest in ({}, {"coverage": {}}, {"coverage": {"since": None}}):
+        questions = app.example_questions("nobody_knows", manifest)
+        assert len(questions) == 3 and all(q.strip() for q in questions)
