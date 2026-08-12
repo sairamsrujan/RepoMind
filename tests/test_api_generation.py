@@ -346,3 +346,76 @@ def test_system_prompt_survives_flattening_for_the_chain():
     ])
     assert "RULE: cite every claim" in flat
     assert "Question: why?" in flat
+
+
+# --------------------------------------------------------------------------- #
+# Model rotation on daily-quota exhaustion
+#
+# Groq bills tokens-per-DAY *per model*. Measured with 22 requests spent,
+# llama-3.3-70b showed 978/1000 remaining while every other model showed 999 —
+# separate budgets. Without rotation the app abandoned four full budgets and
+# dropped to a local 7B; with it, answers stay on a cloud model far longer.
+# --------------------------------------------------------------------------- #
+def test_quota_error_rotates_to_the_next_model(api_on, monkeypatch):
+    monkeypatch.setattr(config, "GENERATION_ROTATION",
+                        ["model-a", "model-b", "model-c"])
+    monkeypatch.setattr(config, "GENERATION_API_MODEL", "model-a")
+    tried = []
+
+    def fake(self, messages):
+        tried.append(config.GENERATION_API_MODEL)
+        if config.GENERATION_API_MODEL == "model-a":
+            raise GenerationError("API error 429: tokens per day (TPD) exceeded")
+        return "Rotated [pr_1]."
+
+    monkeypatch.setattr(Answerer, "_chat_api", fake)
+    _local(monkeypatch)
+
+    r = Answerer().answer("q?", CHUNKS)
+    assert r.text == "Rotated [pr_1]."
+    assert r.model == "model-b", "provenance must name the model that answered"
+    assert tried == ["model-a", "model-b"]
+
+
+def test_rotation_restores_the_configured_model(api_on, monkeypatch):
+    """A rotation must not permanently change global config."""
+    monkeypatch.setattr(config, "GENERATION_ROTATION", ["model-a", "model-b"])
+    monkeypatch.setattr(config, "GENERATION_API_MODEL", "model-a")
+    monkeypatch.setattr(Answerer, "_chat_api", lambda self, m: (
+        (_ for _ in ()).throw(GenerationError("429 quota"))
+        if config.GENERATION_API_MODEL == "model-a" else "ok [pr_1]"))
+    _local(monkeypatch)
+
+    Answerer().answer("q?", CHUNKS)
+    assert config.GENERATION_API_MODEL == "model-a"
+
+
+def test_a_timeout_does_NOT_rotate(api_on, monkeypatch):
+    """Rotation is only cheap for fast rejections; a timeout already cost time."""
+    monkeypatch.setattr(config, "GENERATION_ROTATION", ["model-a", "model-b"])
+    monkeypatch.setattr(config, "GENERATION_API_MODEL", "model-a")
+    tried = []
+
+    def fake(self, messages):
+        tried.append(config.GENERATION_API_MODEL)
+        raise GenerationError("API request failed: timeout")
+
+    monkeypatch.setattr(Answerer, "_chat_api", fake)
+    _local(monkeypatch)
+
+    r = Answerer().answer("q?", CHUNKS)
+    assert tried == ["model-a"], "must not try more cloud models after a timeout"
+    assert r.model == config.GENERATION_MODEL
+
+
+def test_all_models_exhausted_still_falls_back_to_local(api_on, monkeypatch):
+    monkeypatch.setattr(config, "GENERATION_ROTATION", ["model-a", "model-b"])
+    monkeypatch.setattr(config, "GENERATION_API_MODEL", "model-a")
+    monkeypatch.setattr(Answerer, "_chat_api", lambda self, m: (
+        _ for _ in ()).throw(GenerationError("429 quota")))
+    _local(monkeypatch)
+
+    r = Answerer().answer("q?", CHUNKS)
+    assert r.text == "Local answer [pr_1]."
+    assert r.model == config.GENERATION_MODEL
+    assert r.fell_back is True

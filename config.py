@@ -22,6 +22,20 @@ REPOSITORIES_DIR: Path = PROJECT_ROOT / "repositories"
 # Load .env from project root (does not override real environment variables).
 load_dotenv(PROJECT_ROOT / ".env")
 
+
+def _flag(env_name: str, default: bool) -> bool:
+    """Read a boolean feature flag from the environment.
+
+    Every ENABLE_* flag must be settable from .env. Two were previously
+    hardcoded, so setting them in .env silently did nothing and the app behaved
+    exactly as before with no error to explain why.
+    """
+    raw = os.getenv(env_name)
+    if raw is None:
+        return default
+    return raw.strip().lower() not in ("0", "false", "no", "")
+
+
 # --------------------------------------------------------------------------- #
 # Secrets (from .env / environment)
 # --------------------------------------------------------------------------- #
@@ -258,6 +272,33 @@ GENERATION_API_THROTTLE: float = float(
     os.getenv("GENERATION_API_THROTTLE", "0"))
 
 
+# Models to rotate through when the configured one runs out of daily tokens.
+#
+# Groq bills tokens-per-DAY **per model**, which is invisible in the response
+# headers (they only expose per-minute and per-day *request* counts). Measured
+# with 22 requests spent: llama-3.3-70b showed 978/1000 requests remaining while
+# every other model still showed 999 — separate budgets, confirmed.
+#
+# So when the primary model's daily tokens are gone, four more full budgets are
+# sitting unused. Rotating is the difference between "the demo drops to a local
+# 7B after ~40 questions" and "it stays on a 70B-class model all day".
+#
+# Every entry was tested against the real citation prompt, not just for a 200
+# response. Reasoning models are EXCLUDED: qwen/qwen3.6-27b answers correctly
+# but leaks its chain-of-thought as a literal "<think>…" block, and bracketed
+# text inside that reasoning is extracted as bogus citations — which the guard
+# then correctly reports as fabricated. It failed the end-to-end test with
+# `fabricated citations: ['es']`. Same lesson as the judge (HANDOFF 3.10):
+# a reasoning model is the wrong tool for a format-constrained job.
+#
+# Order is by answer quality, so a rotation degrades gracefully.
+GENERATION_ROTATION: list[str] = _chain("GENERATION_ROTATION", [
+    "llama-3.3-70b-versatile",   # primary: strongest instruction-follower
+    "openai/gpt-oss-120b",       # verified clean [chunk_id] output
+    "openai/gpt-oss-20b",        # verified clean; last resort before local
+])
+
+
 def api_generation_enabled() -> bool:
     """True only when cloud generation is both selected and configured."""
     return GENERATION_PROVIDER == "api" and bool(GENERATION_API_KEY)
@@ -279,7 +320,7 @@ NLI_CONTRADICTION_THRESHOLD: float = 0.6  # min contradiction prob to flag a cla
 # Phase 2 feature flags (each defaults to a value that preserves today's
 # behaviour; setting a flag to its "off" value disables the feature entirely).
 # --------------------------------------------------------------------------- #
-ENABLE_METRICS_LOGGING: bool = True     # Phase A: per-query metrics -> JSONL
+ENABLE_METRICS_LOGGING: bool = _flag("ENABLE_METRICS_LOGGING", True)
 
 # Where per-query metrics are appended (one JSON object per line).
 METRICS_DIR: Path = PROJECT_ROOT / "data" / "metrics"
@@ -287,21 +328,21 @@ METRICS_PATH: Path = METRICS_DIR / "queries.jsonl"
 
 # Phase B: adaptive verification retry. When on, a guard rejection triggers
 # exactly ONE widened retry (bigger pools, MMR skipped) before an honest refusal.
-ENABLE_ADAPTIVE_RETRY: bool = False
+# This is also what turns a rejection into the visible "no verified answer"
+# card rather than a hedged paragraph.
+ENABLE_ADAPTIVE_RETRY: bool = _flag("ENABLE_ADAPTIVE_RETRY", False)
 RETRY_POOL_MULTIPLIER: int = 2          # widen dense+BM25 pools by this on retry
 
 # Phase F: cross-repository comparison. When on, one question can be asked
 # against several indexed repositories at once (each retrieved independently).
-ENABLE_CROSS_REPO: bool = False
+ENABLE_CROSS_REPO: bool = _flag("ENABLE_CROSS_REPO", False)
 
 # Phase G: graph-aware candidate expansion. When on, a retrieved candidate also
 # pulls in the records it is linked to in links.json (issue <-> PR <-> commit
 # <-> release), so multi-hop "how did this evolve" questions see the whole chain
 # instead of the single best-matching link. Purely additive: neighbours are
 # appended to the candidate pool and the reranker still decides the final order.
-ENABLE_GRAPH_EXPANSION: bool = (
-    os.getenv("ENABLE_GRAPH_EXPANSION", "false").strip().lower()
-    not in ("0", "false", "no", ""))
+ENABLE_GRAPH_EXPANSION: bool = _flag("ENABLE_GRAPH_EXPANSION", False)
 # Bounds — each expanded candidate costs one cross-encoder pass at rerank time,
 # and reranking is already the dominant query latency (HANDOFF.md §3.2).
 GRAPH_EXPANSION_MAX_SEEDS: int = 6

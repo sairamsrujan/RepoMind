@@ -438,6 +438,39 @@ def _set_example(q: str) -> None:
     st.session_state["auto_ask"] = True
 
 
+def _friendly_error(exc: Exception) -> str:
+    """Turn an exception into something a viewer can act on.
+
+    Each case below is one that actually happened during development.
+    """
+    text = str(exc)
+    name = type(exc).__name__
+
+    if name == "AttributeError" and "PipelineResult" in text:
+        return ("The app is running stale code — Streamlit re-runs app.py on "
+                "save but does not reload imported modules. Stop it with Ctrl-C "
+                "and start it again.")
+    if "Could not reach Ollama" in text or "Connection refused" in text:
+        return ("Ollama is not running. Start it (`open -a Ollama`) and ask "
+                "again — nothing needs re-indexing.")
+    if "not found" in text.lower() and "model" in text.lower():
+        return ("A local model is missing. Run `ollama pull "
+                f"{config.EMBEDDING_MODEL}` and `ollama pull "
+                f"{config.GENERATION_MODEL}`.")
+    if "rate limit" in text.lower() or "429" in text:
+        return ("A provider is rate-limited. The pipeline normally falls back "
+                "to the local model automatically; try again in a moment.")
+    return f"{name}: {text[:200]}"
+
+
+def _log_query_error(slug: str, question: str, exc: Exception) -> None:
+    """Record the failure so it is not lost when the UI shows a tidy message."""
+    telemetry.record_query({
+        "repo": slug, "question": question, "error": type(exc).__name__,
+        "error_detail": str(exc)[:300],
+    })
+
+
 def _run_qa(ctx, question, since, until) -> None:
     """Run the answer pipeline (with optional adaptive retry) and store it."""
     warn = _year_out_of_range(question, since, until)
@@ -449,9 +482,19 @@ def _run_qa(ctx, question, since, until) -> None:
     retriever = _get_retriever(ctx.slug, str(version))
     answerer = _get_answerer()
     nli = _get_nli()
-    with st.spinner("Retrieving, answering, and verifying…"):
-        pr = query_pipeline.answer_query(
-            retriever, answerer, nli, question, since, until, trace=trace)
+    try:
+        with st.spinner("Retrieving, answering, and verifying…"):
+            pr = query_pipeline.answer_query(
+                retriever, answerer, nli, question, since, until, trace=trace)
+    except Exception as exc:  # noqa: BLE001 - never show a traceback on screen
+        # A stack trace in front of an audience is the worst possible failure
+        # mode for a demo. Show what went wrong and what to do about it; keep
+        # the detail available but folded away.
+        _log_query_error(ctx.slug, question, exc)
+        st.error(f"**Could not answer that question.** {_friendly_error(exc)}")
+        with st.expander("Technical detail"):
+            st.exception(exc)
+        return
 
     if pr.empty:
         st.session_state["last_answer"] = {
@@ -481,6 +524,10 @@ def _run_qa(ctx, question, since, until) -> None:
         "retry_reason": pr.retry_reason,
         "retry_succeeded": pr.retry_succeeded,
         "refusal": pr.refusal,
+        # getattr, not attribute access: Streamlit re-runs app.py on save
+        # without reloading imported modules, so a newly-added field can be
+        # missing from an in-memory PipelineResult. Degrade, don't crash.
+        "declined": getattr(pr, "declined", False),
         "model": pr.model,
         "fell_back": pr.fell_back,
         "fallback_reason": pr.fallback_reason,
@@ -560,21 +607,36 @@ def _render_answer(ans: dict) -> None:
                 st.caption(c["text"][:360] + ("…" if len(c["text"]) > 360 else ""))
         return
 
+    # An answer that is itself "there is no evidence for that" is a NON-answer.
+    # Its citations are real and its claim is entailed, so the guard passes it —
+    # but showing green "verified" badges on it reads as success and misleads.
+    # Present it as what it is: nothing found, honestly reported.
+    declined = ans.get("declined") and not ans.get("refusal")
+
     with st.container(border=True):
-        st.markdown("#### 💬 Answer")
+        st.markdown("#### 🔍 No answer found" if declined else "#### 💬 Answer")
+        if declined:
+            st.caption("The indexed history contains nothing that answers this. "
+                       "The evidence below was searched and did not match.")
         st.markdown(linkify_citations(ans["text"], chunks))
 
     # Guard pills.
-    cite_pill = _pill(
-        f"✓ {len(chunks)} citations verified" if ans["citations_ok"]
-        else f"✗ {len(ans['invalid_citations'])} fabricated citation(s)",
-        "ok" if ans["citations_ok"] else "bad",
-    )
-    ground_pill = _pill(
-        "✓ Grounded (NLI)" if ans["grounded"]
-        else f"⚠ {len(ans['contradicted'])} claim(s) contradict evidence",
-        "ok" if ans["grounded"] else "warn",
-    )
+    if declined:
+        # The guard verdict is still true, but it is about the *declination*,
+        # not about an answer — so it must not be presented as a green tick.
+        cite_pill = _pill(f"{len(chunks)} chunks searched, none matched", "neu")
+        ground_pill = _pill("✓ declined honestly — no unsupported claim", "warn")
+    else:
+        cite_pill = _pill(
+            f"✓ {len(chunks)} citations verified" if ans["citations_ok"]
+            else f"✗ {len(ans['invalid_citations'])} fabricated citation(s)",
+            "ok" if ans["citations_ok"] else "bad",
+        )
+        ground_pill = _pill(
+            "✓ Grounded (NLI)" if ans["grounded"]
+            else f"⚠ {len(ans['contradicted'])} claim(s) contradict evidence",
+            "ok" if ans["grounded"] else "warn",
+        )
     unv_pill = _pill(f"{ans['n_unverified']} unverified claim(s)",
                      "neu" if ans["n_unverified"] == 0 else "warn")
     retry_pill = (_pill("🔁 answer regenerated after guard rejection", "warn")

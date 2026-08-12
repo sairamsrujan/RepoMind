@@ -9,7 +9,7 @@ inline citations to the exact GitHub page, and are verified before you see them 
 the system refuses to answer rather than guess.
 
 [![Python 3.11](https://img.shields.io/badge/python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-221%20passing-2ea44f?style=flat-square)](#testing)
+[![Tests](https://img.shields.io/badge/tests-254%20passing-2ea44f?style=flat-square)](#testing)
 [![Abstention](https://img.shields.io/badge/abstention%20accuracy-0.90-2ea44f?style=flat-square)](#results)
 [![Benchmark](https://img.shields.io/badge/benchmark-330%20questions%20·%205%20repos-6f42c1?style=flat-square)](#how-the-benchmark-is-built)
 [![License](https://img.shields.io/badge/license-MIT-yellow?style=flat-square)](LICENSE)
@@ -395,7 +395,7 @@ over a nine-month gap.
 ### Testing
 
 ```bash
-pytest -q      # 221 tests
+pytest -q      # 254 tests
 ```
 
 ---
@@ -421,7 +421,7 @@ jobs/                   background ingestion runner
 eval/                   golden sets · metrics · runner · ablation (offline only)
 results/                evaluation reports + failure gallery
 scripts/                smoke_test · check_providers · demo_check
-tests/                  221 tests
+tests/                  254 tests
 ```
 
 **Architectural rule:** nothing in `retrieval/`, `generation/`, `guard/`,

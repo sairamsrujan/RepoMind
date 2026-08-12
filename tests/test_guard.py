@@ -97,10 +97,11 @@ nli_skip = pytest.mark.skipif(not _nli_available(), reason="NLI model unavailabl
 def test_nli_passes_entailed_claim():
     from guard.nli_verifier import NLIVerifier
 
-    chunks = [{"chunk_id": "c1",
+    # Realistic chunk id: the chunker always emits "<source_type>_<id>".
+    chunks = [{"chunk_id": "pr_1",
                "text": "The team merged the pull request and all continuous "
                        "integration checks passed successfully."}]
-    answer = "All continuous integration checks passed after the merge [c1]."
+    answer = "All continuous integration checks passed after the merge [pr_1]."
     report = NLIVerifier().verify(answer, chunks)
     assert report.is_grounded
     assert report.claims[0].status == "entailed"
@@ -110,11 +111,11 @@ def test_nli_passes_entailed_claim():
 def test_nli_catches_contradiction():
     from guard.nli_verifier import NLIVerifier
 
-    chunks = [{"chunk_id": "c1",
+    chunks = [{"chunk_id": "pr_1",
                "text": "The team merged the pull request and all continuous "
                        "integration checks passed successfully."}]
     # This claim directly contradicts the cited evidence.
-    answer = "The continuous integration checks failed after the merge [c1]."
+    answer = "The continuous integration checks failed after the merge [pr_1]."
     report = NLIVerifier().verify(answer, chunks)
     assert not report.is_grounded
     assert report.claims[0].status == "contradicted"
@@ -146,3 +147,104 @@ def test_prompt_injection_is_resisted():
     assert "hijacked" not in ans, f"model complied with injection: {ans!r}"
     assert ("dark mode" in ans or "pr_50" in ans or "#50" in ans), \
         f"model failed to answer the real question: {ans!r}"
+
+
+# --------------------------------------------------------------------------- #
+# A non-answer must not be presented as a verified answer
+#
+# When the model correctly finds nothing it writes "there is no evidence…" and
+# cites the chunks it searched. Those citations are real and the statement is
+# entailed, so the guard passes — and the UI showed green "verified" badges on
+# what is actually a non-answer. Detecting this is what lets the interface say
+# "nothing found" instead of implying success.
+# --------------------------------------------------------------------------- #
+import query_pipeline
+
+
+def test_declination_detected_in_real_model_output():
+    """Verbatim from a live fastapi/fastapi answer that looked like a success."""
+    text = ("There is no evidence in the provided chunks that a built-in "
+            "blockchain payment module was removed [issue_15738][pr_15657]. "
+            "The evidence does not mention the removal of such a module.")
+    assert query_pipeline.looks_like_declination(text)
+
+
+def test_ordinary_answer_is_not_a_declination():
+    text = ("Benchmark tests were excluded from the coverage check to speed up "
+            "coverage processing [pr_14965].")
+    assert not query_pipeline.looks_like_declination(text)
+
+
+def test_the_hard_refusal_text_also_reads_as_a_declination():
+    assert query_pipeline.looks_like_declination(query_pipeline.REFUSAL_TEXT)
+
+
+@pytest.mark.parametrize("phrasing", [
+    "The evidence does not mention any such change.",
+    "There is insufficient evidence to answer this.",
+    "I cannot determine why this happened from the indexed history.",
+    "This falls outside the indexed coverage window.",
+    "No information about that appears in the retrieved evidence.",
+    "I'm declining to answer rather than guess.",
+])
+def test_common_declination_phrasings(phrasing):
+    assert query_pipeline.looks_like_declination(phrasing), phrasing
+
+
+def test_eval_and_ui_agree_on_what_declining_means():
+    """One source of truth: eval must not drift from the live pipeline."""
+    from eval.run import looks_like_abstention
+    for t in ["The evidence does not mention it.", "It was fixed in [pr_1]."]:
+        assert looks_like_abstention(t) == query_pipeline.looks_like_declination(t)
+
+
+# --------------------------------------------------------------------------- #
+# Citation extraction must match the chunk-id shape, not "any bracketed word"
+#
+# Both defects below were found by the end-to-end test after a model quoted a
+# commit message as 'Fix[es] null pointer crash on startup'.
+# --------------------------------------------------------------------------- #
+from generation.answerer import extract_citations
+
+
+def test_editorial_brackets_are_not_citations():
+    """'Fix[es]' is English, not a citation — flagging it as fabricated is wrong."""
+    text = ('The fix was introduced in a commit that "Fix[es] null pointer '
+            'crash on startup" [commit_c0ffee100000].')
+    assert extract_citations(text) == ["commit_c0ffee100000"]
+
+
+@pytest.mark.parametrize("noise", ["[sic]", "[es]", "[emphasis added]", "[ie]"])
+def test_common_editorial_inserts_ignored(noise):
+    assert extract_citations(f"Quoted {noise} text [pr_1].") == ["pr_1"]
+
+
+def test_release_citations_are_not_silently_dropped():
+    """'.' was missing from the character class, so releases matched nothing."""
+    assert extract_citations("Shipped in [release_v1.2.0].") == ["release_v1.2.0"]
+
+
+def test_split_chunk_suffix_still_extracted():
+    assert extract_citations("See [pr_101#2].") == ["pr_101#2"]
+
+
+def test_every_source_type_is_recognised():
+    text = "[commit_abc1234] [pr_1] [issue_2] [review_3_0] [release_v1.0.0]"
+    assert extract_citations(text) == [
+        "commit_abc1234", "pr_1", "issue_2", "review_3_0", "release_v1.0.0"]
+
+
+def test_both_guard_stages_use_the_same_citation_pattern():
+    """If the two stages disagree, one flags what the other ignores."""
+    from generation.answerer import _CITATION_RE as a
+    from guard.nli_verifier import _CITATION_RE as b
+    assert a is b
+
+
+def test_editorial_bracket_does_not_trigger_a_fabricated_citation():
+    """The exact end-to-end failure, as a regression test."""
+    chunks = [{"chunk_id": "commit_c0ffee100000", "source_type": "commit",
+               "text": "Fix null pointer crash on startup", "github_url": "u"}]
+    text = 'A commit that "Fix[es] null pointer crash" [commit_c0ffee100000].'
+    report = validate_references(text, chunks)
+    assert report.is_valid, f"false positive: {report.invalid_citations}"

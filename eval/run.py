@@ -38,11 +38,9 @@ DEV_SUBSET_SIZE = 10
 ALL_METRICS = ["faithfulness", "answer_relevancy", "citation_precision",
                "citation_recall", "recall_at_k", "mrr", "ndcg"]
 
-_ABSTAIN_RE = re.compile(
-    r"\b(do(?:es)?\s+not\s+(?:contain|cover|mention|include)|insufficient|"
-    r"cannot\s+(?:answer|provide|find|determine)|not\s+covered|outside\s+the\s+"
-    r"indexed|no\s+(?:information|evidence)|declin\w+\s+to\s+answer|"
-    r"unable\s+to\s+answer)\b", re.IGNORECASE)
+# Single source of truth: the live pipeline owns this so the UI and the
+# evaluation agree on what "declined to answer" means. eval imports FROM the
+# pipeline, never the reverse.
 
 
 # --------------------------------------------------------------------------- #
@@ -59,7 +57,8 @@ def canonical_id(cid: str) -> str:
 
 
 def looks_like_abstention(text: str) -> bool:
-    return bool(_ABSTAIN_RE.search(text or ""))
+    from query_pipeline import looks_like_declination
+    return looks_like_declination(text)
 
 
 def did_abstain(pr) -> bool:

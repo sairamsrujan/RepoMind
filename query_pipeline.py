@@ -18,6 +18,7 @@ standard library. It never imports from ``eval/``.
 """
 from __future__ import annotations
 
+import re
 import time
 from dataclasses import dataclass
 from typing import Any
@@ -65,7 +66,28 @@ class PipelineResult:
     retry_attempted: bool = False
     retry_reason: str = ""
     retry_succeeded: bool = False
-    refusal: bool = False
+    refusal: bool = False        # guard rejected, and the retry also failed
+    declined: bool = False       # the model itself found nothing to answer with
+
+
+# A model that correctly finds nothing writes "there is no evidence…" and cites
+# the chunks it looked at. Those citations are real and the statement is
+# entailed, so the guard passes it — and the UI then showed green "verified"
+# badges on what is actually a non-answer, which reads as success. Detecting
+# this lets the interface say "nothing found" instead of implying it answered.
+#
+# Lives here, not in eval/, because the live app must not import from eval/
+# (see the architectural rule in README). eval/run.py imports THIS.
+_DECLINED_RE = re.compile(
+    r"\b(do(?:es)?\s+not\s+(?:contain|cover|mention|include)|insufficient|"
+    r"cannot\s+(?:answer|provide|find|determine)|not\s+covered|outside\s+the\s+"
+    r"indexed|no\s+(?:information|evidence)|declin\w+\s+to\s+answer|"
+    r"unable\s+to\s+answer)\b", re.IGNORECASE)
+
+
+def looks_like_declination(text: str) -> bool:
+    """True when an answer is really a statement that nothing was found."""
+    return bool(_DECLINED_RE.search(text or ""))
 
 
 def guard_reason(ref_report, nli_report) -> str:
@@ -138,7 +160,8 @@ def answer_query(
             guard_pass=first.guard_pass, generation_ms=first.generation_ms,
             guard_ms=first.guard_ms, retry_attempted=False,
             model=first.model, fell_back=first.fell_back,
-            fallback_reason=first.fallback_reason)
+            fallback_reason=first.fallback_reason,
+            declined=looks_like_declination(first.text))
 
     # Guard rejected AND retry enabled -> exactly ONE widened retry.
     reason = guard_reason(first.ref_report, first.nli_report)
@@ -160,7 +183,8 @@ def answer_query(
             guard_pass=True, generation_ms=gen_ms, guard_ms=guard_ms,
             retry_attempted=True, retry_reason=reason, retry_succeeded=True,
             model=retry.model, fell_back=retry.fell_back,
-            fallback_reason=retry.fallback_reason)
+            fallback_reason=retry.fallback_reason,
+            declined=looks_like_declination(retry.text))
 
     # Retry also failed (or produced nothing) -> honest refusal. We keep the
     # retry's guard reports (for metrics) but NEVER display its unverified text.

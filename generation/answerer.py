@@ -19,7 +19,22 @@ import requests
 import config
 from generation.prompt import build_messages
 
-_CITATION_RE = re.compile(r"\[([A-Za-z0-9_#\-]+)\]")
+# A citation is "[<source_type>_<id>]" — the shape process/chunker.py assigns.
+# Requiring the prefix fixes two real defects found by the end-to-end test:
+#
+#   1. FALSE POSITIVES. The old pattern `\[([A-Za-z0-9_#\-]+)\]` matched any
+#      bracketed word, so a model quoting a commit message as
+#      'Fix[es] null pointer crash' had "[es]" read as a citation and reported
+#      as FABRICATED. Editorial brackets — [es], [sic], [emphasis added] — are
+#      normal in quoted prose and must not look like citations.
+#
+#   2. SILENTLY DROPPED CITATIONS. '.' was absent from the character class, so
+#      "[release_v1.2.0]" matched nothing at all. Real release citations were
+#      never counted, making release-grounded answers look uncited and
+#      understating citation recall.
+_CITATION_TYPES = ("commit", "pr", "issue", "review", "release")
+_CITATION_RE = re.compile(
+    r"\[((?:" + "|".join(_CITATION_TYPES) + r")_[A-Za-z0-9_.#\-]+)\]")
 _log = logging.getLogger(__name__)
 
 
@@ -32,6 +47,21 @@ def _retry_after_seconds(resp) -> float | None:
         return max(0.0, float(raw))
     except (TypeError, ValueError):
         return None
+
+
+def _is_quota_or_rate_error(exc: Exception) -> bool:
+    """Whether a failure is a quota/rate rejection rather than an outage.
+
+    Worth distinguishing because the two want opposite responses: a 429 is
+    returned in milliseconds, so switching to another model is nearly free,
+    while a timeout or connection error has already cost the user seconds and
+    another cloud attempt would cost more.
+    """
+    text = str(exc).lower()
+    if "timeout" in text or "timed out" in text or "connection" in text:
+        return False
+    return ("429" in text or "rate limit" in text or "quota" in text
+            or "tpd" in text or "per day" in text)
 
 
 def _is_quota_exhausted(resp) -> bool:
@@ -200,6 +230,32 @@ class Answerer:
                                   f"{resp.text[:200]}")
         return resp.json().get("message", {}).get("content", "")
 
+    def _try_alternate_models(self, messages) -> "AnswerResult | None":
+        """Retry on the other models in ``GENERATION_ROTATION``.
+
+        Free-tier token budgets are per model, so one model being out of daily
+        quota says nothing about the next. Returns ``None`` if every alternate
+        is also exhausted, leaving the caller to fall back locally.
+        """
+        original = config.GENERATION_API_MODEL
+        for alt in config.GENERATION_ROTATION:
+            if alt == original:
+                continue
+            try:
+                config.GENERATION_API_MODEL = alt
+                text = self._chat_api(messages)
+            except Exception:  # noqa: BLE001 - this one is out too; try the next
+                continue
+            finally:
+                config.GENERATION_API_MODEL = original
+            if text and text.strip():
+                _log.info("Rotated generation to %s (previous model out of quota)",
+                          alt)
+                return AnswerResult(
+                    text=text, cited_chunk_ids=extract_citations(text),
+                    model=alt, fell_back=True)
+        return None
+
     def answer(
         self,
         question: str,
@@ -225,6 +281,20 @@ class Answerer:
                     raise
                 reason = str(exc)[:200]
                 _log.warning("Cloud generation failed: %s", reason)
+
+                # Quota exhaustion is CHEAP to fail over from: the provider
+                # rejects in milliseconds, unlike a timeout. Groq bills tokens
+                # per DAY *per model*, so when one model's daily budget is gone
+                # the others are still full — rotating to the next one keeps the
+                # answer on a 70B-class cloud model instead of dropping to the
+                # local 7B. This is safe on the interactive path precisely
+                # because a 429 costs no wall-clock time (contrast HANDOFF 3.4,
+                # which is about *waiting* on a provider, not switching away).
+                if _is_quota_or_rate_error(exc):
+                    alt = self._try_alternate_models(messages)
+                    if alt is not None:
+                        alt.fallback_reason = reason
+                        return alt
 
                 # Offline evaluation only — see the class docstring. The
                 # interactive path skips this entirely and goes straight to

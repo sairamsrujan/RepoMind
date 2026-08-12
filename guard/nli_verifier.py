@@ -18,7 +18,9 @@ import numpy as np
 
 import config
 
-_CITATION_RE = re.compile(r"\[([A-Za-z0-9_#\-]+)\]")
+# One definition, shared with the reference validator — the two guard stages
+# must agree on what a citation is, or one flags what the other ignores.
+from generation.answerer import _CITATION_RE  # noqa: E402
 _MODEL_CACHE: dict[str, Any] = {}
 
 
