@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <rect width="1280" height="720" fill="#ffffff"/>
+
+  <!-- ============ ROW 1 · INDEXING ============ -->
+  <rect x="30" y="40" width="1220" height="290" rx="10" fill="#f8fafc" stroke="#e9edf2"/>
+  <rect x="30" y="40" width="5" height="290" rx="2.5" fill="#2563eb"/>
+  <text x="52" y="172" font-size="17" font-weight="700" fill="#2563eb">1–3</text>
+  <text x="52" y="196" font-size="17" font-weight="700" fill="#2563eb">INDEXING</text>
+  <text x="52" y="222" font-size="12.5" fill="#94a3b8">once per</text>
+  <text x="52" y="240" font-size="12.5" fill="#94a3b8">repository</text>
+
+  <rect x="175" y="150" width="170" height="90" rx="9" fill="#fff" stroke="#cbd5e1"/>
+  <text x="260" y="188" text-anchor="middle" font-size="15" font-weight="600" fill="#0f172a">GitHub</text>
+  <text x="260" y="209" text-anchor="middle" font-size="15" font-weight="600" fill="#0f172a">repository</text>
+
+  <rect x="373" y="150" width="225" height="90" rx="9" fill="#fff" stroke="#cbd5e1"/>
+  <text x="485" y="180" text-anchor="middle" font-size="15" font-weight="600" fill="#0f172a">REST + GraphQL</text>
+  <text x="485" y="202" text-anchor="middle" font-size="12.5" fill="#64748b">commits · releases</text>
+  <text x="485" y="221" text-anchor="middle" font-size="12.5" fill="#64748b">PRs · reviews · issues</text>
+
+  <rect x="626" y="150" width="165" height="90" rx="9" fill="#fff" stroke="#cbd5e1"/>
+  <text x="708" y="188" text-anchor="middle" font-size="15" font-weight="600" fill="#0f172a">raw JSON</text>
+  <text x="708" y="209" text-anchor="middle" font-size="12.5" fill="#64748b">resumable</text>
+
+  <rect x="819" y="100" width="195" height="75" rx="9" fill="#fff" stroke="#cbd5e1"/>
+  <text x="916" y="132" text-anchor="middle" font-size="15" font-weight="600" fill="#0f172a">chunker</text>
+  <text x="916" y="152" text-anchor="middle" font-size="12" fill="#64748b">tagged chunks</text>
+
+  <rect x="819" y="195" width="195" height="75" rx="9" fill="#fff" stroke="#cbd5e1"/>
+  <text x="916" y="227" text-anchor="middle" font-size="15" font-weight="600" fill="#0f172a">linker</text>
+  <text x="916" y="247" text-anchor="middle" font-size="12" fill="#64748b">issue ↔ PR ↔ commit</text>
+
+  <rect x="1042" y="93" width="193" height="52" rx="9" fill="#ecfeff" stroke="#0891b2"/>
+  <text x="1138" y="117" text-anchor="middle" font-size="14" font-weight="600" fill="#0f172a">ChromaDB</text>
+  <text x="1138" y="135" text-anchor="middle" font-size="11.5" fill="#64748b">dense vectors</text>
+
+  <rect x="1042" y="159" width="193" height="52" rx="9" fill="#ecfeff" stroke="#0891b2"/>
+  <text x="1138" y="183" text-anchor="middle" font-size="14" font-weight="600" fill="#0f172a">BM25</text>
+  <text x="1138" y="201" text-anchor="middle" font-size="11.5" fill="#64748b">sparse lexical</text>
+
+  <rect x="1042" y="225" width="193" height="52" rx="9" fill="#ecfeff" stroke="#0891b2"/>
+  <text x="1138" y="249" text-anchor="middle" font-size="14" font-weight="600" fill="#0f172a">evolution graph</text>
+  <text x="1138" y="267" text-anchor="middle" font-size="11.5" fill="#64748b">linked records</text>
+
+  <line x1="345" y1="195" x2="373" y2="195" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a)"/>
+  <line x1="598" y1="195" x2="626" y2="195" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a)"/>
+  <line x1="791" y1="195" x2="819" y2="195" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a)"/>
+  <line x1="1014" y1="185" x2="1042" y2="185" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a)"/>
+
+  <!-- ============ ROW 2 · QUERY ============ -->
+  <rect x="30" y="395" width="1220" height="290" rx="10" fill="#f8fafc" stroke="#e9edf2"/>
+  <rect x="30" y="395" width="5" height="290" rx="2.5" fill="#16a34a"/>
+  <text x="52" y="530" font-size="17" font-weight="700" fill="#16a34a">4</text>
+  <text x="52" y="554" font-size="17" font-weight="700" fill="#16a34a">QUERY</text>
+  <text x="52" y="580" font-size="12.5" fill="#94a3b8">every</text>
+  <text x="52" y="598" font-size="12.5" fill="#94a3b8">question</text>
+
+  <rect x="175" y="485" width="130" height="110" rx="9" fill="#fff" stroke="#cbd5e1"/>
+  <text x="240" y="546" text-anchor="middle" font-size="15" font-weight="600" fill="#0f172a">Question</text>
+
+  <rect x="333" y="485" width="240" height="110" rx="9" fill="#fff" stroke="#cbd5e1"/>
+  <text x="453" y="518" text-anchor="middle" font-size="15" font-weight="600" fill="#0f172a">Hybrid retrieval</text>
+  <text x="453" y="541" text-anchor="middle" font-size="12.5" fill="#64748b">dense + BM25 → RRF</text>
+  <text x="453" y="561" text-anchor="middle" font-size="12.5" fill="#64748b">→ MMR → rerank</text>
+  <text x="453" y="582" text-anchor="middle" font-size="12.5" fill="#94a3b8">top 6 chunks</text>
+
+  <rect x="601" y="485" width="190" height="110" rx="9" fill="#fff" stroke="#cbd5e1"/>
+  <text x="696" y="527" text-anchor="middle" font-size="15" font-weight="600" fill="#0f172a">Generation</text>
+  <text x="696" y="551" text-anchor="middle" font-size="12.5" fill="#64748b">answer with</text>
+  <text x="696" y="571" text-anchor="middle" font-size="12.5" fill="#64748b">inline citations</text>
+
+  <rect x="819" y="485" width="175" height="110" rx="9" fill="#f5f3ff" stroke="#7c3aed"/>
+  <text x="906" y="522" text-anchor="middle" font-size="16" font-weight="700" fill="#5b21b6">GUARD</text>
+  <text x="906" y="548" text-anchor="middle" font-size="12.5" fill="#64748b">1 · citations exist</text>
+  <text x="906" y="570" text-anchor="middle" font-size="12.5" fill="#64748b">2 · NLI entails</text>
+
+  <rect x="1022" y="482" width="213" height="48" rx="9" fill="#f0fdf4" stroke="#16a34a"/>
+  <text x="1128" y="512" text-anchor="middle" font-size="14.5" font-weight="600" fill="#166534">✓ Verified answer</text>
+
+  <rect x="1022" y="550" width="213" height="48" rx="9" fill="#fef2f2" stroke="#dc2626"/>
+  <text x="1128" y="580" text-anchor="middle" font-size="14.5" font-weight="600" fill="#991b1b">✗ Honest refusal</text>
+
+  <line x1="305" y1="540" x2="333" y2="540" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a)"/>
+  <line x1="573" y1="540" x2="601" y2="540" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a)"/>
+  <line x1="791" y1="540" x2="819" y2="540" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a)"/>
+  <path d="M994,522 L1008,522 L1008,506 L1022,506" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a)"/>
+  <path d="M994,558 L1008,558 L1008,574 L1022,574" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a)"/>
+  <text x="1000" y="474" text-anchor="middle" font-size="12" font-weight="600" fill="#16a34a">pass</text>
+  <text x="1000" y="620" text-anchor="middle" font-size="12" font-weight="600" fill="#dc2626">fail</text>
+
+  <!-- index -> retrieval, wrapping between the rows. Drawn last: it crosses the
+       QUERY band, whose opaque background would otherwise paint over it. -->
+  <path d="M1138,277 L1138,360 L453,360 L453,485" fill="none" stroke="#94a3b8" stroke-width="1.8"
+        stroke-dasharray="5 4" marker-end="url(#a)"/>
+  <text x="795" y="352" text-anchor="middle" font-size="12.5" fill="#64748b">the index, read once per question</text>
+</svg>

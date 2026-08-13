@@ -94,10 +94,37 @@ Keep it under ~5 MB so GitHub renders it inline rather than as a download.
 
 ## Afterwards
 
-Uncomment the two image blocks in `README.md` (search for `ui-refusal.png` and
-`ui-answer.png`), then commit.
+Both stills are already embedded in `README.md` — replacing the files on disk is
+enough, no markup change needed.
+
+**Re-shoot both if you change the answer panel or the example-question chips.**
+Screenshots go stale silently: an earlier `ui-answer.png` survived long enough to
+show the generic placeholder questions on a real repository, advertising a bug
+that had already been fixed.
 
 Whether you leave `ENABLE_ADAPTIVE_RETRY=true` afterwards is a real choice, not
 just a screenshot trick — see the note in the main README's ablation section. It
 improved recall 0.607 → 0.684 in the ablation, and it is what makes the honest
 refusal visible rather than buried in prose.
+
+---
+
+## Architecture diagrams
+
+Three renderings of the same architecture, sized for three places. Edit all
+three together or they drift apart.
+
+| File | Size | For |
+|---|---|---|
+| `architecture.svg` | 854×676 | the README — fits GitHub's content width with no downscaling |
+| `architecture-slide.svg` | 1280×720 | a 16:9 presentation slide |
+| `architecture-a4.svg` | 900×1280 | A4 portrait, for the written report |
+
+They are hand-laid rather than generated, because a layout engine optimises for
+edge length and produced a diagonal staircase. Every arrow is placed.
+
+**One trap when editing.** The band backgrounds are opaque, so anything drawn
+*before* a band rect that overlaps it is painted over. The index→retrieval
+connector crosses into the QUERY band and must stay at the end of the file. All
+three files had this bug: the arrow was half-invisible and its label gone
+entirely, which looks like a missing connection rather than a z-order mistake.

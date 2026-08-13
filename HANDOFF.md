@@ -37,10 +37,10 @@ where they disagree, **this file and the code are current**.
 
 | Thing | State |
 |---|---|
-| Test suite | **254 passing, 0 failures** (`pytest -q`, Ollama up) |
+| Test suite | **256 passing, 0 failures** (`pytest -q`, Ollama up) |
 | Demo readiness | `python scripts/demo_check.py` |
 | Provider health | `python scripts/check_providers.py` |
-| Golden sets | 330 questions across 5 real repos + 1 fixture |
+| Golden sets | 400 questions across 5 real repos (250 mixed + 150 unanswerable), plus 55 on the fixture |
 | Abstention | **0.90 mean** over 150 unanswerable questions (30/repo) |
 | Failure gallery | 15 real cases in `results/failure_gallery.md` |
 | Published | https://github.com/sairamsrujan/RepoMind |
@@ -249,7 +249,7 @@ exactly this reason. `eval/` imports *from* the pipeline, never the reverse.
 
 ```
 GENERATION_CHAIN   groq:llama-3.3-70b-versatile → nvidia:…nemotron-super-49b-v1.5
-JUDGE_CHAIN        nvidia:deepseek-v4-flash → deepseek-v4-pro → groq:gpt-oss-120b
+JUDGE_CHAIN        groq:openai/gpt-oss-120b → openrouter:ling-3.0-flash:free
 QUESTIONGEN_CHAIN  nvidia:nemotron-3-nano-30b-a3b → openrouter:nemotron-nano-9b:free
 ```
 

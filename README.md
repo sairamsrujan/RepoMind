@@ -9,9 +9,9 @@ inline citations to the exact GitHub page, and are verified before you see them 
 the system refuses to answer rather than guess.
 
 [![Python 3.11](https://img.shields.io/badge/python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-254%20passing-2ea44f?style=flat-square)](#testing)
+[![Tests](https://img.shields.io/badge/tests-256%20passing-2ea44f?style=flat-square)](#testing)
 [![Abstention](https://img.shields.io/badge/abstention%20accuracy-0.90-2ea44f?style=flat-square)](#results)
-[![Benchmark](https://img.shields.io/badge/benchmark-330%20questions%20·%205%20repos-6f42c1?style=flat-square)](#how-the-benchmark-is-built)
+[![Benchmark](https://img.shields.io/badge/benchmark-400%20questions%20·%205%20repos-6f42c1?style=flat-square)](#how-the-benchmark-is-built)
 [![License](https://img.shields.io/badge/license-MIT-yellow?style=flat-square)](LICENSE)
 
 </div>
@@ -68,75 +68,45 @@ Asked about a feature that **never existed**:
 The second is the one that matters. The guard rejected the first attempt,
 retried once with widened retrieval, and — finding nothing — declined.
 
-<!-- Once the screenshots exist (see docs/README.md for the recipe), uncomment:
 <div align="center">
   <img src="docs/ui-refusal.png" alt="RepoMind declining a question about a FastAPI plugin that never existed" width="820">
   <br><em>The guard refusing a fabricated premise rather than inventing an answer.</em>
 </div>
--->
+
+<div align="center">
+  <img src="docs/ui-answer.png" alt="RepoMind answering a question about FastAPI PR 14965 with a verified citation" width="820">
+  <br><em>The same interface answering a real question — every claim cited, every citation checked.</em>
+</div>
 
 
 ---
 
 ## Architecture
 
-```mermaid
-flowchart TB
-    subgraph INGEST["1 · INGEST"]
-        A[GitHub URL] --> B["REST<br/>commits · releases"]
-        A --> C["GraphQL<br/>PRs · reviews · linked issues"]
-        B & C --> D[("raw JSON<br/>checkpointed, resumable")]
-    end
+Stages 1–3 run **once per repository**. Stage 4 runs on every question and never
+touches GitHub.
 
-    subgraph PROCESS["2 · PROCESS"]
-        D --> E["chunker<br/>metadata-tagged chunks"]
-        D --> F["linker<br/>issue ↔ PR ↔ commit ↔ release"]
-    end
+<div align="center">
+  <img src="docs/architecture.svg" alt="RepoMind architecture: ingest from GitHub REST and GraphQL, process into chunks and a link graph, index into ChromaDB, BM25 and an evolution graph, then answer questions through hybrid retrieval, generation and a two-stage guard that either verifies the answer or refuses" width="854">
+</div>
 
-    subgraph INDEX["3 · INDEX"]
-        E --> G["embeddings<br/>qwen3-embedding"]
-        G --> H[("ChromaDB<br/>dense")]
-        E --> I[("BM25<br/>sparse")]
-        F --> J[("evolution graph")]
-    end
-
-    subgraph QUERY["4 · QUERY"]
-        K([Question]) --> L["hybrid retrieval"]
-        H --> L
-        I --> L
-        L --> M["generation<br/>cited answer"]
-        M --> N{"GUARD"}
-        N -->|passes| O([Verified answer])
-        N -->|fails| P([Honest refusal])
-    end
-
-    style N fill:#7c3aed,color:#fff
-    style O fill:#16a34a,color:#fff
-    style P fill:#dc2626,color:#fff
-    style INGEST fill:#0f172a,color:#e2e8f0
-    style PROCESS fill:#0f172a,color:#e2e8f0
-    style INDEX fill:#0f172a,color:#e2e8f0
-    style QUERY fill:#0f172a,color:#e2e8f0
-```
-
-Indexing happens once per repository. A `manifest.json` fingerprint — schema
-version, embedding model, chunker version — decides whether an existing index
-can be reused, so reopening a repository is instant while changing the embedding
-model correctly forces a rebuild. Ingestion runs in a background process and is
-checkpointed: kill it mid-download and it resumes.
+A `manifest.json` fingerprint — schema version, embedding model, chunker
+version — decides whether an existing index can be reused, so reopening a
+repository is instant while changing the embedding model correctly forces a
+rebuild. Ingestion runs in a background process and is checkpointed: kill it
+mid-download and it resumes.
 
 ### Retrieval
 
 ```mermaid
-flowchart LR
-    Q([Question]) --> D["Dense<br/>Chroma · top 30"]
-    Q --> S["Sparse<br/>BM25 · top 30"]
-    D --> R["Reciprocal Rank Fusion<br/>k=60"]
+flowchart TB
+    Q([Question]) --> D["Dense · Chroma<br/>top 30"]
+    Q --> S["Sparse · BM25<br/>top 30"]
+    D --> R["Reciprocal Rank Fusion · k=60"]
     S --> R
     R --> P["pool of 40"]
-    P --> M["MMR λ=0.5"]
-    M --> T["12 candidates"]
-    T --> X["Cross-encoder rerank"]
+    P --> M["MMR λ=0.5<br/>→ 12 candidates"]
+    M --> X["Cross-encoder rerank"]
     X --> F([Top 6 → LLM])
 
     style D fill:#1d4ed8,color:#fff
@@ -395,7 +365,7 @@ over a nine-month gap.
 ### Testing
 
 ```bash
-pytest -q      # 254 tests
+pytest -q      # 256 tests
 ```
 
 ---
@@ -421,7 +391,7 @@ jobs/                   background ingestion runner
 eval/                   golden sets · metrics · runner · ablation (offline only)
 results/                evaluation reports + failure gallery
 scripts/                smoke_test · check_providers · demo_check
-tests/                  254 tests
+tests/                  256 tests
 ```
 
 **Architectural rule:** nothing in `retrieval/`, `generation/`, `guard/`,
@@ -433,7 +403,8 @@ app still runs.
 
 ## How the benchmark is built
 
-All 330 questions are generated from each repository's real history, not
+All 400 questions — 250 mixed plus 150 unanswerable, across the five real
+repositories — are generated from each repository's real history, not
 hand-written:
 
 1. **Plain Python selects the evidence** — commits carrying rationale language
@@ -470,6 +441,7 @@ the answerer, so faithfulness was partly self-assessed.
 | [`DECISIONS.md`](DECISIONS.md) | Each design decision: chosen / over / because / cost / evidence |
 | [`HANDOFF.md`](HANDOFF.md) | Contributor guide and the settings that must not change |
 | [`ENVIRONMENT.md`](ENVIRONMENT.md) | Nine-month durability analysis and offline restore |
+| [`AGENTS.md`](AGENTS.md) | Short orientation for AI coding tools |
 
 ---
 

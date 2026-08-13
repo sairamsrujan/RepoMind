@@ -154,6 +154,44 @@ def test_third_question_is_a_verified_unanswerable_one():
             f"actually unanswerable")
 
 
+# --------------------------------------------------------------------------- #
+# The citation badge must count citations, not retrieved chunks
+#
+# It read `len(chunks)`, so an answer citing one PR out of a six-chunk evidence
+# set displayed "6 citations verified" — a 6x overstatement of the one number a
+# viewer uses to decide whether to trust the answer.
+# --------------------------------------------------------------------------- #
+def test_citation_badge_counts_citations_not_chunks():
+    import app
+    from guard.reference_validator import validate_references
+
+    answer = ("Benchmark tests were excluded to speed up coverage [pr_14965]. "
+              "This improved efficiency [pr_14965].")
+    chunks = [{"chunk_id": f"pr_{n}", "text": "evidence"}
+              for n in (14965, 15656, 14347, 15504, 15272, 16075)]
+    report = validate_references(answer, chunks)
+
+    text = app._citation_pill_text({
+        "citations_ok": report.is_valid,
+        "valid_citations": report.valid_citations,
+        "invalid_citations": report.invalid_citations,
+    })
+    assert text == "✓ 1 citation verified", (
+        f"badge said {text!r}; it must not report the {len(chunks)} retrieved "
+        f"chunks as citations")
+
+
+def test_citation_badge_pluralises():
+    import app
+
+    base = {"citations_ok": True, "invalid_citations": []}
+    assert app._citation_pill_text({**base, "valid_citations": ["pr_1", "pr_2"]}) \
+        == "✓ 2 citations verified"
+    assert app._citation_pill_text({
+        "citations_ok": False, "valid_citations": [],
+        "invalid_citations": ["pr_999"]}) == "✗ 1 fabricated citation"
+
+
 def test_unknown_repository_falls_back_to_manifest_derived_questions():
     """Any pasted repo must get sensible chips without a code change."""
     import app

@@ -553,6 +553,22 @@ def _set_example(q: str) -> None:
     st.session_state["auto_ask"] = True
 
 
+def _citation_pill_text(ans: dict) -> str:
+    """Label for the citation badge.
+
+    Counts the citations the answer actually makes, not the chunks that were
+    retrieved. These are not the same number and the difference is not small:
+    an answer citing one PR out of a six-chunk evidence set used to read
+    "6 citations verified", overstating by 6x the single number a viewer reads
+    to decide whether to trust the answer.
+    """
+    if not ans["citations_ok"]:
+        n = len(ans["invalid_citations"])
+        return f"✗ {n} fabricated citation{'' if n == 1 else 's'}"
+    n = len(ans.get("valid_citations", []))
+    return f"✓ {n} citation{'' if n == 1 else 's'} verified"
+
+
 def _friendly_error(exc: Exception) -> str:
     """Turn an exception into something a viewer can act on.
 
@@ -630,6 +646,7 @@ def _run_qa(ctx, question, since, until) -> None:
         "text": pr.text,
         "chunks": pr.chunks,
         "invalid_citations": ref_report.invalid_citations,
+        "valid_citations": ref_report.valid_citations,
         "citations_ok": ref_report.is_valid,
         "grounded": nli_report.is_grounded,
         "contradicted": [(c.claim, c.contradiction) for c in nli_report.contradicted],
@@ -742,11 +759,8 @@ def _render_answer(ans: dict) -> None:
         cite_pill = _pill(f"{len(chunks)} chunks searched, none matched", "neu")
         ground_pill = _pill("✓ declined honestly — no unsupported claim", "warn")
     else:
-        cite_pill = _pill(
-            f"✓ {len(chunks)} citations verified" if ans["citations_ok"]
-            else f"✗ {len(ans['invalid_citations'])} fabricated citation(s)",
-            "ok" if ans["citations_ok"] else "bad",
-        )
+        cite_pill = _pill(_citation_pill_text(ans),
+                          "ok" if ans["citations_ok"] else "bad")
         ground_pill = _pill(
             "✓ Grounded (NLI)" if ans["grounded"]
             else f"⚠ {len(ans['contradicted'])} claim(s) contradict evidence",
