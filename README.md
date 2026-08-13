@@ -9,7 +9,7 @@ inline citations to the exact GitHub page, and are verified before you see them 
 the system refuses to answer rather than guess.
 
 [![Python 3.11](https://img.shields.io/badge/python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-256%20passing-2ea44f?style=flat-square)](#testing)
+[![Tests](https://img.shields.io/badge/tests-261%20passing-2ea44f?style=flat-square)](#testing)
 [![Abstention](https://img.shields.io/badge/abstention%20accuracy-0.90-2ea44f?style=flat-square)](#results)
 [![Benchmark](https://img.shields.io/badge/benchmark-400%20questions%20·%205%20repos-6f42c1?style=flat-square)](#how-the-benchmark-is-built)
 [![License](https://img.shields.io/badge/license-MIT-yellow?style=flat-square)](LICENSE)
@@ -55,7 +55,12 @@ Asked about something **real**:
 > efficiency of the coverage processing, as including benchmark tests was slowing
 > it down* [`pr_14965`]*.*
 >
-> `1 citation verified` · `Grounded (NLI)`
+> `✓ 1 citation verified` · `✓ Grounded (NLI)` · `1 unverified claim`
+
+The amber badge is the guard working at the level of a single claim rather than
+the whole answer. The first sentence is entailed by `pr_14965`; the second
+restates it in words the evidence does not literally support, so it is flagged
+rather than silently accepted. An all-green answer would tell you less.
 
 Asked about a feature that **never existed**:
 
@@ -87,7 +92,7 @@ Stages 1–3 run **once per repository**. Stage 4 runs on every question and nev
 touches GitHub.
 
 <div align="center">
-  <img src="docs/architecture.svg" alt="RepoMind architecture: ingest from GitHub REST and GraphQL, process into chunks and a link graph, index into ChromaDB, BM25 and an evolution graph, then answer questions through hybrid retrieval, generation and a two-stage guard that either verifies the answer or refuses" width="854">
+  <img src="docs/diagrams/architecture.svg" alt="RepoMind architecture: ingest from GitHub REST and GraphQL, process into chunks and a link graph, index into ChromaDB, BM25 and an evolution graph, then answer questions through hybrid retrieval, generation and a two-stage guard that either verifies the answer or refuses" width="854">
 </div>
 
 A `manifest.json` fingerprint — schema version, embedding model, chunker
@@ -365,7 +370,7 @@ over a nine-month gap.
 ### Testing
 
 ```bash
-pytest -q      # 256 tests
+pytest -q      # 261 tests
 ```
 
 ---
@@ -391,7 +396,7 @@ jobs/                   background ingestion runner
 eval/                   golden sets · metrics · runner · ablation (offline only)
 results/                evaluation reports + failure gallery
 scripts/                smoke_test · check_providers · demo_check
-tests/                  256 tests
+tests/                  261 tests
 ```
 
 **Architectural rule:** nothing in `retrieval/`, `generation/`, `guard/`,

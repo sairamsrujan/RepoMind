@@ -37,7 +37,7 @@ where they disagree, **this file and the code are current**.
 
 | Thing | State |
 |---|---|
-| Test suite | **256 passing, 0 failures** (`pytest -q`, Ollama up) |
+| Test suite | **261 passing, 0 failures** (`pytest -q`, Ollama up) |
 | Demo readiness | `python scripts/demo_check.py` |
 | Provider health | `python scripts/check_providers.py` |
 | Golden sets | 400 questions across 5 real repos (250 mixed + 150 unanswerable), plus 55 on the fixture |

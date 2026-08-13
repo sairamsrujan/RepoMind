@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1140" width="1000" height="1140" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+    </marker>
+  </defs>
+  <rect width="1000" height="1140" fill="#ffffff"/>
+  <text x="500" y="32" text-anchor="middle" font-size="18" font-weight="700" fill="#0f172a">RepoMind — Activity Diagram</text>
+  <text x="500" y="52" text-anchor="middle" font-size="11.5" fill="#64748b">partitioned by who performs each action</text>
+
+  <!-- swimlanes -->
+  <g>
+    <rect x="30" y="70" width="250" height="1040" fill="#fafbfc" stroke="#475569" stroke-width="1.2"/>
+    <rect x="280" y="70" width="420" height="1040" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
+    <rect x="700" y="70" width="270" height="1040" fill="#fafbfc" stroke="#475569" stroke-width="1.2"/>
+    <rect x="30" y="70" width="250" height="34" fill="#e2e8f0" stroke="#475569" stroke-width="1.2"/>
+    <rect x="280" y="70" width="420" height="34" fill="#e2e8f0" stroke="#475569" stroke-width="1.2"/>
+    <rect x="700" y="70" width="270" height="34" fill="#e2e8f0" stroke="#475569" stroke-width="1.2"/>
+    <text x="155" y="93" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0f172a">User</text>
+    <text x="490" y="93" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0f172a">Streamlit UI (app.py)</text>
+    <text x="835" y="93" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0f172a">Background job (jobs/runner.py)</text>
+  </g>
+
+  <!-- ============ USER ============ -->
+  <circle cx="155" cy="132" r="11" fill="#0f172a"/>
+
+  <rect x="55" y="164" width="200" height="44" rx="10" fill="#fff" stroke="#334155" stroke-width="1.4"/>
+  <text x="155" y="191" text-anchor="middle" font-size="12.5" fill="#0f172a">Paste a repository URL</text>
+
+  <rect x="55" y="630" width="200" height="44" rx="10" fill="#fff" stroke="#334155" stroke-width="1.4"/>
+  <text x="155" y="657" text-anchor="middle" font-size="12.5" fill="#0f172a">Ask a question</text>
+
+  <rect x="55" y="1020" width="200" height="44" rx="10" fill="#fff" stroke="#334155" stroke-width="1.4"/>
+  <text x="155" y="1047" text-anchor="middle" font-size="12.5" fill="#0f172a">Read the result</text>
+
+  <circle cx="155" cy="1088" r="9" fill="none" stroke="#0f172a" stroke-width="2"/>
+  <circle cx="155" cy="1088" r="4.5" fill="#0f172a"/>
+
+  <!-- ============ UI ============ -->
+  <path d="M420,230 L550,272 L420,314 L290,272 z" fill="#fffbeb" stroke="#d97706" stroke-width="1.5"/>
+  <text x="420" y="268" text-anchor="middle" font-size="11.5" font-weight="600" fill="#0f172a">Index exists and</text>
+  <text x="420" y="284" text-anchor="middle" font-size="11.5" font-weight="600" fill="#0f172a">fingerprint matches?</text>
+
+  <rect x="300" y="356" width="240" height="44" rx="10" fill="#ecfeff" stroke="#0891b2" stroke-width="1.5"/>
+  <text x="420" y="383" text-anchor="middle" font-size="12.5" fill="#0f172a">Load the existing index</text>
+
+  <rect x="300" y="540" width="240" height="44" rx="10" fill="#fff" stroke="#334155" stroke-width="1.4"/>
+  <text x="420" y="567" text-anchor="middle" font-size="12.5" fill="#0f172a">Poll job_status.json</text>
+
+  <rect x="300" y="700" width="240" height="44" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="420" y="727" text-anchor="middle" font-size="12.5" fill="#0f172a">Hybrid retrieval → top 6</text>
+
+  <rect x="300" y="770" width="240" height="44" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="420" y="791" text-anchor="middle" font-size="12" fill="#0f172a">Generate an answer with</text>
+  <text x="420" y="806" text-anchor="middle" font-size="12" fill="#0f172a">inline citations</text>
+
+  <rect x="570" y="686" width="120" height="60" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.4"/>
+  <text x="630" y="710" text-anchor="middle" font-size="11" fill="#0f172a">Retry once,</text>
+  <text x="630" y="724" text-anchor="middle" font-size="11" fill="#0f172a">widened</text>
+  <text x="630" y="738" text-anchor="middle" font-size="9.5" fill="#64748b">2× pools · MMR off</text>
+
+  <path d="M420,834 L550,876 L420,918 L290,876 z" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="420" y="872" text-anchor="middle" font-size="11.5" font-weight="600" fill="#0f172a">Guard passes?</text>
+  <text x="420" y="888" text-anchor="middle" font-size="10" fill="#64748b">citations valid · NLI entails</text>
+
+  <rect x="300" y="950" width="110" height="44" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.6"/>
+  <text x="355" y="972" text-anchor="middle" font-size="11" font-weight="600" fill="#166534">✓ Verified</text>
+  <text x="355" y="986" text-anchor="middle" font-size="11" font-weight="600" fill="#166534">answer</text>
+
+  <rect x="430" y="950" width="110" height="44" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+  <text x="485" y="972" text-anchor="middle" font-size="11" font-weight="600" fill="#991b1b">✗ Honest</text>
+  <text x="485" y="986" text-anchor="middle" font-size="11" font-weight="600" fill="#991b1b">refusal</text>
+
+  <!-- ============ BACKGROUND JOB — strictly sequential ============ -->
+  <g>
+    <rect x="715" y="356" width="240" height="40" rx="10" fill="#fff" stroke="#334155" stroke-width="1.4"/>
+    <text x="835" y="381" text-anchor="middle" font-size="11.5" fill="#0f172a">Acquire the repository lock</text>
+    <rect x="715" y="416" width="240" height="40" rx="10" fill="#fff" stroke="#334155" stroke-width="1.4"/>
+    <text x="835" y="441" text-anchor="middle" font-size="11.5" fill="#0f172a">Fetch commits · PRs · issues</text>
+    <rect x="715" y="476" width="240" height="40" rx="10" fill="#fff" stroke="#334155" stroke-width="1.4"/>
+    <text x="835" y="501" text-anchor="middle" font-size="11.5" fill="#0f172a">Chunk the raw records</text>
+    <rect x="715" y="536" width="240" height="40" rx="10" fill="#fff" stroke="#334155" stroke-width="1.4"/>
+    <text x="835" y="561" text-anchor="middle" font-size="11.5" fill="#0f172a">Build the link graph</text>
+    <rect x="715" y="596" width="240" height="40" rx="10" fill="#fff" stroke="#334155" stroke-width="1.4"/>
+    <text x="835" y="621" text-anchor="middle" font-size="11.5" fill="#0f172a">Embed · build Chroma + BM25</text>
+    <rect x="715" y="656" width="240" height="44" rx="10" fill="#ecfeff" stroke="#0891b2" stroke-width="1.5"/>
+    <text x="835" y="674" text-anchor="middle" font-size="11.5" fill="#0f172a">Write manifest · status = ready</text>
+    <text x="835" y="690" text-anchor="middle" font-size="10" fill="#64748b">release the lock</text>
+  </g>
+
+  <!-- ============ FLOWS ============ -->
+  <g stroke="#64748b" stroke-width="1.5" fill="none">
+    <line x1="155" y1="143" x2="155" y2="164" marker-end="url(#a)"/>
+    <path d="M155,208 L155,272 L290,272" marker-end="url(#a)"/>
+
+    <line x1="420" y1="314" x2="420" y2="356" marker-end="url(#a)"/>
+    <path d="M550,272 L835,272 L835,356" marker-end="url(#a)"/>
+
+    <line x1="835" y1="396" x2="835" y2="416" marker-end="url(#a)"/>
+    <line x1="835" y1="456" x2="835" y2="476" marker-end="url(#a)"/>
+    <line x1="835" y1="516" x2="835" y2="536" marker-end="url(#a)"/>
+    <line x1="835" y1="576" x2="835" y2="596" marker-end="url(#a)"/>
+    <line x1="835" y1="636" x2="835" y2="656" marker-end="url(#a)"/>
+
+    <path d="M715,436 L620,436 L620,548 L540,548" marker-end="url(#a)"/>
+    <path d="M715,678 L660,678 L660,576 L540,576" marker-end="url(#a)"/>
+
+    <path d="M420,400 L420,460 L285,460 L285,608"/>
+    <path d="M420,584 L420,608 L285,608"/>
+    <path d="M285,608 L155,608 L155,630" marker-end="url(#a)"/>
+
+    <path d="M255,652 L285,652 L285,722 L300,722" marker-end="url(#a)"/>
+    <line x1="420" y1="744" x2="420" y2="770" marker-end="url(#a)"/>
+    <line x1="420" y1="814" x2="420" y2="834" marker-end="url(#a)"/>
+
+    <path d="M390,908 L390,930 L355,930 L355,950" marker-end="url(#a)"/>
+    <path d="M450,908 L450,930 L485,930 L485,950" marker-end="url(#a)"/>
+
+    <path d="M550,876 L630,876 L630,746" stroke-dasharray="5 4" marker-end="url(#a)"/>
+    <path d="M570,716 L540,716" stroke-dasharray="5 4" marker-end="url(#a)"/>
+
+    <!-- both outcomes merge onto one line before re-entering the User lane -->
+    <path d="M355,994 L355,1006"/>
+    <path d="M485,994 L485,1006"/>
+    <path d="M485,1006 L155,1006 L155,1020" marker-end="url(#a)"/>
+    <line x1="155" y1="1064" x2="155" y2="1077" marker-end="url(#a)"/>
+  </g>
+
+  <g font-size="10.5" fill="#475569">
+    <text x="428" y="340" text-anchor="end">[fingerprint matches]</text>
+    <text x="562" y="264">[else]</text>
+    <text x="628" y="428">[in progress]</text>
+    <text x="652" y="590" text-anchor="end">[status = ready]</text>
+    <text x="384" y="946" text-anchor="end">[guard passes]</text>
+    <text x="458" y="946">[guard fails]</text>
+    <text x="640" y="866" font-size="10" fill="#d97706">first failure only</text>
+    <text x="555" y="706" text-anchor="middle" font-size="10" fill="#d97706">retry</text>
+  </g>
+
+  <rect x="45" y="720" width="220" height="128" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="59" y="744" font-size="11.5" font-weight="700" fill="#0f172a">Why there is no fork/join</text>
+  <text x="59" y="766" font-size="10.5" fill="#475569">jobs/runner.py calls the indexing</text>
+  <text x="59" y="781" font-size="10.5" fill="#475569">steps one after another, and the</text>
+  <text x="59" y="796" font-size="10.5" fill="#475569">linker reads what the chunker</text>
+  <text x="59" y="811" font-size="10.5" fill="#475569">wrote — they cannot overlap.</text>
+  <text x="59" y="833" font-size="10.5" fill="#475569">The real concurrency is the job</text>
+  <text x="59" y="848" font-size="10.5" fill="#475569">running while the UI polls it.</text>
+
+  <rect x="45" y="870" width="220" height="72" rx="8" fill="#fffbeb" stroke="#fde68a"/>
+  <text x="59" y="892" font-size="11" font-weight="700" fill="#92400e">Retry lives in the UI lane</text>
+  <text x="59" y="912" font-size="10.5" fill="#92400e">query_pipeline.answer_query runs</text>
+  <text x="59" y="927" font-size="10.5" fill="#92400e">in the Streamlit process, not the job.</text>
+</svg>

@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 900" width="1140" height="900" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <marker id="open" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10" fill="none" stroke="#94a3b8" stroke-width="1.4"/>
+    </marker>
+  </defs>
+  <rect width="1140" height="900" fill="#ffffff"/>
+  <text x="570" y="32" text-anchor="middle" font-size="18" font-weight="700" fill="#0f172a">RepoMind — Sequence Diagram: answering one question</text>
+
+  <!-- lifelines -->
+  <g font-size="12" font-weight="600" fill="#0f172a" text-anchor="middle">
+    <rect x="40"  y="56" width="130" height="40" rx="6" fill="#e2e8f0" stroke="#334155"/><text x="105" y="81">User</text>
+    <rect x="200" y="56" width="130" height="40" rx="6" fill="#fff" stroke="#334155"/><text x="265" y="81">app.py (UI)</text>
+    <rect x="360" y="56" width="150" height="40" rx="6" fill="#fff" stroke="#334155"/><text x="435" y="81">query_pipeline</text>
+    <rect x="540" y="56" width="130" height="40" rx="6" fill="#eff6ff" stroke="#2563eb"/><text x="605" y="81">Retriever</text>
+    <rect x="700" y="56" width="130" height="40" rx="6" fill="#f0fdf4" stroke="#16a34a"/><text x="765" y="81">Answerer</text>
+    <rect x="860" y="56" width="240" height="40" rx="6" fill="#f5f3ff" stroke="#7c3aed"/><text x="980" y="81">Guard (refs + NLI)</text>
+  </g>
+
+  <g stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="4 4">
+    <line x1="105" y1="96" x2="105" y2="866"/>
+    <line x1="265" y1="96" x2="265" y2="866"/>
+    <line x1="435" y1="96" x2="435" y2="866"/>
+    <line x1="605" y1="96" x2="605" y2="866"/>
+    <line x1="765" y1="96" x2="765" y2="866"/>
+    <line x1="980" y1="96" x2="980" y2="866"/>
+  </g>
+
+  <!-- activation bars -->
+  <rect x="259" y="120" width="12" height="690" fill="#e2e8f0" stroke="#94a3b8"/>
+  <rect x="429" y="150" width="12" height="640" fill="#e2e8f0" stroke="#94a3b8"/>
+  <rect x="599" y="180" width="12" height="180" fill="#dbeafe" stroke="#2563eb"/>
+  <rect x="759" y="390" width="12" height="110" fill="#dcfce7" stroke="#16a34a"/>
+  <rect x="974" y="530" width="12" height="130" fill="#ede9fe" stroke="#7c3aed"/>
+  <rect x="599" y="690" width="12" height="60" fill="#dbeafe" stroke="#2563eb"/>
+
+  <g font-size="11.5" fill="#0f172a">
+    <line x1="105" y1="126" x2="253" y2="126" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="112" y="120">ask(question)</text>
+
+    <line x1="271" y1="156" x2="423" y2="156" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="278" y="150">answer_query(ctx, q, since, until)</text>
+
+    <line x1="441" y1="186" x2="593" y2="186" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="448" y="180">retrieve(q, top_k=6)</text>
+
+    <path d="M611,214 L668,214 L668,238 L611,238" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="676" y="222" font-size="11" fill="#334155">dense_search — Chroma, top 30</text>
+    <path d="M611,258 L668,258 L668,282 L611,282" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="676" y="266" font-size="11" fill="#334155">sparse_search — BM25, top 30</text>
+    <path d="M611,302 L668,302 L668,326 L611,326" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="676" y="310" font-size="11" fill="#334155">rrf_fuse → MMR → cross-encoder rerank</text>
+
+    <line x1="593" y1="356" x2="443" y2="356" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#open)"/>
+    <text x="450" y="350" fill="#475569">6 chunks</text>
+
+    <line x1="441" y1="396" x2="753" y2="396" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="448" y="390">answer(question, chunks)</text>
+
+    <path d="M771,424 L836,424 L836,448 L771,448" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="700" y="470" font-size="10.5" fill="#dc2626">on 429: rotate model · on timeout: local</text>
+
+    <line x1="753" y1="496" x2="443" y2="496" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#open)"/>
+    <text x="450" y="490" fill="#475569">AnswerResult (text + citations)</text>
+
+    <line x1="441" y1="536" x2="968" y2="536" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="448" y="530">validate_references(text, chunks)</text>
+    <text x="700" y="556" font-size="10.5" fill="#7c3aed">stage 1 — deterministic, no model</text>
+
+    <line x1="441" y1="596" x2="968" y2="596" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="448" y="590">verify(text, chunks)</text>
+    <text x="700" y="616" font-size="10.5" fill="#7c3aed">stage 2 — NLI entailment per claim</text>
+
+    <line x1="968" y1="652" x2="443" y2="652" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#open)"/>
+    <text x="450" y="646" fill="#475569">ReferenceReport + NLIReport</text>
+  </g>
+
+  <!-- alt fragment -->
+  <rect x="400" y="676" width="700" height="118" rx="4" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M400,676 L470,676 L470,694 L458,704 L400,704 z" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.3"/>
+  <text x="412" y="691" font-size="11.5" font-weight="700" fill="#5b21b6">alt</text>
+  <text x="482" y="691" font-size="11" fill="#475569">[guard fails and adaptive retry enabled]</text>
+
+  <line x1="441" y1="716" x2="593" y2="716" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="448" y="710" font-size="11.5" fill="#0f172a">retrieve(q, widened: 2× pools, MMR off)</text>
+
+  <line x1="400" y1="742" x2="1100" y2="742" stroke="#7c3aed" stroke-width="1.1" stroke-dasharray="6 4"/>
+  <text x="412" y="758" font-size="11" fill="#475569">[else] return the attempt unchanged</text>
+
+  <line x1="423" y1="818" x2="273" y2="818" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#open)"/>
+  <text x="452" y="812" font-size="11.5" fill="#475569">PipelineResult</text>
+
+  <line x1="253" y1="852" x2="107" y2="852" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#open)"/>
+  <text x="120" y="846" font-size="11.5" fill="#475569">verified answer, or an honest refusal</text>
+
+  <text x="40" y="884" font-size="11" fill="#94a3b8">The two guard stages are independent: stage 1 catches invented citations, stage 2 catches a real citation attached to a wrong claim.</text>
+</svg>

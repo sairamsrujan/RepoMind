@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1020 700" width="1020" height="700" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="inc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10" fill="none" stroke="#7c3aed" stroke-width="1.5"/>
+    </marker>
+    <marker id="extR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10" fill="none" stroke="#dc2626" stroke-width="1.5"/>
+    </marker>
+    <marker id="extO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10" fill="none" stroke="#d97706" stroke-width="1.5"/>
+    </marker>
+  </defs>
+  <rect width="1020" height="700" fill="#ffffff"/>
+  <text x="510" y="30" text-anchor="middle" font-size="18" font-weight="700" fill="#0f172a">RepoMind — Use Case Diagram</text>
+
+  <rect x="270" y="56" width="530" height="530" rx="8" fill="#fafbfc" stroke="#475569" stroke-width="1.4"/>
+  <text x="535" y="78" text-anchor="middle" font-size="13" font-weight="700" fill="#475569">RepoMind</text>
+
+  <!-- primary actor -->
+  <g stroke="#0f172a" stroke-width="1.8" fill="none">
+    <circle cx="120" cy="272" r="16"/>
+    <line x1="120" y1="288" x2="120" y2="334"/>
+    <line x1="94" y1="304" x2="146" y2="304"/>
+    <line x1="120" y1="334" x2="98" y2="368"/>
+    <line x1="120" y1="334" x2="142" y2="368"/>
+  </g>
+  <text x="120" y="390" text-anchor="middle" font-size="13" font-weight="600" fill="#0f172a">User</text>
+  <text x="120" y="407" text-anchor="middle" font-size="10.5" fill="#64748b">«primary»</text>
+
+  <!-- supporting actors -->
+  <rect x="850" y="76" width="150" height="48" rx="6" fill="#fff" stroke="#0f172a" stroke-width="1.3"/>
+  <text x="925" y="96" text-anchor="middle" font-size="10" fill="#64748b">«supporting»</text>
+  <text x="925" y="113" text-anchor="middle" font-size="12" font-weight="600" fill="#0f172a">GitHub API</text>
+
+  <rect x="850" y="300" width="150" height="48" rx="6" fill="#fff" stroke="#0f172a" stroke-width="1.3"/>
+  <text x="925" y="320" text-anchor="middle" font-size="10" fill="#64748b">«supporting»</text>
+  <text x="925" y="337" text-anchor="middle" font-size="12" font-weight="600" fill="#0f172a">Ollama (local)</text>
+
+  <rect x="850" y="452" width="150" height="48" rx="6" fill="#fff" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="5 3"/>
+  <text x="925" y="472" text-anchor="middle" font-size="10" fill="#64748b">«supporting, optional»</text>
+  <text x="925" y="489" text-anchor="middle" font-size="12" font-weight="600" fill="#0f172a">Cloud LLM</text>
+
+  <!-- left column: user goals -->
+  <ellipse cx="390" cy="130" rx="102" ry="30" fill="#eff6ff" stroke="#2563eb" stroke-width="1.4"/>
+  <text x="390" y="135" text-anchor="middle" font-size="12.5" font-weight="600" fill="#0f172a">Index a repository</text>
+
+  <ellipse cx="390" cy="300" rx="102" ry="30" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.6"/>
+  <text x="390" y="305" text-anchor="middle" font-size="12.5" font-weight="600" fill="#0f172a">Ask a question</text>
+
+  <ellipse cx="390" cy="430" rx="102" ry="30" fill="#fff" stroke="#94a3b8" stroke-width="1.4"/>
+  <text x="390" y="435" text-anchor="middle" font-size="12.5" font-weight="600" fill="#0f172a">Switch repository</text>
+
+  <ellipse cx="390" cy="530" rx="102" ry="30" fill="#fff" stroke="#94a3b8" stroke-width="1.4"/>
+  <text x="390" y="526" text-anchor="middle" font-size="12.5" font-weight="600" fill="#0f172a">Run the offline</text>
+  <text x="390" y="542" text-anchor="middle" font-size="12.5" font-weight="600" fill="#0f172a">evaluation</text>
+
+  <!-- right column: included and extending -->
+  <ellipse cx="668" cy="182" rx="98" ry="28" fill="#fffbeb" stroke="#d97706" stroke-width="1.4"/>
+  <text x="668" y="178" text-anchor="middle" font-size="11.5" font-weight="600" fill="#0f172a">Rebuild a stale index</text>
+  <text x="668" y="194" text-anchor="middle" font-size="10" fill="#64748b">fingerprint mismatch</text>
+
+  <ellipse cx="668" cy="262" rx="98" ry="28" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.4"/>
+  <text x="668" y="267" text-anchor="middle" font-size="11.5" font-weight="600" fill="#0f172a">Retrieve evidence</text>
+
+  <ellipse cx="668" cy="340" rx="98" ry="28" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.4"/>
+  <text x="668" y="345" text-anchor="middle" font-size="11.5" font-weight="600" fill="#0f172a">Verify the answer</text>
+
+  <ellipse cx="668" cy="428" rx="98" ry="28" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+  <text x="668" y="424" text-anchor="middle" font-size="11.5" font-weight="600" fill="#0f172a">Decline to answer</text>
+  <text x="668" y="440" text-anchor="middle" font-size="10" fill="#64748b">evidence insufficient</text>
+
+  <!-- associations (solid, no arrowhead) -->
+  <g stroke="#475569" stroke-width="1.3">
+    <line x1="146" y1="272" x2="292" y2="146"/>
+    <line x1="150" y1="296" x2="288" y2="300"/>
+    <line x1="146" y1="300" x2="292" y2="424"/>
+    <line x1="138" y1="342" x2="296" y2="518"/>
+
+    <line x1="486" y1="114" x2="850" y2="100"/>
+    <line x1="766" y1="268" x2="850" y2="316"/>
+    <line x1="766" y1="344" x2="850" y2="330"/>
+  </g>
+  <line x1="762" y1="352" x2="850" y2="468" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="5 3"/>
+
+  <!-- «include» : base ──▷ always-run behaviour -->
+  <g stroke="#7c3aed" stroke-width="1.4" stroke-dasharray="6 4" fill="none">
+    <line x1="480" y1="284" x2="572" y2="266" marker-end="url(#inc)"/>
+    <line x1="484" y1="314" x2="572" y2="336" marker-end="url(#inc)"/>
+  </g>
+  <text x="498" y="270" font-size="10.5" font-style="italic" fill="#7c3aed">«include»</text>
+  <text x="498" y="340" font-size="10.5" font-style="italic" fill="#7c3aed">«include»</text>
+
+  <!-- «extend» : optional behaviour ──▷ back to the base -->
+  <line x1="586" y1="416" x2="466" y2="324" stroke="#dc2626" stroke-width="1.4"
+        stroke-dasharray="6 4" marker-end="url(#extR)"/>
+  <text x="486" y="392" font-size="10.5" font-style="italic" fill="#dc2626">«extend»</text>
+
+  <line x1="574" y1="170" x2="488" y2="146" stroke="#d97706" stroke-width="1.4"
+        stroke-dasharray="6 4" marker-end="url(#extO)"/>
+  <text x="500" y="180" font-size="10.5" font-style="italic" fill="#d97706">«extend»</text>
+
+  <!-- legend -->
+  <rect x="30" y="450" width="220" height="168" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="44" y="474" font-size="12" font-weight="700" fill="#0f172a">Reading the arrows</text>
+  <text x="44" y="498" font-size="10.5" fill="#475569">«include» points from the base to</text>
+  <text x="44" y="513" font-size="10.5" fill="#475569">behaviour that ALWAYS runs.</text>
+  <text x="44" y="537" font-size="10.5" fill="#475569">«extend» points from the optional</text>
+  <text x="44" y="552" font-size="10.5" fill="#475569">behaviour BACK to the base — it</text>
+  <text x="44" y="567" font-size="10.5" fill="#475569">runs only when its condition holds.</text>
+  <text x="44" y="591" font-size="10.5" fill="#475569">Plain lines are associations and</text>
+  <text x="44" y="606" font-size="10.5" fill="#475569">carry no arrowhead.</text>
+
+  <text x="30" y="650" font-size="11" fill="#94a3b8">Declining is an extension of "Ask a question", not a use case of its own: the user's goal is unchanged, only the outcome differs.</text>
+  <text x="30" y="670" font-size="11" fill="#94a3b8">Retrieving and verifying are included because every answered question performs both, every time.</text>
+</svg>

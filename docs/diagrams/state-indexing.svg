@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1060 640" width="1060" height="640" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+    </marker>
+  </defs>
+  <rect width="1060" height="640" fill="#ffffff"/>
+  <text x="530" y="32" text-anchor="middle" font-size="18" font-weight="700" fill="#0f172a">RepoMind — State Diagram: one repository's index</text>
+  <text x="530" y="52" text-anchor="middle" font-size="11.5" fill="#64748b">the eight values of <tspan font-family="ui-monospace, monospace">status</tspan> in manifest.json, written by jobs/runner.py and polled by the UI</text>
+
+  <circle cx="52" cy="140" r="11" fill="#0f172a"/>
+
+  <g font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">
+    <rect x="96" y="116" width="104" height="48" rx="12" fill="#f8fafc" stroke="#334155" stroke-width="1.4"/>
+    <text x="148" y="145">pending</text>
+
+    <rect x="264" y="116" width="104" height="48" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="1.4"/>
+    <text x="316" y="145">fetching</text>
+
+    <rect x="432" y="116" width="104" height="48" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="1.4"/>
+    <text x="484" y="145">chunking</text>
+
+    <rect x="600" y="116" width="104" height="48" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="1.4"/>
+    <text x="652" y="145">linking</text>
+
+    <rect x="768" y="116" width="116" height="48" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="1.4"/>
+    <text x="826" y="145">embedding</text>
+
+    <rect x="768" y="252" width="116" height="48" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="1.4"/>
+    <text x="826" y="281">indexing</text>
+
+    <rect x="540" y="252" width="120" height="48" rx="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8"/>
+    <text x="600" y="281" fill="#166534">ready</text>
+
+    <rect x="176" y="416" width="120" height="48" rx="12" fill="#fef2f2" stroke="#dc2626" stroke-width="1.8"/>
+    <text x="236" y="445" fill="#991b1b">failed</text>
+  </g>
+
+  <g stroke="#64748b" stroke-width="1.5" fill="none">
+    <line x1="63" y1="140" x2="96" y2="140" marker-end="url(#a)"/>
+    <line x1="200" y1="140" x2="264" y2="140" marker-end="url(#a)"/>
+    <line x1="368" y1="140" x2="432" y2="140" marker-end="url(#a)"/>
+    <line x1="536" y1="140" x2="600" y2="140" marker-end="url(#a)"/>
+    <line x1="704" y1="140" x2="768" y2="140" marker-end="url(#a)"/>
+    <path d="M826,164 L826,252" marker-end="url(#a)"/>
+    <line x1="768" y1="276" x2="660" y2="276" marker-end="url(#a)"/>
+
+    <!-- self-transition: a rate-limit pause keeps the job in `fetching` -->
+    <path d="M292,116 L292,84 L340,84 L340,116" marker-end="url(#a)"/>
+
+    <!-- failure. Every working state can fail; drawn once from `fetching`,
+         where it happens most, and stated in the note. -->
+    <path d="M316,164 L316,440 L296,440" stroke-dasharray="5 4" marker-end="url(#a)"/>
+
+    <!-- operator retries a failed build -->
+    <path d="M176,440 L140,440 L140,176 L136,176" stroke-dasharray="5 4" marker-end="url(#a)"/>
+
+    <!-- reopening a repo whose fingerprint no longer matches -->
+    <path d="M600,252 L600,204 L172,204 L172,164" stroke-dasharray="5 4" marker-end="url(#a)"/>
+  </g>
+
+  <!-- terminal -->
+  <circle cx="600" cy="352" r="10" fill="none" stroke="#16a34a" stroke-width="2"/>
+  <circle cx="600" cy="352" r="5" fill="#16a34a"/>
+  <line x1="600" y1="300" x2="600" y2="341" stroke="#16a34a" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- transition labels: trigger [guard] / effect -->
+  <!-- Triggers only on the chain: the gaps between states are 64px and a
+       two-line label ran straight through the boxes on either side. Effects
+       are listed in the panel instead. -->
+  <g font-size="10" fill="#334155">
+    <text x="232" y="134" text-anchor="middle">start</text>
+    <text x="400" y="134" text-anchor="middle">fetched</text>
+    <text x="568" y="134" text-anchor="middle">chunked</text>
+    <text x="736" y="134" text-anchor="middle">linked</text>
+
+    <text x="836" y="200">embedded /</text>
+    <text x="836" y="214" font-family="ui-monospace, monospace" fill="#64748b">vectors written</text>
+
+    <text x="714" y="268" text-anchor="middle">indexed</text>
+
+    <text x="316" y="76" text-anchor="middle">rate limit / pause</text>
+
+    <text x="330" y="392">error [any working state] /</text>
+    <text x="330" y="406" font-family="ui-monospace, monospace" fill="#64748b">record reason, release lock</text>
+
+    <text x="150" y="316">operator</text>
+    <text x="150" y="330">retries</text>
+
+    <text x="450" y="198" text-anchor="middle">reopened [fingerprint differs] / rebuild</text>
+  </g>
+
+  <rect x="600" y="380" width="440" height="212" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="616" y="404" font-size="12" font-weight="700" fill="#0f172a">Reading this diagram</text>
+  <text x="616" y="426" font-size="10.5" fill="#475569">Labels are UML <tspan font-style="italic">trigger [guard] / effect</tspan>. The eight states are</text>
+  <text x="616" y="441" font-size="10.5" fill="#475569">exactly <tspan font-family="ui-monospace, monospace">jobs/status.py::STAGES</tspan> — none are invented.</text>
+
+  <text x="616" y="466" font-size="11" font-weight="700" fill="#0f172a">Effect of each transition</text>
+  <text x="616" y="486" font-size="10.5" fill="#475569"><tspan font-weight="600">start</tspan> — acquire the per-repository lock</text>
+  <text x="616" y="501" font-size="10.5" fill="#475569"><tspan font-weight="600">fetched</tspan> — raw JSON on disk, checkpointed</text>
+  <text x="616" y="516" font-size="10.5" fill="#475569"><tspan font-weight="600">chunked</tspan> — chunks.jsonl written</text>
+  <text x="616" y="531" font-size="10.5" fill="#475569"><tspan font-weight="600">linked</tspan> — issue ↔ PR ↔ commit graph built</text>
+  <text x="616" y="546" font-size="10.5" fill="#475569"><tspan font-weight="600">indexed</tspan> — manifest written, lock released</text>
+  <text x="616" y="568" font-size="10.5" fill="#475569">Any working state can fail; the edge is drawn once from</text>
+  <text x="616" y="583" font-size="10.5" fill="#475569"><tspan font-family="ui-monospace, monospace">fetching</tspan>, where rate limits and 404s actually occur.</text>
+</svg>

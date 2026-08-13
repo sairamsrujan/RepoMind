@@ -116,9 +116,9 @@ three together or they drift apart.
 
 | File | Size | For |
 |---|---|---|
-| `architecture.svg` | 854×676 | the README — fits GitHub's content width with no downscaling |
-| `architecture-slide.svg` | 1280×720 | a 16:9 presentation slide |
-| `architecture-a4.svg` | 900×1280 | A4 portrait, for the written report |
+|  `diagrams/architecture.svg` | 854×676 | the README — fits GitHub's content width with no downscaling |
+| `diagrams/architecture-slide.svg` | 1280×720 | a 16:9 presentation slide |
+| `diagrams/architecture-a4.svg` | 900×1280 | A4 portrait, for the written report |
 
 They are hand-laid rather than generated, because a layout engine optimises for
 edge length and produced a diagonal staircase. Every arrow is placed.

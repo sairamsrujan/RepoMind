@@ -17,7 +17,7 @@ complete and feature-frozen** — bug fixes and documentation only.
 
 | | |
 |---|---|
-| Tests | 256 passing (`pytest -q`, Ollama running) |
+| Tests | 261 passing (`pytest -q`, Ollama running) |
 | Indexed | 5 real repositories + 1 deterministic fixture |
 | Benchmark | 400 questions across the 5 real repos |
 | Durability | `python scripts/smoke_test.py` — 11 checks, run monthly |
