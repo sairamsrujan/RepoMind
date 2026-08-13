@@ -648,6 +648,7 @@ def _run_qa(ctx, question, since, until) -> None:
         "invalid_citations": ref_report.invalid_citations,
         "valid_citations": ref_report.valid_citations,
         "citations_ok": ref_report.is_valid,
+        "uncited": ref_report.uncited,
         "grounded": nli_report.is_grounded,
         "contradicted": [(c.claim, c.contradiction) for c in nli_report.contradicted],
         "n_unverified": len(nli_report.unverified),
@@ -758,6 +759,12 @@ def _render_answer(ans: dict) -> None:
         # not about an answer — so it must not be presented as a green tick.
         cite_pill = _pill(f"{len(chunks)} chunks searched, none matched", "neu")
         ground_pill = _pill("✓ declined honestly — no unsupported claim", "warn")
+    elif ans.get("uncited"):
+        # Claims with no citation at all. NLI has nothing to check, so
+        # "grounded" would be trivially true here — saying so would be the
+        # single most misleading badge the UI can show.
+        cite_pill = _pill("⚠ no citations — nothing to verify against", "bad")
+        ground_pill = _pill("not checked: the answer cites no evidence", "neu")
     else:
         cite_pill = _pill(_citation_pill_text(ans),
                           "ok" if ans["citations_ok"] else "bad")

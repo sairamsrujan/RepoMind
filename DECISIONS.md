@@ -2,8 +2,12 @@
 
 One short entry per significant design decision, so the rationale survives the
 gap before the demo. Each has what we **Chose**, what we chose it **Over**, the
-reason, the cost, and where the **Evidence** lives. The `**Tried and rejected:**`
-line is left blank to fill in by hand.
+reason, the cost, and where the **Evidence** lives.
+
+A `**Tried and rejected:**` line appears only where an alternative was actually
+built and backed out — naming the attempt, the number that killed it, and where
+to verify it. Decisions without one were settled at first design; a blank bullet
+would imply an experiment we never ran.
 
 ---
 
@@ -28,7 +32,13 @@ line is left blank to fill in by hand.
   decision to keep BM25 is vindicated; the assumption that fusing the two always
   beats either alone is not. Note the hybrid's deficit here is largely MMR (see
   below), not the fusion itself. See `results/ablation-multi/`.
-- **Tried and rejected:**
+- **Tried and rejected:** *graph expansion as a third channel.* Linked
+  issue↔PR↔commit neighbours are appended after MMR and judged by the reranker
+  (`retrieval/graph_expansion.py`). Measured: **+0.058 recall@6, +0.044
+  faithfulness, −0.052 citation precision.** Kept in the codebase but
+  `ENABLE_GRAPH_EXPANSION` defaults to false — the recall gain did not justify
+  the precision loss on n=20, and shipping it on would have made the headline
+  citation-precision figure worse.
 
 ## RRF over weighted score fusion
 - **Chose:** Reciprocal Rank Fusion (rank-based)
@@ -37,7 +47,6 @@ line is left blank to fill in by hand.
   scales; rank fusion needs no per-corpus tuning and is robust across repos.
 - **Cost:** discards score magnitude (uses only rank position).
 - **Evidence:** `retrieval/retriever.py::rrf_fuse`.
-- **Tried and rejected:**
 
 ## RRF_K = 60
 - **Chose:** `RRF_K = 60`
@@ -46,7 +55,6 @@ line is left blank to fill in by hand.
   top few ranks dominate without one channel steamrolling the other.
 - **Cost:** not tuned per repository.
 - **Evidence:** `config.py::RRF_K`.
-- **Tried and rejected:**
 
 ## MMR_LAMBDA = 0.5
 - **Chose:** `MMR_LAMBDA = 0.5` (equal relevance vs diversity)
@@ -65,7 +73,6 @@ line is left blank to fill in by hand.
   *cluster* of linked records, which is precisely what diversification discards.
   Caveat: n=20 on a weak pinned model; a larger run should confirm before MMR is
   removed or its lambda retuned. See `results/ablation-multi/`.
-- **Tried and rejected:**
 
 ## FINAL_TOP_K = 6
 - **Chose:** 6 chunks handed to the generator
@@ -74,7 +81,6 @@ line is left blank to fill in by hand.
   staying small enough to keep the answer grounded and the prompt short.
 - **Cost:** multi-hop questions needing >6 sources can be under-served.
 - **Evidence:** `config.py::FINAL_TOP_K`; ablation recall@k / citation recall.
-- **Tried and rejected:**
 
 ## Cross-encoder reranker over a bi-encoder
 - **Chose:** BAAI/bge-reranker-v2-m3 via sentence-transformers CrossEncoder
@@ -82,9 +88,15 @@ line is left blank to fill in by hand.
 - **Because:** a cross-encoder jointly attends to (query, chunk) and reorders
   the shortlist far more accurately than cosine on independent embeddings.
 - **Cost:** the dominant query latency (first call loads a ~2 GB model; warm
-  reranks add seconds); only run on the ~20 MMR survivors to bound it.
+  reranks add seconds); only run on the 12 MMR survivors to bound it.
 - **Evidence:** ablation config 2 vs 3.
-- **Tried and rejected:**
+- **Tried and rejected:** two attempts to make the cross-encoder cheaper, both
+  reverted. **`MMR_TOP_N = 20`** — every survivor costs one cross-encoder pass,
+  and at 20 on CPU reranking took **24 s, ~95% of total query time**; 12 brings
+  it to ~2 s. **`TORCH_DEVICE = "mps"`** to use the Apple GPU — ~3× faster, but
+  it segfaults inside `copy_cast_kernel_mps` while loading the reranker and NLI
+  models, killing the whole app (three crashes in ten minutes). CPU is the
+  deliberate trade: slower, never crashes. See `HANDOFF.md` §3.1–3.2.
 
 ## Two-stage hallucination guard
 - **Chose:** reference validator (citations must be real) + NLI entailment check
@@ -94,7 +106,15 @@ line is left blank to fill in by hand.
   extra LLM call and no self-grading bias.
 - **Cost:** an NLI model load; some conservative false-positive "unverified".
 - **Evidence:** `tests/test_guard.py` (fake citation + contradiction caught).
-- **Tried and rejected:**
+- **Tried and rejected:** *a permissive citation pattern.* Matching any
+  `[...]` looked simpler and broke both ways: prose bracketing such as
+  "Fix[es] the crash" was reported as a **fabricated citation**, while
+  `[release_v1.2.0]` matched nothing and was **silently dropped**, so
+  release-grounded answers appeared uncited. The pattern now requires the
+  `<source_type>_<id>` shape the chunker actually assigns, and both guard stages
+  import the *same* regex so they cannot disagree. A later variant of the same
+  bug: the offline model writes `【pr_123】` with CJK brackets, which the
+  ASCII-only pattern missed entirely — bracket forms are now normalised first.
 
 ## Asymmetric NLI thresholds (0.5 entailment vs 0.6 contradiction)
 - **Chose:** accept a claim at entailment ≥ 0.5; flag a contradiction only at
@@ -105,7 +125,13 @@ line is left blank to fill in by hand.
   phrased as a question), while a lower bar to *accept* keeps recall.
 - **Cost:** a genuinely weak-but-not-contradicted claim lands in "unverified".
 - **Evidence:** `guard/nli_verifier.py`; the caching-answer false-positive fix.
-- **Tried and rejected:**
+- **Tried and rejected:** *scoring each citation in isolation.* Running NLI
+  only per (claim, single-chunk) pair flagged well-supported claims as
+  contradicted whenever one sibling citation was phrased differently — an issue
+  written as a question reads as a contradiction on its own. Entailment is now
+  taken as the best score across the combined evidence *and* each chunk, while
+  contradiction is judged **only** on the combined premise. See
+  `guard/nli_verifier.py::verify`.
 
 ## Hand-rolled swappable judge over the `ragas` package
 - **Chose:** a config-driven LLM-judge (Groq / Gemini / local Ollama) computing
@@ -115,7 +141,12 @@ line is left blank to fill in by hand.
   pinned; `ragas`/`langchain` churn fast and would break a clean rebuild.
 - **Cost:** we re-implement two metrics rather than import a maintained library.
 - **Evidence:** `eval/metrics.py`; README "Swappable judge".
-- **Tried and rejected:**
+- **Tried and rejected:** *a reasoning model as the judge.*
+  `deepseek-ai/deepseek-v4-flash` took **88 s per judgement** against
+  `groq:openai/gpt-oss-120b`'s **0.6 s** — **147×** — turning a ~20-minute
+  evaluation into ~12 hours. The judge emits two calibrated floats; it needs
+  consistency, not deliberation. Rule adopted: time any candidate on the real
+  prompt before putting it in a chain. See `HANDOFF.md` §3.10.
 
 ## Diff-summary chunking over raw diffs
 - **Chose:** commit chunks = message + a *summary* of changed files/stats
@@ -124,7 +155,6 @@ line is left blank to fill in by hand.
   bury the semantic signal (the message) in boilerplate.
 - **Cost:** fine-grained "which exact line changed" questions aren't answerable.
 - **Evidence:** `process/chunker.py`; `config.DIFF_SUMMARY_*`.
-- **Tried and rejected:**
 
 ## Manifest reuse fingerprint
 - **Chose:** reuse an index only if `schema_version`, `embedding_model`,
@@ -135,4 +165,3 @@ line is left blank to fill in by hand.
   when it actually matters.
 - **Cost:** bumping any fingerprint field invalidates every existing index.
 - **Evidence:** `core/manifest.py::is_reusable`; `tests/test_manifest_and_registry.py`.
-- **Tried and rejected:**

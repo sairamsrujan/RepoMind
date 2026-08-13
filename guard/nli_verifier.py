@@ -20,7 +20,7 @@ import config
 
 # One definition, shared with the reference validator — the two guard stages
 # must agree on what a citation is, or one flags what the other ignores.
-from generation.answerer import _CITATION_RE  # noqa: E402
+from generation.answerer import _CITATION_RE, normalise_citation_brackets  # noqa: E402
 _MODEL_CACHE: dict[str, Any] = {}
 
 
@@ -136,7 +136,9 @@ class NLIVerifier:
             text_by_id.setdefault(_base_id(c["chunk_id"]), c.get("text", ""))
 
         report = NLIReport()
-        for claim in split_claims(answer_text):
+        # Same normalisation the reference validator applies, so both guard
+        # stages see the same citations in the same answer.
+        for claim in split_claims(normalise_citation_brackets(answer_text)):
             citations = _CITATION_RE.findall(claim)
             hypothesis = _CITATION_RE.sub("", claim).strip()
             if not citations:

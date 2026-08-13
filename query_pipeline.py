@@ -131,7 +131,14 @@ def run_attempt(
     nli_report = nli_verifier.verify(result.text, chunks)
     guard_ms = (time.perf_counter() - _guard0) * 1000.0
 
-    guard_pass = ref_report.is_valid and nli_report.is_grounded
+    # An answer that asserts things and cites nothing is unverifiable, and the
+    # guard used to pass it: `is_valid` only looks for *invalid* citations, so
+    # "cited nothing" scored the same as "cited correctly". A refusal also cites
+    # nothing and must still pass, so the declination check is what separates
+    # the two — without it this would reject every honest refusal.
+    unsupported = ref_report.uncited and not looks_like_declination(result.text)
+    guard_pass = (ref_report.is_valid and nli_report.is_grounded
+                  and not unsupported)
     return Attempt(model=getattr(result, "model", ""),
                    fell_back=getattr(result, "fell_back", False),
                    fallback_reason=getattr(result, "fallback_reason", ""),

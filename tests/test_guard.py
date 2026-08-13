@@ -248,3 +248,89 @@ def test_editorial_bracket_does_not_trigger_a_fabricated_citation():
     text = 'A commit that "Fix[es] null pointer crash" [commit_c0ffee100000].'
     report = validate_references(text, chunks)
     assert report.is_valid, f"false positive: {report.invalid_citations}"
+
+
+# --------------------------------------------------------------------------- #
+# An answer that cites nothing must not be shown as verified
+#
+# `is_valid` only looks for *invalid* citations, so "cited nothing" scored the
+# same as "cited correctly". Observed live: Groq's quota ran out, generation
+# fell back to local qwen2.5, and it wrote 【issue_2986】 with CJK brackets.
+# The ASCII-only pattern saw no citations, NLI then had nothing to check so
+# reported grounded, and the UI showed green ticks on an answer with no
+# evidence behind it — the exact failure this project exists to prevent.
+# --------------------------------------------------------------------------- #
+import query_pipeline
+from generation.answerer import extract_citations, normalise_citation_brackets
+
+
+def test_cjk_brackets_still_yield_citations():
+    for text in ("ANSI is native 【pr_101】.",      # qwen2.5 offline fallback
+                 "ANSI is native ［pr_101］.",      # fullwidth
+                 "ANSI is native 〔pr_101〕."):     # tortoise shell
+        assert extract_citations(text) == ["pr_101"], text
+
+
+def test_ascii_brackets_are_untouched():
+    assert extract_citations("Fixed in [pr_101].") == ["pr_101"]
+    assert normalise_citation_brackets("plain text") == "plain text"
+
+
+def test_cjk_bracketed_citation_validates_against_retrieved_chunks():
+    report = validate_references("Fixed by null-checking 【pr_101】.", RETRIEVED)
+    assert report.valid_citations == ["pr_101"]
+    assert report.invalid_citations == []
+    assert report.uncited is False
+
+
+def test_uncited_answer_fails_the_guard():
+    """A substantive answer with no citations is unverifiable."""
+    class _Answerer:
+        def answer(self, *a, **k):
+            return type("R", (), {"text": "The crash was fixed by a null check.",
+                                  "model": "m", "fell_back": False,
+                                  "fallback_reason": ""})()
+
+    class _Retriever:
+        def retrieve(self, *a, **k):
+            return RETRIEVED
+
+    class _NLI:
+        def verify(self, text, chunks):
+            from guard.nli_verifier import NLIReport
+            return NLIReport()
+
+    attempt = query_pipeline.run_attempt(
+        _Retriever(), _Answerer(), _NLI(), "why?", "2024-01-01", "2024-12-31")
+    assert attempt.ref_report.uncited is True
+    assert attempt.guard_pass is False, (
+        "an answer citing nothing must not pass the guard")
+
+
+def test_honest_refusal_still_passes_despite_having_no_citations():
+    """The declination check is what keeps the rule above from misfiring."""
+    class _Answerer:
+        def answer(self, *a, **k):
+            return type("R", (), {
+                # the wording the README quotes as a real refusal
+                "text": "I could not find sufficient evidence in the indexed "
+                        "history to answer this question with confidence. The "
+                        "retrieved material below did not support a verifiable "
+                        "answer, so rather than guess I'm declining to answer.",
+                "model": "m", "fell_back": False, "fallback_reason": ""})()
+
+    class _Retriever:
+        def retrieve(self, *a, **k):
+            return RETRIEVED
+
+    class _NLI:
+        def verify(self, text, chunks):
+            from guard.nli_verifier import NLIReport
+            return NLIReport()
+
+    attempt = query_pipeline.run_attempt(
+        _Retriever(), _Answerer(), _NLI(), "why?", "2024-01-01", "2024-12-31")
+    assert attempt.ref_report.uncited is True
+    assert attempt.guard_pass is True, (
+        "a refusal cites nothing by nature and must not be treated as a "
+        "guard failure")

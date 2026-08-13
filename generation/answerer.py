@@ -99,11 +99,28 @@ def _messages_to_prompt(messages: list[dict[str, str]]) -> str:
     return "\n\n".join(m.get("content", "") for m in messages if m.get("content"))
 
 
+# Local models sometimes emit CJK bracket forms instead of ASCII ones —
+# qwen2.5, the offline fallback, writes 【pr_123】. The citation pattern is
+# ASCII-only, so every citation in such an answer was invisible to both guard
+# stages, and the answer was then displayed as verified with nothing backing it.
+# Normalising costs nothing and removes a whole class of silent failure.
+_BRACKETS = str.maketrans({
+    "【": "[", "】": "]",      # CJK lenticular  (qwen2.5 offline fallback)
+    "［": "[", "］": "]",      # fullwidth
+    "〔": "[", "〕": "]",      # tortoise shell
+})
+
+
+def normalise_citation_brackets(text: str) -> str:
+    """Fold non-ASCII bracket forms so citations survive extraction."""
+    return (text or "").translate(_BRACKETS)
+
+
 def extract_citations(text: str) -> list[str]:
     """Return the ordered, deduped chunk_ids cited inline in ``text``."""
     seen: set[str] = set()
     out: list[str] = []
-    for m in _CITATION_RE.finditer(text or ""):
+    for m in _CITATION_RE.finditer(normalise_citation_brackets(text)):
         cid = m.group(1)
         if cid not in seen:
             seen.add(cid)
