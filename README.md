@@ -450,6 +450,15 @@ the answerer, so faithfulness was partly self-assessed.
 
 ---
 
+## Author
+
+**R Sai Ram Srujan Kumar** — [@sairamsrujan](https://github.com/sairamsrujan)
+
+Design, implementation and evaluation. Built with [Claude Code](https://claude.com/claude-code),
+credited as co-author on the commits it contributed to.
+
+---
+
 <div align="center">
 
 Final-year B.Tech major project · built to run locally, verifiably, offline

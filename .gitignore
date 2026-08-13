@@ -43,5 +43,14 @@ wheelhouse/
 # HuggingFace / model caches that may land in-tree
 .cache/
 
+# Local artifacts: the team plan, and generated bundles for AI chat tools.
+# Useful to keep beside the code, but not part of the published project.
+_local/
+
+# Generated bundles, wherever they land — these are snapshots of the repo and
+# would go stale the moment anything changes.
+REPOMIND_FULL.md
+REPOMIND_OVERVIEW.md
+
 # OS
 .DS_Store
