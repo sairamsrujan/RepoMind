@@ -1,6 +1,6 @@
 """Thin GitHub REST + GraphQL client with auth, backoff, and ETag caching.
 
-Design goals (see CLAUDE.md Phase 2):
+Design goals:
   * Read ``GITHUB_TOKEN`` from config/.env; work unauthenticated too (limited).
   * Exponential backoff honoring ``Retry-After`` on 403/429.
   * Raise a clear, typed error on 404/451 (private/missing/legal-blocked repo).

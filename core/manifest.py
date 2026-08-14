@@ -1,7 +1,7 @@
 """Read, write, validate, and reuse-check ``manifest.json``.
 
 One manifest lives per repository and drives the central reuse-vs-rebuild
-decision. See the schema and reuse rule in CLAUDE.md.
+decision. The schema is written by ``write_manifest`` below.
 
 Reuse rule: an index is reusable ONLY if ``schema_version``,
 ``embedding_model``, ``embedding_dim`` (when known), and ``chunker_version``

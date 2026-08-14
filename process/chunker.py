@@ -1,6 +1,6 @@
 """Turn raw GitHub data into metadata-tagged, embeddable chunks.
 
-Chunking strategy (see CLAUDE.md Phase 3):
+Chunking strategy:
   * commit  -> message headline + body + a *summary* of changed files/stats
               (never the full raw diff — that is too large and noisy to embed).
   * pr      -> title + body + a compact summary of its reviews and linked issues.
@@ -9,7 +9,8 @@ Chunking strategy (see CLAUDE.md Phase 3):
   * release -> tag/name + release notes body.
 
 Long texts are split on token boundaries so every chunk stays under
-``config.MAX_CHUNK_TOKENS``. Each chunk conforms to the schema in CLAUDE.md.
+``config.MAX_CHUNK_TOKENS``. ``_make_chunks`` below defines the chunk schema and
+is the only place chunks are constructed.
 """
 from __future__ import annotations
 

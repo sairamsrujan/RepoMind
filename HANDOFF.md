@@ -27,9 +27,9 @@ display** by a hallucination guard that will refuse to answer rather than guess.
   no cloud, no auth, no database.** That is deliberate, not an omission.
 - Demo is roughly nine months away. **Reliability beats new features.**
 
-`CLAUDE.md` holds the original project specification. Read it for intent, but
-note the system has since moved beyond it (multi-provider LLMs, Phase-2 work);
-where they disagree, **this file and the code are current**.
+The system has moved beyond its original specification (multi-provider LLMs,
+adaptive retry, metrics logging, cloud generation with local fallback). Where
+any older note disagrees with **this file and the code**, they are current.
 
 ---
 

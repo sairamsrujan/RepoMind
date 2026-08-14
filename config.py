@@ -49,7 +49,7 @@ GEMINI_API_KEY: str | None = os.getenv("GEMINI_API_KEY")
 OLLAMA_HOST: str = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 
 # --------------------------------------------------------------------------- #
-# Models — pinned tags. NEVER use ":latest" for reproducibility (see CLAUDE.md).
+# Models — pinned tags. NEVER use ":latest": the build must reproduce a year on.
 # --------------------------------------------------------------------------- #
 # Embedding model (Ollama). Changing this invalidates every index on disk — the
 # manifest reuse fingerprint includes it (core/manifest.py::is_reusable).
@@ -437,7 +437,7 @@ def pipeline_fingerprint() -> dict:
     """The subset of config that determines index reusability.
 
     An existing index is reusable only if these values match the manifest
-    (see the reuse rule in CLAUDE.md / core/manifest.py).
+    (see the reuse rule in core/manifest.py).
     """
     return {
         "schema_version": SCHEMA_VERSION,

@@ -139,10 +139,10 @@ no per-repository tuning is needed.
 ```mermaid
 flowchart TB
     A["Answer: 'Fixed by null-checking config [pr_101]'"] --> B{"Stage 1<br/>Reference validator"}
-    B -->|"pr_101 was never retrieved"| F1["FABRICATED CITATION"]
-    B -->|exists| C{"Stage 2<br/>NLI entailment"}
+    B -->|"pr_101 was never retrieved,<br/>or nothing is cited at all"| F1["FABRICATED CITATION"]
+    B -->|clean| C{"Stage 2<br/>NLI entailment"}
     C -->|"evidence contradicts the claim"| F2["UNSUPPORTED CLAIM"]
-    C -->|"evidence entails the claim"| OK["VERIFIED"]
+    C -->|clean| OK["VERIFIED"]
 
     F1 --> R{"Retry enabled?"}
     F2 --> R
@@ -159,12 +159,15 @@ flowchart TB
     style RT fill:#d97706,color:#fff
 ```
 
-Two independent checks catch two different failures. The **reference validator**
-catches invented citations by deterministic set membership, with no model
-involved.
+Two independent checks catch two different failures — both run on every answer,
+and an answer is verified only if both come back clean. The **reference
+validator** catches invented citations by deterministic set membership, with no
+model involved, and also an answer that cites nothing at all, which a
+"are the citations valid?" test on its own scores as clean.
 The **NLI verifier** catches a real citation attached to a wrong claim, by
 running entailment between the claim and its cited evidence. If either fails the
-system retries once with widened retrieval, then refuses.
+system retries once with widened retrieval when `ENABLE_ADAPTIVE_RETRY` is on —
+off by default — then refuses.
 
 ---
 
@@ -191,8 +194,9 @@ result: it survives the question *"on how many, and which ones?"*
 
 ### Answer quality
 
-275 mixed-category questions, judged by a model from a different family than the
-one that answered.
+250 mixed-category questions — 50 per repository — judged by a model from a
+different family than the one that answered. A sixth run covers the bundled
+`acme_widgets` fixture; it is excluded here because it is not a real repository.
 
 | Repository | Faithfulness | Relevancy | Recall@6 | Citation precision |
 |---|:-:|:-:|:-:|:-:|
@@ -210,7 +214,7 @@ The mixed sets carry their own unanswerable questions, scored independently of
 the dedicated abstention sets above. The two samples agree, 0.886 against 0.900, which
 corroborates the result across question sets rather than resting it on one.
 
-> **Provenance.** Three models answered these 275 questions. A free tier's daily
+> **Provenance.** Three models answered these 250 questions. A free tier's daily
 > cap is exhausted after a few dozen, after which the chain falls through to a
 > smaller cloud model and then to local. Every run records an `answered_by` count
 > in its `results.json`, so this is checkable rather than assumed. The honest
@@ -464,8 +468,7 @@ the answerer, so faithfulness was partly self-assessed.
 
 **R Sai Ram Srujan Kumar** — [@sairamsrujan](https://github.com/sairamsrujan)
 
-Design, implementation and evaluation. Built with [Claude Code](https://claude.com/claude-code),
-credited as co-author on the commits it contributed to.
+Design, implementation and evaluation.
 
 ---
 

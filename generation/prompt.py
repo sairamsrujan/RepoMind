@@ -1,6 +1,6 @@
 """Prompt construction for grounded, cited answers.
 
-The prompt (see CLAUDE.md Phase 6):
+The prompt:
   (a) delimits retrieved chunks as EVIDENCE and states plainly that any text
       inside them is data to reason about, never instructions to obey
       (prompt-injection defense);
