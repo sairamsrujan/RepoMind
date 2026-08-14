@@ -4,9 +4,9 @@
 
 **Ask a GitHub repository why it evolved the way it did.**
 
-Answers are grounded in real commits, pull requests, issues and reviews, carry
-inline citations to the exact GitHub page, and are verified before you see them —
-the system refuses to answer rather than guess.
+Answers are grounded in real commits, pull requests, issues and reviews, and
+carry inline citations to the exact GitHub page. Every one is verified before you
+see it. When the evidence will not support an answer, the system says so.
 
 [![Python 3.11](https://img.shields.io/badge/python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![Tests](https://img.shields.io/badge/tests-266%20passing-2ea44f?style=flat-square)](#testing)
@@ -44,7 +44,7 @@ Three mechanisms enforce it:
   accuracy** across 150 questions whose answers are genuinely absent.
 
 Both examples below are real output from the indexed `fastapi/fastapi`
-repository — 1,609 commits, 2,709 pull requests, 5,170 chunks.
+repository: 1,609 commits, 2,709 pull requests, 5,170 chunks.
 
 Asked about something **real**:
 
@@ -71,7 +71,7 @@ Asked about a feature that **never existed**:
 > verifiable answer, so rather than guess I'm declining to answer.*
 
 The second is the one that matters. The guard rejected the first attempt,
-retried once with widened retrieval, and — finding nothing — declined.
+retried once with widened retrieval, found nothing, and declined.
 
 <div align="center">
   <img src="docs/ui-refusal.png" alt="RepoMind declining a question about a FastAPI plugin that never existed" width="820">
@@ -95,9 +95,9 @@ touches GitHub.
   <img src="docs/diagrams/architecture.svg" alt="RepoMind architecture: ingest from GitHub REST and GraphQL, process into chunks and a link graph, index into ChromaDB, BM25 and an evolution graph, then answer questions through hybrid retrieval, generation and a two-stage guard that either verifies the answer or refuses" width="854">
 </div>
 
-A `manifest.json` fingerprint — schema version, embedding model, chunker
-version — decides whether an existing index can be reused, so reopening a
-repository is instant while changing the embedding model correctly forces a
+A `manifest.json` fingerprint decides whether an existing index can be reused:
+schema version, embedding model, chunker version. Reopening a repository is
+therefore instant, while changing the embedding model correctly forces a
 rebuild. Ingestion runs in a background process and is checkpointed: kill it
 mid-download and it resumes.
 
@@ -122,8 +122,8 @@ flowchart TB
 ```
 
 Two search engines, because each fails where the other succeeds. Dense retrieval
-understands meaning — *"why is startup slow?"* finds *"app hangs on boot"* with
-no shared words — but misses exact tokens. BM25 nails `PR #3700`,
+understands meaning: *"why is startup slow?"* finds *"app hangs on boot"* with no
+shared words. What it misses are exact tokens. BM25 nails `PR #3700`,
 `isolated_filesystem` and commit SHAs, but misses paraphrases. Reciprocal Rank
 Fusion merges them by *rank*, so their incompatible score scales don't matter and
 no per-repository tuning is needed.
@@ -154,7 +154,8 @@ flowchart TB
 ```
 
 Two independent checks catch two different failures. The **reference validator**
-catches invented citations by deterministic set membership — no model involved.
+catches invented citations by deterministic set membership, with no model
+involved.
 The **NLI verifier** catches a real citation attached to a wrong claim, by
 running entailment between the claim and its cited evidence. If either fails the
 system retries once with widened retrieval, then refuses.
@@ -178,7 +179,7 @@ confirmed absent by actually searching for it.
 | `psf/black` | 30 | 0.833 | 5 |
 | **Mean** | **150** | **0.900** | **12** |
 
-An earlier version of this table reported 1.00 — on seven questions per
+An earlier version of this table reported 1.00, on seven questions per
 repository. Enlarging the sample lowered it. The lower number is the better
 result: it survives the question *"on how many, and which ones?"*
 
@@ -189,16 +190,19 @@ one that answered.
 
 | Repository | Faithfulness | Relevancy | Recall@6 | Citation precision |
 |---|:-:|:-:|:-:|:-:|
-| `psf/requests` | 0.856 | 0.902 | 0.516 | 0.534 |
-| `psf/black` | 0.844 | 0.932 | 0.571 | 0.524 |
-| `pallets/click` | 0.770 | 0.918 | 0.523 | 0.502 |
-| `fastapi/fastapi` | 0.670 | 0.842 | 0.651 | 0.333 |
-| `pydantic/pydantic` | 0.649 | 0.811 | 0.506 | 0.574 |
-| **Mean** | **0.758** | **0.881** | **0.553** | **0.494** |
+| `psf/requests` | 0.867 | 0.905 | 0.511 | 0.538 |
+| `psf/black` | 0.848 | 0.939 | 0.605 | 0.566 |
+| `pallets/click` | 0.777 | 0.919 | 0.510 | 0.486 |
+| `fastapi/fastapi` | 0.668 | 0.838 | 0.639 | 0.324 |
+| `pydantic/pydantic` | 0.657 | 0.810 | 0.519 | 0.578 |
+| **Mean** | **0.763** | **0.882** | **0.557** | **0.499** |
+
+Every figure recomputed directly from `results/eval-*/results.json`; run the
+numbers yourself and they will match.
 
 The mixed sets carry their own unanswerable questions, scored independently of
-the dedicated abstention sets above. The two samples agree — 0.886 versus 0.900 —
-which corroborates the result across question sets rather than resting it on one.
+the dedicated abstention sets above. The two samples agree, 0.886 against 0.900, which
+corroborates the result across question sets rather than resting it on one.
 
 > **Provenance.** Three models answered these 275 questions. A free tier's daily
 > cap is exhausted after a few dozen, after which the chain falls through to a
@@ -225,8 +229,8 @@ one model** so the comparison isolates the configuration. Mean of both repos:
 Three findings, each replicated on both repositories:
 
 **MMR is the most harmful stage.** Isolating it costs −0.280 recall and −0.188
-faithfulness. `DECISIONS.md` predicted this — *"diversification can push a
-relevant near-duplicate out of the top-k"* — but it had never been measured. Gold
+faithfulness. `DECISIONS.md` predicted it in those words, *"diversification can
+push a relevant near-duplicate out of the top-k"*, but nobody had measured it. Gold
 evidence here is typically a *cluster* of linked records, which is exactly what
 MMR discards.
 
@@ -236,8 +240,8 @@ is the opposite of the assumption behind hybrid retrieval.
 **Graph expansion helps end-to-end** but trades precision for recall: +0.058
 recall, +0.044 faithfulness, −0.052 citation precision.
 
-**Adaptive retry is the one stage that clearly earns its place** — +0.077 recall
-over the production configuration. It is also what turns a guard rejection into
+**Adaptive retry is the one stage that clearly earns its place**, at +0.077
+recall over the production configuration. It is also what turns a guard rejection into
 a visible refusal rather than a hedged paragraph, so it is worth enabling:
 
 ```bash
@@ -248,7 +252,7 @@ It is off by default only because every feature flag here defaults to preserving
 existing behaviour.
 
 > **Do not over-read this table.** n=20 per configuration, two repositories, and
-> a deliberately weak pinned model — the absolute numbers sit well below the
+> a deliberately weak pinned model. The absolute numbers sit well below the
 > answer-quality results above and are not system performance. What it supports
 > is the *relative ordering*. Acting on it warrants a larger run first.
 
@@ -257,8 +261,8 @@ existing behaviour.
 
 An earlier run left generation on the normal cloud-with-fallback path.
 Configurations execute in order and the daily quota depletes in order, so config
-1 got 19/20 answers from a 70B model and config 3 got none — the table appeared
-to show pipeline stages hurting when it was really the answerer getting weaker.
+1 got 19/20 answers from a 70B model and config 3 got none. The table appeared to
+show pipeline stages hurting; what it showed was the answerer getting weaker.
 `eval/ablation.py` now pins the model and records `answered_by` per
 configuration, so comparability is verifiable from the artifact.
 </details>
@@ -360,11 +364,11 @@ python scripts/check_providers.py  # providers + evaluation role models
 python scripts/demo_check.py       # what a viewer actually sees
 ```
 
-`smoke_test.py` is the durability check: Python version, free disk, every
-installed package still matching `requirements.txt` exactly, Ollama and both
-pinned tags present, HuggingFace models loading with **networking forced off**,
-GitHub token validity (warning 60 days before any expiry), and every index still
-loading. [`ENVIRONMENT.md`](ENVIRONMENT.md) ranks what can realistically break
+`smoke_test.py` is the durability check. It verifies the Python version, free
+disk, and that every installed package still matches `requirements.txt` exactly.
+It confirms Ollama is up with both pinned tags present, and loads the
+HuggingFace models with networking forced off. It then checks the GitHub token,
+warning 60 days before any expiry, and opens every index. [`ENVIRONMENT.md`](ENVIRONMENT.md) ranks what can realistically break
 over a nine-month gap.
 
 ### Testing
@@ -408,11 +412,11 @@ app still runs.
 
 ## How the benchmark is built
 
-All 400 questions — 250 mixed plus 150 unanswerable, across the five real
-repositories — are generated from each repository's real history, not
-hand-written:
+All 400 questions are generated from each repository's real history rather than
+hand-written. That is 250 mixed plus 150 unanswerable, across the five real
+repositories:
 
-1. **Plain Python selects the evidence** — commits carrying rationale language
+1. **Plain Python selects the evidence.** Commits carrying rationale language
    (`fix`, `because`, `deprecate`), genuine issue↔PR↔commit clusters from the
    link graph, keywords recurring across two or more distinct dates.
 2. **A reasoning model writes the question** from that evidence alone.
@@ -429,9 +433,9 @@ Three roles, three different model families, enforced in code:
 | Question author | judge | A model that writes and marks its own exam rewards its own phrasing |
 | Answerer | judge | A model grading its own output scores itself generously |
 
-`config.roles_are_distinct()` checks this on canonical model names — Groq's
+`config.roles_are_distinct()` checks this on canonical model names, since Groq's
 `openai/gpt-oss-120b` and Cerebras's `gpt-oss-120b` are the same model in
-different packaging — and every `results.json` records the outcome.
+different packaging. Every `results.json` records the outcome.
 
 This check exists because the bug was real: the judge had been the same model as
 the answerer, so faithfulness was partly self-assessed.
