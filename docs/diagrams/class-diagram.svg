@@ -209,7 +209,9 @@
   <text x="44" y="901" font-size="10.5" fill="#78350f">importing them, so each can be swapped in tests.</text>
 
   <!-- ===================== GENERALIZATION ===================== -->
-  <text x="470" y="770" font-size="13" font-weight="700" fill="#0f172a">Exception hierarchy — the only inheritance in the system</text>
+  <!-- Sits above the legend rect (y=742), not beside it: at 13px bold this
+       heading is ~360px wide and the gap to the legend's left edge is 270. -->
+  <text x="470" y="726" font-size="13" font-weight="700" fill="#0f172a">Exception hierarchy — the only inheritance in the system</text>
 
   <g>
     <rect x="480" y="796" width="180" height="34" rx="5" fill="#f1f5f9" stroke="#334155" stroke-width="1.3"/>

@@ -53,7 +53,7 @@
     <path d="M316,164 L316,440 L296,440" stroke-dasharray="5 4" marker-end="url(#a)"/>
 
     <!-- operator retries a failed build -->
-    <path d="M176,440 L140,440 L140,176 L136,176" stroke-dasharray="5 4" marker-end="url(#a)"/>
+    <path d="M176,440 L140,440 L140,164" stroke-dasharray="5 4" marker-end="url(#a)"/>
 
     <!-- reopening a repo whose fingerprint no longer matches -->
     <path d="M600,252 L600,204 L172,204 L172,164" stroke-dasharray="5 4" marker-end="url(#a)"/>

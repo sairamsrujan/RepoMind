@@ -110,7 +110,7 @@
 
   <!-- index -> retrieval. Drawn last: it crosses the QUERY band, whose opaque
        background would otherwise paint over this arrow. -->
-  <path d="M300,436 L300,505" fill="none" stroke="#94a3b8" stroke-width="1.6"
+  <path d="M300,436 L300,527" fill="none" stroke="#94a3b8" stroke-width="1.6"
         stroke-dasharray="5 4" marker-end="url(#arrow)"/>
   <text x="310" y="470" font-size="10.5" fill="#64748b">read per question</text>
 </svg>

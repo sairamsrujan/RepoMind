@@ -13,6 +13,7 @@ The same architecture at three aspect ratios. Pick by where it is going.
 | [`architecture.svg`](architecture.svg) | 854×676 | the README — fits GitHub's content width with no downscaling |
 | [`architecture-slide.svg`](architecture-slide.svg) | 1280×720 | a 16:9 presentation slide |
 | [`architecture-a4.svg`](architecture-a4.svg) | 900×1280 | A4 portrait, for the written report |
+| [`pipeline-detailed.svg`](pipeline-detailed.svg) | 1180×2210 | the whole pipeline in one top-to-bottom flowchart, with the module, model and constant behind every step |
 
 ## UML
 
@@ -35,7 +36,7 @@ wrong and an examiner reading both will find it. Re-extract with:
 .venv/bin/python -c "import ast,pathlib; [print(p, [n.name for n in ast.parse(p.read_text()).body if isinstance(n, ast.ClassDef)]) for p in pathlib.Path('.').glob('*/[a-z]*.py')]"
 ```
 
-## Two traps when editing
+## Four traps when editing
 
 **Band backgrounds are opaque.** Anything drawn *before* a band rect that
 overlaps it gets painted over. Connectors that cross into a band must stay at
@@ -50,3 +51,21 @@ editing:
 ```bash
 python3 -c "import xml.dom.minidom,glob; [xml.dom.minidom.parse(f) for f in glob.glob('docs/diagrams/*.svg')]; print('all valid')"
 ```
+
+**An arrowhead that stops short reads as pointing at nothing.** Terminate every
+arrow *on* the target's edge, and away from its corners. Three were wrong: one
+stopped 22px above its box, one landed on a box's top-left corner so it looked
+like it pointed into the gap between two stacked boxes, and one ended with a 4px
+sideways jog that turned the arrowhead 90° into empty space. None of these look
+like mistakes at thumbnail size, which is why they survived.
+
+**Text has no background.** A label drawn over a lifeline, an activation bar or
+a filled tag is not clipped — it just overlaps, and at a glance the reader takes
+it for a rendering artefact. Check labels against the boxes near them, not only
+against other labels.
+
+Both classes are found by measuring rather than looking: compute each label's
+width with the real font metrics (`PIL.ImageFont`, Helvetica Regular/Bold —
+`SFNS.ttf` is variable and `set_variation_by_axes` overshoots bold by ~27%,
+which invents overflows that are not there), then test every label box against
+every other box, and every arrow endpoint against its target's edge.

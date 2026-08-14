@@ -50,8 +50,22 @@
 
   <line x1="345" y1="195" x2="373" y2="195" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a)"/>
   <line x1="598" y1="195" x2="626" y2="195" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a)"/>
-  <line x1="791" y1="195" x2="819" y2="195" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a)"/>
-  <line x1="1014" y1="185" x2="1042" y2="185" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a)"/>
+  <!-- raw JSON feeds the chunker, and the chunker feeds the linker: sequential
+       in jobs/runner.py (chunk_repository at 188, link_repository at 198), so
+       no fork here. A single arrow at y=195 landed on the linker's top-left
+       corner and read as pointing into the gap between the two boxes. -->
+  <path d="M791,195 L805,195 L805,137 L819,137" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a)"/>
+  <path d="M916,175 L916,195" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a)"/>
+
+  <!-- The linker's output is written to all three stores. The old arrow began
+       at x=1014,y=185 — empty space between the chunker and linker boxes — and
+       ended in BM25 alone. -->
+  <path d="M1014,232 L1028,232" fill="none" stroke="#94a3b8" stroke-width="1.8"/>
+  <path d="M1028,119 L1028,251" fill="none" stroke="#94a3b8" stroke-width="1.8"/>
+  <circle cx="1028" cy="232" r="3" fill="#94a3b8"/>
+  <path d="M1028,119 L1042,119" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a)"/>
+  <path d="M1028,185 L1042,185" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a)"/>
+  <path d="M1028,251 L1042,251" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a)"/>
 
   <!-- ============ ROW 2 · QUERY ============ -->
   <rect x="30" y="395" width="1220" height="290" rx="10" fill="#f8fafc" stroke="#e9edf2"/>
