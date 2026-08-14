@@ -237,11 +237,11 @@
   <g stroke="#334155" stroke-width="1.4" fill="none">
     <!-- shared-target generalization: one triangle at the parent, a bus, then
          a stub per child. Three separate triangles on one parent is clutter. -->
-    <line x1="570" y1="846" x2="570" y2="830" marker-end="url(#gen)"/>
-    <path d="M570,846 L1025,846"/>
-    <path d="M570,866 L570,846"/>
-    <path d="M825,866 L825,846"/>
-    <path d="M1025,866 L1025,846"/>
+    <line x1="570" y1="858" x2="570" y2="830" marker-end="url(#gen)"/>
+    <path d="M570,858 L1025,858"/>
+    <path d="M570,866 L570,858"/>
+    <path d="M825,866 L825,858"/>
+    <path d="M1025,866 L1025,858"/>
 
     <line x1="570" y1="918" x2="570" y2="900" marker-end="url(#gen)"/>
     <path d="M210,918 L610,918"/>

@@ -74,15 +74,16 @@ The second is the one that matters. The guard rejected the first attempt,
 retried once with widened retrieval, found nothing, and declined.
 
 <div align="center">
-  <img src="docs/ui-refusal.png" alt="RepoMind declining a question about a FastAPI plugin that never existed" width="820">
-  <br><em>The guard refusing a fabricated premise rather than inventing an answer.</em>
+  <img src="docs/ui-refusal.png" width="820"
+       alt="RepoMind declining a question about a FastAPI plugin that never existed">
+  <br>
+  <sub><b>Refusing a fabricated premise</b> rather than inventing an answer.</sub>
+  <br><br>
+  <img src="docs/ui-answer.png" width="820"
+       alt="RepoMind answering a question about FastAPI PR 14965 with a verified citation">
+  <br>
+  <sub><b>The same interface answering a real question</b>, every claim cited and every citation checked.</sub>
 </div>
-
-<div align="center">
-  <img src="docs/ui-answer.png" alt="RepoMind answering a question about FastAPI PR 14965 with a verified citation" width="820">
-  <br><em>The same interface answering a real question — every claim cited, every citation checked.</em>
-</div>
-
 
 ---
 
@@ -92,7 +93,8 @@ Stages 1–3 run **once per repository**. Stage 4 runs on every question and nev
 touches GitHub.
 
 <div align="center">
-  <img src="docs/diagrams/architecture.svg" alt="RepoMind architecture: ingest from GitHub REST and GraphQL, process into chunks and a link graph, index into ChromaDB, BM25 and an evolution graph, then answer questions through hybrid retrieval, generation and a two-stage guard that either verifies the answer or refuses" width="854">
+  <img src="docs/diagrams/architecture.svg" width="820"
+       alt="RepoMind architecture: ingest from GitHub REST and GraphQL, process into chunks and a link graph, index into ChromaDB, BM25 and an evolution graph, then answer questions through hybrid retrieval, generation and a two-stage guard that either verifies the answer or refuses">
 </div>
 
 A `manifest.json` fingerprint decides whether an existing index can be reused:

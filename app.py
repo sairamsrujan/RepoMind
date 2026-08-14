@@ -788,8 +788,16 @@ def _render_answer(ans: dict) -> None:
     if ans["invalid_citations"]:
         st.error(f"Fabricated citations (not in retrieved evidence): "
                  f"{ans['invalid_citations']}")
-    for claim, score in ans["contradicted"]:
-        st.error(f"Claim contradicts its cited evidence (p={score:.2f}): _{claim}_")
+    # Not on a refusal. A declination reads as "the evidence does not mention X
+    # [citations]", and NLI scores that against chunks that are all about X, so
+    # it lands as a contradiction every time. Showing it put a red "claim
+    # contradicts its cited evidence" panel directly beneath the badge saying
+    # "declined honestly — no unsupported claim": the UI arguing with itself
+    # about the one outcome this project exists to get right.
+    if not declined:
+        for claim, score in ans["contradicted"]:
+            st.error(
+                f"Claim contradicts its cited evidence (p={score:.2f}): _{claim}_")
 
     st.download_button(
         "⬇️ Export answer (Markdown)",

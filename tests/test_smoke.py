@@ -210,3 +210,47 @@ def test_fallback_survives_a_manifest_with_no_coverage_dates():
     for manifest in ({}, {"coverage": {}}, {"coverage": {"since": None}}):
         questions = app.example_questions("nobody_knows", manifest)
         assert len(questions) == 3 and all(q.strip() for q in questions)
+
+
+# --------------------------------------------------------------------------- #
+# A refusal must not also be reported as a contradiction
+#
+# The declination sentence is "the evidence does not mention X [citations]".
+# NLI scores that against chunks which are all about X, so it reads as a
+# contradiction every time. The UI rendered both, putting a red "claim
+# contradicts its cited evidence" panel directly under the badge saying
+# "declined honestly — no unsupported claim". That screenshot is in the README.
+# --------------------------------------------------------------------------- #
+def test_refusal_suppresses_the_contradiction_panel():
+    """Structural check via AST — a source-text search matches this test's own
+    explanatory comment, which is exactly how the first version passed while
+    the bug was still there."""
+    import ast
+    import inspect
+    import app
+
+    tree = ast.parse(inspect.getsource(app._render_answer))
+
+    def loops_over_contradicted(node):
+        return (isinstance(node, ast.For)
+                and isinstance(node.iter, ast.Subscript)
+                and getattr(node.iter.slice, "value", None) == "contradicted")
+
+    guarded = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.If):
+            continue
+        test = ast.unparse(node.test)
+        if "declined" not in test:
+            continue
+        for child in ast.walk(node):
+            if loops_over_contradicted(child):
+                guarded.append(test)
+
+    all_loops = [n for n in ast.walk(tree) if loops_over_contradicted(n)]
+    assert all_loops, "the contradiction panel was removed entirely"
+    assert guarded, (
+        "the contradiction panel renders unconditionally; on a refusal it sits "
+        "directly under the 'declined honestly' badge and contradicts it")
+    assert any(t.startswith("not ") for t in guarded), (
+        f"guarded by {guarded!r}, which is not a `not declined` condition")
