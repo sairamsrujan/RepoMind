@@ -145,8 +145,9 @@ def select_spread(cases: list[FailureCase], limit: int) -> list[FailureCase]:
 
 def render(cases: list[FailureCase]) -> str:
     lines = ["# RepoMind — failure gallery", "",
-             f"{len(cases)} case(s), spread across failure categories. "
-             "Fill in each **Why:** line by hand.", ""]
+             f"{len(cases)} case(s), spread across failure categories. Each records "
+             "the stage that failed, what the system returned, and the ground truth.",
+             ""]
     if not cases:
         lines.append("_No failure cases found in the supplied sources._")
         return "\n".join(lines)
@@ -156,7 +157,6 @@ def render(cases: list[FailureCase]) -> str:
             f"- **Stage that failed:** {c.stage}  (source: {c.source})",
             f"- **System returned:** {c.returned[:500]}",
             f"- **Ground truth:** {c.ground_truth[:500]}",
-            "- **Why:** ",
             "",
         ]
     return "\n".join(lines)
