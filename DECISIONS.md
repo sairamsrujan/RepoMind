@@ -69,10 +69,12 @@ would imply an experiment we never ran.
   effect. Isolating MMR (config 1 → 2, mean of `pallets/click` + `psf/requests`,
   n=20 each, generation pinned) costs **−0.280 recall@6** and **−0.188
   faithfulness**. The reranker recovers only part of it (config 3: 0.607 vs
-  0.816 for retrieval-only). Gold evidence for these questions is typically a
-  *cluster* of linked records, which is precisely what diversification discards.
-  Caveat: n=20 on a weak pinned model; a larger run should confirm before MMR is
-  removed or its lambda retuned. See `results/ablation-multi/`.
+  0.816 for retrieval-only). The mechanism is measurable: the **median question
+  has exactly one gold chunk** (117 of 215 have a single one, only 8% exceed
+  k=6). Diversification pays off when the answer is spread across redundant
+  records; against a single target it has no upside and can only push that chunk
+  out. Caveat: n=20 on a weak pinned model; a larger run should confirm before
+  MMR is removed or its lambda retuned. See `results/ablation-multi/`.
 
 ## FINAL_TOP_K = 6
 - **Chose:** 6 chunks handed to the generator

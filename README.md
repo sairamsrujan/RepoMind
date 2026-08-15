@@ -240,9 +240,11 @@ Three findings, each replicated on both repositories:
 
 **MMR is the most harmful stage.** Isolating it costs −0.280 recall and −0.188
 faithfulness. `DECISIONS.md` predicted it in those words, *"diversification can
-push a relevant near-duplicate out of the top-k"*, but nobody had measured it. Gold
-evidence here is typically a *cluster* of linked records, which is exactly what
-MMR discards.
+push a relevant near-duplicate out of the top-k"*, but nobody had measured it.
+The reason is visible in the gold sets: **the median question has exactly one
+correct chunk**, and 117 of 215 have only one. MMR exists to remove redundancy,
+so where there is a single target there is nothing for it to gain — it can only
+displace that chunk in favour of a more dissimilar one.
 
 **BM25 alone outperforms the full hybrid pipeline** on every metric shown. That
 is the opposite of the assumption behind hybrid retrieval.
