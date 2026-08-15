@@ -171,12 +171,28 @@ hours before being caught:
 | Role | Reasoning model | Replacement | Speed-up |
 |---|---|---|---|
 | Judge | `deepseek-v4-flash` 88s | `groq:gpt-oss-120b` 0.6s | **147×** |
-| Generation fallback | `nemotron-super-49b` ~99s | pinned local ~20s | ~5× |
+| Answerer | `qwen/qwen3.6-27b` leaked `<think>` | `gemini-3.6-flash` | citations usable at all |
 
 A reasoning model thinks at length before answering. That is invisible per call
 and decisive across a 300-question run. **Time a candidate on the real prompt
 before putting it in a chain** — `scripts/check_providers.py` lists them, but it
 does not time them.
+
+**Local is the slowest link, not a fast one.** Measured end-to-end per answer in
+the published run:
+
+| Answering model | n | Mean |
+|---|---|---|
+| `nvidia:…nemotron-super-49b-v1.5` | 126 | **46.2s** |
+| `qwen2.5:7b-instruct` (local) | 80 | **120.2s** |
+| `groq:llama-3.3-70b-versatile` (retired) | 44 | 11.1s |
+
+An earlier version of this table claimed local was ~20s and used that to justify
+pinning it over Nemotron. The published rows say otherwise: local is 2.6× slower
+than the 49B cloud model. Local is the floor for **availability**, not speed —
+which is the real argument for keeping three cloud links alive per chain. Every
+quota exhaustion mid-run does not just weaken the answer, it triples the time
+that question takes.
 
 ---
 

@@ -120,8 +120,8 @@
   <rect x="260" y="1694" width="340" height="56" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
   <text x="430" y="1718" text-anchor="middle" font-size="12" font-weight="600" fill="#0f172a">Generate the answer</text>
   <text x="430" y="1735" text-anchor="middle" font-size="10.5" font-weight="400" fill="#475569">cloud model → rotate on 429 → local</text>
-  <text x="806" y="1712" text-anchor="start" font-size="10" font-weight="400" fill="#475569">groq:llama-3.3-70b → gpt-oss-120b →</text>
-  <text x="806" y="1726" text-anchor="start" font-size="10" font-weight="400" fill="#475569">gpt-oss-20b → qwen2.5:7b local.</text>
+  <text x="806" y="1712" text-anchor="start" font-size="10" font-weight="400" fill="#475569">groq:gpt-oss-20b, rotating to gpt-oss-120b</text>
+  <text x="806" y="1726" text-anchor="start" font-size="10" font-weight="400" fill="#475569">on a daily-quota 429, then qwen2.5:7b local.</text>
   <text x="806" y="1740" text-anchor="start" font-size="10" font-weight="400" fill="#475569">A timeout drops straight to local.</text>
   <text x="40" y="1790" text-anchor="start" font-size="11" font-weight="700" fill="#2563eb">7 · GUARD</text>
   <rect x="260" y="1776" width="340" height="56" rx="8" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.5"/>

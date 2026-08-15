@@ -460,7 +460,6 @@ the answerer, so faithfulness was partly self-assessed.
 | [`DECISIONS.md`](DECISIONS.md) | Each design decision: chosen / over / because / cost / evidence |
 | [`HANDOFF.md`](HANDOFF.md) | Contributor guide and the settings that must not change |
 | [`ENVIRONMENT.md`](ENVIRONMENT.md) | Nine-month durability analysis and offline restore |
-| [`AGENTS.md`](AGENTS.md) | Short orientation for AI coding tools |
 
 ---
 
