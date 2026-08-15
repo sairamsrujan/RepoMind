@@ -70,13 +70,22 @@ def test_select_spread_across_categories():
     assert "nli_contradiction" in cats and "fabricated_citation" in cats
 
 
-def test_render_has_why_lines():
+def test_render_emits_a_catalogue_not_a_worksheet():
+    """Every case carries its own evidence; nothing is left for a human to fill.
+
+    The rendered file ships in the repository and the README links to it as a
+    catalogue of real failures, so an empty field or an instruction addressed to
+    the author must never appear in it.
+    """
     cases = [fg.FailureCase("retrieval_miss", "Why X?", "returned", "truth",
                             "retrieval", "eval")]
     md = fg.render(cases)
     assert "# RepoMind — failure gallery" in md
-    assert "**Why:**" in md
     assert "[retrieval_miss]" in md
+    for field in ("Stage that failed", "System returned", "Ground truth"):
+        assert field in md
+    assert "**Why:**" not in md
+    assert "Fill in" not in md
 
 
 def test_main_writes_file(tmp_path):
