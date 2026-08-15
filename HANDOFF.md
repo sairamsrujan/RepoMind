@@ -248,9 +248,13 @@ exactly this reason. `eval/` imports *from* the pipeline, never the reverse.
 ### Provider roles — THREE roles, THREE distinct model families
 
 ```
-GENERATION_CHAIN   groq:llama-3.3-70b-versatile → nvidia:…nemotron-super-49b-v1.5
-JUDGE_CHAIN        groq:openai/gpt-oss-120b → openrouter:ling-3.0-flash:free
-QUESTIONGEN_CHAIN  nvidia:nemotron-3-nano-30b-a3b → openrouter:nemotron-nano-9b:free
+GENERATION_CHAIN   nvidia:…nemotron-super-49b-v1.5 → groq:gpt-oss-20b → gemini-3.6-flash
+JUDGE_CHAIN        groq:openai/gpt-oss-120b → openrouter:ling-3.0-flash:free → gemini-3.7-flash
+QUESTIONGEN_CHAIN  nvidia:nemotron-3-nano-30b-a3b → openrouter:nemotron-nano-9b:free → gemini-3.5-flash
+
+Each chain ends at local qwen2.5:7b-instruct. The Gemini tails are three
+*different* ids so a simultaneous exhaustion cannot collapse the roles onto
+one model.
 ```
 
 All three must stay **different model families**. The question-author/judge split

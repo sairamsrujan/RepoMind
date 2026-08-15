@@ -356,7 +356,7 @@ dependency — every role falls back to local automatically.
 ```bash
 GENERATION_PROVIDER=api
 GENERATION_API_BASE_URL=https://api.groq.com/openai/v1
-GENERATION_API_MODEL=llama-3.3-70b-versatile
+GENERATION_API_MODEL=openai/gpt-oss-20b
 GENERATION_API_KEY=...
 ```
 

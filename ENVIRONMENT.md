@@ -11,7 +11,7 @@ already happened during development — these are not hypotheticals.
 
 | # | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|---|
-| 1 | **A cloud model id is retired** — *observed*: `gemini-2.5-flash` began returning *"no longer available"*, and several NVIDIA ids 404 despite being listed | **High** | Judge/question-gen fall back to local; scores shift | Chains try the next entry; `check_providers.py` validates every role's model |
+| 1 | **A cloud model id is retired** — *observed three times*: `gemini-2.5-flash` began returning *"no longer available"*; several NVIDIA ids 404 despite being listed; Groq retired the answerer `llama-3.3-70b-versatile` on 2026-08-16 with 1 day's notice | **High** | Judge/question-gen fall back to local; scores shift | Chains try the next entry; `check_providers.py` validates every role's model. **Test the replacement before adopting it** — see §"Replacing a retired model" |
 | 2 | **A free tier changes or closes** — *observed*: Cerebras returned `402 Payment required` on all models | **High** | That provider drops out | Five providers configured; chain ends at local |
 | 3 | **Daily quota exhausted mid-run** — *observed* repeatedly | **Certain** | Evaluation silently changes model | `answered_by` records it; ablation pins one model |
 | 4 | **HuggingFace cache cleared** (disk cleanup, new machine) | Medium | Reranker + NLI guard cannot load → **app broken** | `wheelhouse/hf_cache/` (2.9 GB); smoke test loads them in forced-offline mode |
@@ -53,6 +53,28 @@ that Ollama and both pinned tags are present, that the HuggingFace models load
 with **networking forced off**, that the GitHub token is valid (warning 60 days
 before any expiry), and that all six indexes still load. Run it monthly — the
 failures above are all silent until you look.
+
+## Replacing a retired model
+
+Nothing goes down when a cloud model dies: the failure is caught, it is not a
+quota error, and generation falls to local `qwen2.5:7b-instruct` with
+`fell_back` recorded. So there is time to do this properly.
+
+1. `python scripts/check_providers.py` — lists every provider's live models and
+   validates each role.
+2. **Test the candidate on citation format before adopting it.** Feed it two
+   fake evidence chunks and count the `[bracketed]` tokens in the reply. Groq's
+   own recommended replacement for the retired answerer, `qwen/qwen3.6-27b`, is
+   a reasoning model: it emitted its `<think>` block and produced 23
+   citation-shaped tokens in a two-sentence answer. It would have poisoned the
+   reference validator. The vendor's suggestion is not a drop-in.
+3. Change `.env` or the chain in `config.py` — never application code.
+4. `python -c "import config; print(config.roles_are_distinct())"` — the
+   answerer must not become the judge. Groq's other suggestion,
+   `openai/gpt-oss-120b`, *is* the judge.
+5. Re-run `pytest -q`. Published results are unaffected: each `results.json`
+   records `answered_by`, so old numbers stay attributable to the model that
+   produced them.
 
 ## Freeze (run now, and again before any risky change)
 

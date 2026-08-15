@@ -142,9 +142,29 @@ def _chain(env_name: str, default: list[str]) -> list[str]:
 # ANSWERER — needs instruction-following (cite every claim as [chunk_id], refuse
 # when evidence is thin), not raw scale. This is the demo-facing model, so
 # quality is visible; ~70B is the sweet spot. Llama family.
+#
+# Groq retired llama-3.3-70b-versatile on 2026-08-16 and offers no 70B-class
+# replacement. Nemotron is promoted rather than substituted: it already answered
+# 126 of the 250 published questions to the old primary's 44, because Groq's
+# per-model daily cap kept exhausting first. The published faithfulness and
+# citation numbers are therefore already predominantly this model's output, so
+# promoting it moves the config to match reality instead of changing the result.
+#
+# NOT groq:qwen/qwen3.6-27b, which Groq recommends as the replacement: it is a
+# reasoning model and emits its <think> block, which put 23 citation-shaped
+# tokens in a two-sentence answer. Same lesson as the judge below and the
+# rotation note further down — a reasoning model is the wrong tool for a
+# format-constrained job.
+#
+# Three providers before local. Free tiers meter per provider AND per model, so
+# a third link is a third budget: the run stops dropping to the local 7B halfway
+# through. Each role's tail is a *different* Gemini id on purpose — if all three
+# chains exhaust at once they must not converge on one model and quietly turn
+# the evaluation into a model grading itself.
 GENERATION_CHAIN: list[str] = _chain("GENERATION_CHAIN", [
-    "groq:llama-3.3-70b-versatile",                      # fast, strong follower
-    "nvidia:nvidia/llama-3.3-nemotron-super-49b-v1.5",   # 49B, cheaper backup
+    "nvidia:nvidia/llama-3.3-nemotron-super-49b-v1.5",   # 49B, citations clean
+    "groq:openai/gpt-oss-20b",                           # 0.8s, second provider
+    "gemini:gemini-3.6-flash",                           # 3.8s, citations clean
 ])
 
 # JUDGE — emits two calibrated floats as JSON. Wants consistency, not
@@ -170,7 +190,8 @@ GENERATION_CHAIN: list[str] = _chain("GENERATION_CHAIN", [
 JUDGE_CHAIN: list[str] = _chain("JUDGE_CHAIN", [
     "groq:openai/gpt-oss-120b",                    # 0.6s
     "openrouter:inclusionai/ling-3.0-flash:free",  # 1.8s, separate quota
-])
+    "gemini:gemini-3.7-flash",                     # 1.5s, third quota; emits
+])                                                 # the two floats as valid JSON
 
 # QUESTION AUTHOR — must infer *why* a change happened from scattered evidence,
 # so reasoning genuinely helps here. Runs rarely (once per golden set), and
@@ -179,6 +200,7 @@ JUDGE_CHAIN: list[str] = _chain("JUDGE_CHAIN", [
 QUESTIONGEN_CHAIN: list[str] = _chain("QUESTIONGEN_CHAIN", [
     "nvidia:nvidia/nemotron-3-nano-30b-a3b",          # 30B MoE / 3B active
     "openrouter:nvidia/nemotron-nano-9b-v2:free",      # 9B free backup
+    "gemini:gemini-3.5-flash",                         # third quota
 ])
 
 
@@ -249,8 +271,13 @@ GENERATION_PROVIDER: str = os.getenv("GENERATION_PROVIDER", "ollama")  # ollama|
 GENERATION_API_BASE_URL: str = os.getenv(
     "GENERATION_API_BASE_URL", "https://api.groq.com/openai/v1")
 GENERATION_API_KEY: str = os.getenv("GENERATION_API_KEY", "")
+# Interactive default. Groq is the configured endpoint and its fastest model
+# with clean [chunk_id] output: 0.8s against Nemotron's 15.6s, which matters on
+# the demo path in a way it does not offline. Deliberately not gpt-oss-120b,
+# which is the judge — keeping them different avoids a live answer appearing to
+# come from the model that grades answers.
 GENERATION_API_MODEL: str = os.getenv("GENERATION_API_MODEL",
-                                      "llama-3.3-70b-versatile")
+                                      "openai/gpt-oss-20b")
 GENERATION_API_FALLBACK: bool = (
     os.getenv("GENERATION_API_FALLBACK", "true").strip().lower()
     not in ("0", "false", "no"))
@@ -293,7 +320,6 @@ GENERATION_API_THROTTLE: float = float(
 #
 # Order is by answer quality, so a rotation degrades gracefully.
 GENERATION_ROTATION: list[str] = _chain("GENERATION_ROTATION", [
-    "llama-3.3-70b-versatile",   # primary: strongest instruction-follower
     "openai/gpt-oss-120b",       # verified clean [chunk_id] output
     "openai/gpt-oss-20b",        # verified clean; last resort before local
 ])
