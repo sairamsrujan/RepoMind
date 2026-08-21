@@ -11,8 +11,9 @@ The same architecture at three aspect ratios. Pick by where it is going.
 | File | Size | Use for |
 |---|---|---|
 | [`architecture.svg`](architecture.svg) | 854×676 | the README — fits GitHub's content width with no downscaling |
-| [`architecture-slide.svg`](architecture-slide.svg) | 1280×720 | a 16:9 presentation slide |
+| [`architecture-slide.svg`](architecture-slide.svg) | 1280×720 | a 16:9 presentation slide (system architecture) |
 | [`architecture-a4.svg`](architecture-a4.svg) | 900×1280 | A4 portrait, for the written report |
+| [`pipeline-slide.svg`](pipeline-slide.svg) | 1280×720 | a 16:9 presentation slide (complete pipeline flowchart) |
 | [`pipeline-detailed.svg`](pipeline-detailed.svg) | 1180×2210 | the whole pipeline in one top-to-bottom flowchart, with the module, model and constant behind every step |
 
 ## UML
